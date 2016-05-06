@@ -1,0 +1,164 @@
+---
+title: "Understanding the Katz Back-Off Model"
+subtitle: "A Natural Language Model Used to Estimate Probabilities of Word Sequences"
+author: "Michael Szczepaniak"
+date: "May 5, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# setwd("./docs/2 Katz Back-Off")
+```
+
+### Introduction
+Before one can implement any kind of mathematical model, machine learning or otherwise, they need to understand how it works. This article describes how the Katz Back-Off Trigram (KBOT) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextTrio**](https://github.com/MichaelSzczepaniak/PredictNextTrio) as a web app deployed on [shinyapps.io](https://michael-szczepaniak.shinyapps.io/predictnexttrio/).  
+
+Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.
+
+### What is the Katz Back-Off (KBO) Model?
+[Wikipedia provides the following definition](https://en.wikipedia.org/wiki/Katz's_back-off_model):
+
+> Katz back-off is a generative n-gram language model that estimates the conditional probability of a word given its history in the n-gram. It accomplishes this estimation by "backing-off" to models with smaller histories under certain conditions. By doing so, the model with the most reliable information about a given history is used to provide the better results. [[1]](https://en.wikipedia.org/wiki/Katz's_back-off_model).
+
+#### Language Models
+The term *generative n-gram language model* in the above definition is a loaded term which deserves explaination. Let's start with the term *language model* (LM). In the context of Natural Language Processing (NLP), a language model, which is also referred to as a **grammar**, is a mathematical model which is constructed for the purpose of assigning a probability to either a series of words $w_{i-n}, w_{i-n+1}, ... w_i$ which we can denote as $P(w_{i-n}, w_{i-n+1}, ... w_i)$ or the probability of the last word given the previous words as denoted by $P(w_i | w_{i-n}, w_{i-n+1}, ... w_{i-1})$.  This later definition is what we'll be estimating in order to predict the next word of a phrase.
+
+Why would we want to assign a probability to a word or series of words?  The simple answer is that we want to make word predictions based on the highest probability of what we might actually observe.  
+
+#### Generative N-gram Language Model
+A *generative* grammar or LM, refers to the quality of languages related to the rules governing its structure or syntax [[2]](https://en.wikipedia.org/wiki/Generative_grammar). Because of these rules, not all combinations of words form valid sentences and therefore combinations that don't conform to these rules should be assigned a low probability.  For example, the sentence *I red a book* should have lower probability than the sentence *I read a book*.
+
+The term **n-gram** refers to the number of consecutive words utilized in a LM. For example, say we see the terms "*I want to eat Chinese*" 7 times and "*I want to eat Italian*" 3 times in a body of text (aka *corpus*), we might want to match the highest probability 5-gram to complete the 4-gram "*I want to eat*" which in this little example would be *Chinese*.
+
+Dan Jurafky describes the motivations and basic ideas behind probablistic n-gram models in [this video [3]](https://www.youtube.com/watch?v=s3kKlUBa3b0) and how to estimate these probabilities in [this video [4]](https://www.youtube.com/watch?v=o-CvoOkVrnY).
+
+### Assigning Probabilities Using the Maximum Likelihood Estimate
+The most intuitive way to assign probabilities to a series of event is to count up the number of occurances of each event type (like seeing a particular word or combination of words) and divide by the total number of occurances.  Assigning probilities in this manner is referred to as the **Maximum Likelihood Estimate** (MLE) because such estimates will be higher than the actual or true probability because unobserved events (e.g. combinations of words) have not been accounted for.  These unobserved events take up some of the probability mass in the true probability function which are not accounted for in the observed distribution.
+
+### Accounting for Probability Mass of Unseen N-grams: Discounting
+In discounting, some of the probability mass is taken from observed n-grams and distributed to unobserved n-grams in order to allow us to estimate probabilities of these unseen n-grams.  In the KBOT LM, as will be discussed in more detail later in the article, we select an absolute discount which artificially lowers the counts of observed trigrams and distributes this "stolen" probabilty mass to unobserved trigrams, bigrams and unigrams.
+
+The basic concept of discounting is most easily understood by way of example as shown in [this lecture [5]](https://class.coursera.org/nlangp-001/lecture/51) and [this lecture [6]](https://class.coursera.org/nlangp-001/lecture/53) given by Michael Collins in his Coursera class on NLP.
+
+Discounting is a key concept integral to KBO and other advanced LMs like [Good-Turing [7]](https://www.youtube.com/watch?v=XdjCCkFUBKU) and [Kneser-Ney [8]](https://www.youtube.com/watch?v=wtB00EczoCM) as described in the lectures by Dan Jurafasky provided in links [[7]](https://www.youtube.com/watch?v=XdjCCkFUBKU) and [[8]](https://www.youtube.com/watch?v=wtB00EczoCM).
+
+### Using N-gram Tables for Prediction - A Little Math
+The theory unlying the use n-grams probability estimates starts with the [Chain Rule [9]](https://en.wikipedia.org/wiki/Chain_rule_(probability)) applied to compute joint probabilities which states:
+
+1. $P(w_1, w_2, w_3, ...w_n) = \prod_{i=1}^nP(w_i|w_1, w_2... w_{i-1})$
+
+Jurafsky [[3]](https://www.youtube.com/watch?v=s3kKlUBa3b0) applies equation 1. in the following example to illustrate:
+
+\begin{equation}
+P(its\:water\:is\:so\:transparent) = P(its) ×P (water\:|\:its) × P(is\:|\:its\:water) × \\ P(so\:|\:its\:water\:is) × P(transparent\:|\:its\:water\:is\:so)
+\end{equation}
+
+#### Simplifying N-gram Probability Estimates: Markov Assumption
+The example above is the full expansion of the Chain Rule using equation 1.  This can be simplified by assuming that the probability of the left side of equation 1. can be approximated by less than the prior $(n-1)$ terms which can be expressed more formally as:
+
+2. $P(w_1, w_2, w_3, ...w_n) \approx \prod_{i=1}^nP(w_i|w_1, w_{i-k}... w_{i-1})$
+
+Making the above approximation is referred to as applying the Markov Assumption.  From the previous example, this is like saying:
+
+3. $P(the\:|\:its\:water\:is\:so\:transparent\:that) \approx P (the\:|\:that)$ or
+
+4. $P(the\:|\:its\:water\:is\:so\:transparent\:that) \approx P (the\:|\:transparent\:that)$
+
+In equation 3., the probability of the bigram *the* given *that* is used to estimate the probability of *the* given *its water is so transparent that*.  In equation 4., the probability of the trigram *the* given *transparent that* is used to make the same estimate.
+
+### Estimating Probabilities
+#### Observed N-grams
+Using the bigram MLE to estimate the probability of the last word given the previous word can be written as
+
+5. $P(w_i\:|\:w_{i-1}) = \frac{count(w_{i-1},\:w_i)}{count(w_i)} = \frac{c(w_{i-1},\:w_i)}{c(w_i)}$
+
+where $w_i$ is the last word (the one we are trying to predict), $w_{i-1}$ is the word just prior to $w_i$ and *count* has been abbreviated to *c*.  The trigram MLE can be written as:
+
+6. $P(w_i\:|\:w_{i-1}, \:w_{i-2}) = \frac{c(w_{i-2},\:w_{i-1},\:w_i)}{c(w_{i-1},\:w_i)}$
+
+where $w_{i-2}$ is the word prior to $w_{i-1}$.
+
+As long as we have seen one or more bigrams or trigrams, we can use 5. or 6. to estimate the probability of the last word given the previous one or two.  If we want to estimate probabilities using trigrams, but no trigrams are observed, we could "back-off" and estimate the probability using the bigram.  If no bigrams exist, we could estimate using the unigram probability.  The last sentence describes the general idea behind how the *Stupid Back-off* algorithm works.  The paper written by creators of this alogrithm can be found [here](http://www.aclweb.org/anthology/D07-1090.pdf)
+
+#### Unobserved N-grams
+As mentioned earlier, the KBOT estimates probabilities of unseen n-grams by redistributing some of the probability of observed trigrams to those that are unobserved through discounting. So the first step in this process is to determine amount of probability mass that gets taken from the observed trigrams.  The second step will be to determine how that taken probability mass is redistributed.
+
+The total probability mass of the observer trigrams can be written as:
+
+7. *trigram probability mass* = $\sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}$
+
+where the term $w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})$ refers to all the words *w* in the set $\mathcal{A}(w_{i-2},\:w_{i-1})$ which are all words which terminate an observed trigram.  If we define $\gamma$ to be the amount of discount which is taken from observed trigrams, and $c^*$ to be the new discounted counts, the amount of discounted probability mass taken from the observed trigrams can be defined as:
+
+8. $\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:$ where
+
+9. $c^*(w_{i-2},\:w_{i-1},\:w) = c(w_{i-2},\:w_{i-1},\:w) - \gamma$
+
+At this point, we've finished the first step by defining the amount of probability mass taken from the observed trigrams as a function of some discounted amount $\gamma$.  Now we need to know how to assign this discounted probability mass to unseen trigrams.  Katz proposed that this be done proportionally to the backed-off bigram probability parameters.  If the estimate for this backed-off bigram probability is $q_{BO}(w_i\:|\:w_{i-1})$, then amount of discounted probability mass $\alpha(w_{i-2},\:w_{i-1})$ assigned to an unknown trigram $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ would be:
+
+10. $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}$
+
+where the term $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ refers to all the words *w* in the set $\mathcal{B}(w_{i-2},\:w_{i-1})$ which are all words which terminate an **unobserved** trigram.
+
+### The Little Corpus That Could
+
+As implied earlier, a corpus is a body of text from which we build and test LMs.  To illustrate how the mathematical formulation of the KBOT model works, it's helpful to look at a simple corpus that is small enough to see n-gram counts, but large enough to illustrate the impact of unforseen n-grams on the calculations.  The following sample corpus was extended from an example provided by Michael Collins [on page 4 of the week 1 lecture questions](https://d396qusza40orc.cloudfront.net/nlangp/quiz_questions/week1.pdf)
+```{r ltc}
+ltcorpus <- readLines("little_test_corpus1.txt")
+ltcorpus
+```
+In this corpus, SOS and EOS are tokens used to denote *start of sentence* and *end-of-sentence*. Why this is done will become clear later in the example.
+
+#### Unigram, Bigram and Trigram counts
+This article will use the **quanteda** package written by Ken Benoit and Paul Nulty to construct the n-grams.  My experience with this package is that it performs much faster than **tm** and **RWeka** for these types of tasks, but of course, your mileage may vary.  A nice little getting started guide to this package can be found [here](https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html).
+
+```{r message=FALSE, warning=FALSE}
+library(quanteda)
+
+## Returns a named vector of n-grams and their associated frequencies
+## extracted from the character vector dat.
+##
+## ng - Defines the type of n-gram to be extracted: unigram if ng=1,
+##      bigram if ng=2, trigram if n=3, etc.
+## dat - Character vector from which we want to get n-gram counts.
+## igfs - Character vector of words (features) to ignore from frequency table
+## sort.by.ngram - sorts the return vector by the names
+## sort.by.freq - sorts the return vector by frequency/count
+getNgramFreqs <- function(ng, dat, igfs=NULL, sent.parse=FALSE,
+                          sort.by.ngram=TRUE, sort.by.freq=FALSE) {
+    if(sent.parse) { dat <- breakOutSentences(dat) }
+    # http://stackoverflow.com/questions/36629329/
+    # how-do-i-keep-intra-word-periods-in-unigrams-r-quanteda
+    if(is.null(igfs)) {
+        dat.dfm <- dfm(dat, ngrams=ng, toLower = FALSE, removePunct = FALSE,
+                       what = "fasterword", verbose = FALSE)
+    } else {
+        dat.dfm <- dfm(dat, ngrams=ng, toLower = FALSE, ignoredFeatures=igfs,
+                       removePunct = FALSE, what = "fasterword", verbose = FALSE)
+    }
+    rm(dat)
+    # quanteda docfreq will get the document frequency of terms in the dfm
+    ngram.freq <- docfreq(dat.dfm)
+    if(sort.by.freq) { ngram.freq <- sort(ngram.freq, decreasing=TRUE) }
+    if(sort.by.ngram) { ngram.freq <- ngram.freq[sort(names(ngram.freq))] }
+    rm(dat.dfm)
+    
+    return(ngram.freq)
+}
+
+unigrams <- getNgramFreqs(1, ltcorpus)
+bigrams <- getNgramFreqs(2, ltcorpus)
+trigrams <- getNgramFreqs(3, ltcorpus)
+unigrams; bigrams; trigrams
+```
+
+
+### Probability Density
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
