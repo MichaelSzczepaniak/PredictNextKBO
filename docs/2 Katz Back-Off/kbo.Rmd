@@ -2,7 +2,7 @@
 title: "Understanding the Katz Back-Off Model"
 subtitle: "A Natural Language Model Used to Estimate Probabilities of Word Sequences"
 author: "Michael Szczepaniak"
-date: "May 5, 2016"
+date: "May 2016"
 output: html_document
 ---
 
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ### Introduction
-Before one can implement any kind of mathematical model, machine learning or otherwise, they need to understand how it works. This article describes how the Katz Back-Off Trigram (KBOT) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextTrio**](https://github.com/MichaelSzczepaniak/PredictNextTrio) as a web app deployed on [shinyapps.io](https://michael-szczepaniak.shinyapps.io/predictnexttrio/).  
+Before one can implement any kind of mathematical model, machine learning or otherwise, they need to understand how it works. This article describes how the Katz Back-Off (KBO) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextDuo**](https://github.com/MichaelSzczepaniak/PredictNextDuo) as a web app deployed on [shinyapps.io](https://michael-szczepaniak.shinyapps.io/predictnextduo/).  
 
 Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.
 
@@ -79,7 +79,7 @@ where $w_i$ is the last word (the one we are trying to predict), $w_{i-1}$ is th
 
 where $w_{i-2}$ is the word prior to $w_{i-1}$.
 
-As long as we have seen one or more bigrams or trigrams, we can use 5. or 6. to estimate the probability of the last word given the previous one or two.  If we want to estimate probabilities using trigrams, but no trigrams are observed, we could "back-off" and estimate the probability using the bigram.  If no bigrams exist, we could estimate using the unigram probability.  The last sentence describes the general idea behind how the *Stupid Back-off* algorithm works.  The paper written by creators of this alogrithm can be found [here](http://www.aclweb.org/anthology/D07-1090.pdf)
+As long as we have seen one or more bigrams or trigrams, we can use 5. or 6. to estimate the probability of the last word $w_i$ given the previous one ($w_{i-1}$) or two ($w_{i-2},\:w_{i-1}$).  If we want to estimate probabilities using trigrams, but no trigrams are observed, we could "back-off" and estimate the probability using the bigram.  If no bigrams exist, we could estimate using the unigram probability.  The *Stupid Back-off* (SBO) model essentially does this without consideration of unseen n-grams, but performs quite will with large scale n-gram tables.  The SBO is one of the two models implemented in the **PredictNextDuo** project, but is not discussed further in this article.  For further details regarding the SBO, the paper written by the creators of this alogrithm can be found [here.](http://www.aclweb.org/anthology/D07-1090.pdf)
 
 #### Unobserved N-grams
 As mentioned earlier, the KBOT estimates probabilities of unseen n-grams by redistributing some of the probability of observed trigrams to those that are unobserved through discounting. So the first step in this process is to determine amount of probability mass that gets taken from the observed trigrams.  The second step will be to determine how that taken probability mass is redistributed.
@@ -94,7 +94,7 @@ where the term $w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})$ refers to all the words 
 
 9. $c^*(w_{i-2},\:w_{i-1},\:w) = c(w_{i-2},\:w_{i-1},\:w) - \gamma$
 
-At this point, we've finished the first step by defining the amount of probability mass taken from the observed trigrams as a function of some discounted amount $\gamma$.  Now we need to know how to assign this discounted probability mass to unseen trigrams.  Katz proposed that this be done proportionally to the backed-off bigram probability parameters.  If the estimate for this backed-off bigram probability is $q_{BO}(w_i\:|\:w_{i-1})$, then amount of discounted probability mass $\alpha(w_{i-2},\:w_{i-1})$ assigned to an unknown trigram $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ would be:
+At this point, we've finished the first step by defining the amount of probability mass taken from the observed trigrams as a function of some discounted amount $\gamma$.  Now we need to know how to assign this discounted probability mass to unseen trigrams.  Katz proposed that this be done proportionally to the backed-off bigram probability parameters.  If the estimate for this backed-off bigram probability is $q_{BO}(w_i\:|\:w_{i-1})$, then the amount of discounted probability mass $\alpha(w_{i-2},\:w_{i-1})$ assigned to an unknown trigram $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ would be:
 
 10. $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}$
 

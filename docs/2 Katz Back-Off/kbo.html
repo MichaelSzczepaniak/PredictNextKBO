@@ -111,14 +111,14 @@ $(document).ready(function () {
 <h1 class="title">Understanding the Katz Back-Off Model</h1>
 <h3 class="subtitle"><em>A Natural Language Model Used to Estimate Probabilities of Word Sequences</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>May 5, 2016</em></h4>
+<h4 class="date"><em>May 2016</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level3">
 <h3>Introduction</h3>
-<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need to understand how it works. This article describes how the Katz Back-Off Trigram (KBOT) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextTrio"><strong>PredictNextTrio</strong></a> as a web app deployed on <a href="https://michael-szczepaniak.shinyapps.io/predictnexttrio/">shinyapps.io</a>.</p>
+<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need to understand how it works. This article describes how the Katz Back-Off (KBO) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextDuo"><strong>PredictNextDuo</strong></a> as a web app deployed on <a href="https://michael-szczepaniak.shinyapps.io/predictnextduo/">shinyapps.io</a>.</p>
 <p>Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.</p>
 </div>
 <div id="what-is-the-katz-back-off-kbo-model" class="section level3">
@@ -186,7 +186,7 @@ P(its\:water\:is\:so\:transparent) = P(its) ×P (water\:|\:its) × P(is\:|\:its\
 <li><span class="math inline">\(P(w_i\:|\:w_{i-1}, \:w_{i-2}) = \frac{c(w_{i-2},\:w_{i-1},\:w_i)}{c(w_{i-1},\:w_i)}\)</span></li>
 </ol>
 <p>where <span class="math inline">\(w_{i-2}\)</span> is the word prior to <span class="math inline">\(w_{i-1}\)</span>.</p>
-<p>As long as we have seen one or more bigrams or trigrams, we can use 5. or 6. to estimate the probability of the last word given the previous one or two. If we want to estimate probabilities using trigrams, but no trigrams are observed, we could “back-off” and estimate the probability using the bigram. If no bigrams exist, we could estimate using the unigram probability. The last sentence describes the general idea behind how the <em>Stupid Back-off</em> algorithm works. The paper written by creators of this alogrithm can be found <a href="http://www.aclweb.org/anthology/D07-1090.pdf">here</a></p>
+<p>As long as we have seen one or more bigrams or trigrams, we can use 5. or 6. to estimate the probability of the last word <span class="math inline">\(w_i\)</span> given the previous one (<span class="math inline">\(w_{i-1}\)</span>) or two (<span class="math inline">\(w_{i-2},\:w_{i-1}\)</span>). If we want to estimate probabilities using trigrams, but no trigrams are observed, we could “back-off” and estimate the probability using the bigram. If no bigrams exist, we could estimate using the unigram probability. The <em>Stupid Back-off</em> (SBO) model essentially does this without consideration of unseen n-grams, but performs quite will with large scale n-gram tables. The SBO is one of the two models implemented in the <strong>PredictNextDuo</strong> project, but is not discussed further in this article. For further details regarding the SBO, the paper written by the creators of this alogrithm can be found <a href="http://www.aclweb.org/anthology/D07-1090.pdf">here.</a></p>
 </div>
 <div id="unobserved-n-grams" class="section level4">
 <h4>Unobserved N-grams</h4>
@@ -200,7 +200,7 @@ P(its\:water\:is\:so\:transparent) = P(its) ×P (water\:|\:its) × P(is\:|\:its\
 <li><p><span class="math inline">\(\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> where</p></li>
 <li><p><span class="math inline">\(c^*(w_{i-2},\:w_{i-1},\:w) = c(w_{i-2},\:w_{i-1},\:w) - \gamma\)</span></p></li>
 </ol>
-<p>At this point, we’ve finished the first step by defining the amount of probability mass taken from the observed trigrams as a function of some discounted amount <span class="math inline">\(\gamma\)</span>. Now we need to know how to assign this discounted probability mass to unseen trigrams. Katz proposed that this be done proportionally to the backed-off bigram probability parameters. If the estimate for this backed-off bigram probability is <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span>, then amount of discounted probability mass <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> assigned to an unknown trigram <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> would be:</p>
+<p>At this point, we’ve finished the first step by defining the amount of probability mass taken from the observed trigrams as a function of some discounted amount <span class="math inline">\(\gamma\)</span>. Now we need to know how to assign this discounted probability mass to unseen trigrams. Katz proposed that this be done proportionally to the backed-off bigram probability parameters. If the estimate for this backed-off bigram probability is <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span>, then the amount of discounted probability mass <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> assigned to an unknown trigram <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> would be:</p>
 <ol start="10" style="list-style-type: decimal">
 <li><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}\)</span></li>
 </ol>
