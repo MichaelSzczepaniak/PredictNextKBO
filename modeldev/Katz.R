@@ -36,22 +36,49 @@ getNgramFreqs <- function(ng, dat, igfs=NULL, sent.parse=FALSE,
     return(ngram.freq)
 }
 
-getTrigrams <- function(corpFile="../data/little_test_corpus1.txt") {
-    lines <- read_lines(corpFile)
-    trigs <- getNgramFreqs(3, lines)
-    dt <- data.table(ngram=names(trigs), freq=trigs)
-    dt <- dt[-grep('^SOS', dt$ngram),]
+## Returns a 2 column data.table. The first column (ngram) contains the
+## unigram (if n=1), the bigram (if n=2), or trigram (if n=3). The second column
+## (freq) contains the frequency or count of the ngram found in inputFile if
+## isFreqTable=FALSE.
+##
+## If isFreqTable is TRUE, input file is assumed to be a 2 column csv file with
+## first column header = "ngram" and second column header = "freq". Data in 
+## these 2 columns are assumed to be as is described above for returned table.
+getNgramTables <- function(n, inputFile="../data/little_test_corpus1.txt",
+                           isFreqTable=FALSE) {
+    ngrams.dt <- NULL
+    if(isFreqTable) {
+        ngrams.dt <- read.csv(inputFile, stringsAsFactors=FALSE)
+    } else {
+        lines <- read_lines(inputFile)
+        ngrams <- getNgramFreqs(n, lines)
+        ngrams.dt <- data.table(ngram=names(ngrams), freq=ngrams)
+    }
+    if(length(grep('^SOS', ngrams.dt$ngram)) > 0) {
+        ngrams.dt <- ngrams.dt[-grep('^SOS', ngrams.dt$ngram),]
+    }
+    
+    return(ngrams.dt)
 }
 
+## Returns the tail words of all trigrams that start with bigramPrefix.
+## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
+## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
 getTrigramWinA <- function(bigramPrefix, trigrams) {
-    
+    regex <- sprintf("%s%s", "^", bigramPrefix)
+    trigs.winA <- trigrams[grep(regex, trigrams$ngram)]
+    patToReplace <- sprintf("%s%s", bigramPrefix, "_")
+    wInA <- str_replace(trigs.winA$ngram, patToReplace, "")
+    return(wInA)
+}
+
+getTrigramWInB <- function(bigramPrefix, trigrams) {
+    allUnigrams <- getNgramTables(1)$ngram
+    wInA <- getTrigramWinA(bigramPrefix, trigrams)
+    wInB <- setdiff(allUnigrams, wInA)
 }
 
 alphaTrigram <- function(discount=0.5, wInA) {
-    
-}
-
-getTrigramInB <- function() {
     
 }
 
