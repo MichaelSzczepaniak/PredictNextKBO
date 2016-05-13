@@ -44,8 +44,11 @@ getNgramFreqs <- function(ng, dat, igfs=NULL, sent.parse=FALSE,
 ## If isFreqTable is TRUE, input file is assumed to be a 2 column csv file with
 ## first column header = "ngram" and second column header = "freq". Data in 
 ## these 2 columns are assumed to be as is described above for returned table.
+##
+## prefixFilter - If not NULL, tells the function to return only rows where
+##                ngram column starts with prefixFilter.
 getNgramTables <- function(n, inputFile="../data/little_test_corpus1.txt",
-                           isFreqTable=FALSE) {
+                           isFreqTable=FALSE, prefixFilter=NULL) {
     ngrams.dt <- NULL
     if(isFreqTable) {
         ngrams.dt <- read.csv(inputFile, stringsAsFactors=FALSE)
@@ -57,11 +60,15 @@ getNgramTables <- function(n, inputFile="../data/little_test_corpus1.txt",
     if(length(grep('^SOS', ngrams.dt$ngram)) > 0) {
         ngrams.dt <- ngrams.dt[-grep('^SOS', ngrams.dt$ngram),]
     }
+    if(!is.null(prefixFilter)) {
+        regex <- sprintf('%s%s', '^', prefixFilter)
+        ngrams.dt <- ngrams.dt[grep(regex, ngrams.dt$ngram),]
+    }
     
     return(ngrams.dt)
 }
 
-## Returns the tail words of all trigrams that start with bigramPrefix.
+## Returns the tail words of all observed trigrams that start with bigramPrefix.
 ## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
 ## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
 getTrigramWinA <- function(bigramPrefix, trigrams) {
@@ -72,14 +79,33 @@ getTrigramWinA <- function(bigramPrefix, trigrams) {
     return(wInA)
 }
 
+## Returns the tail words of all UNOBSERVED observed trigrams that start with
+## bigramPrefix.
+## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
+## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
 getTrigramWInB <- function(bigramPrefix, trigrams) {
     allUnigrams <- getNgramTables(1)$ngram
     wInA <- getTrigramWinA(bigramPrefix, trigrams)
-    wInB <- setdiff(allUnigrams, wInA)
+    if(length(wInA) < 1) {
+        wInB <- allunigrams
+    } else {
+        wInB <- setdiff(allUnigrams, wInA)
+    }
+    return(wInB)
 }
 
-alphaTrigram <- function(discount=0.5, wInA) {
-    
+## Returns the total probability mass discounted from all observed trigrams.
+## This is the amount of probability mass which is redistributed to
+## UNOBSERVED trigrams. If no trigrams start with bigram$ngram[1] exist,
+## -1 is returned.
+## bigram - single row frequency table
+alphaTrigram <- function(discount=0.5, trigrams, bigram) {
+    # get all trigrams that start with bigram
+    regex <- sprintf("%s%s", "^", bigram$ngram[1])
+    trigs <- trigrams[grep(regex, trigrams$ngram),]
+    # get the bigramPrefix count
+    alphaTri <- 1 - (sum(trigs$freq - discount) / bigram$freq)
+    return(alphaTri)
 }
 
 getTrigramQbo <- function() {
