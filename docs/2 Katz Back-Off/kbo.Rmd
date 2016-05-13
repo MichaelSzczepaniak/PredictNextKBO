@@ -88,15 +88,19 @@ The total probability mass of the observer trigrams can be written as:
 
 7. *trigram probability mass* = $\sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}$
 
-where the term $w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})$ refers to all the words *w* in the set $\mathcal{A}(w_{i-2},\:w_{i-1})$ which are all words which terminate an observed trigram.  If we define $\gamma$ to be the amount of discount which is taken from observed trigrams, and $c^*$ to be the new discounted counts, the amount of discounted probability mass taken from the observed trigrams can be defined as:
+where the term $w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})$ refers to all the words *w* in the set $\mathcal{A}(w_{i-2},\:w_{i-1})$ which are all words which terminate an observed trigram starting with $(w_{i-2},\:w_{i-1})$.  If we define $\gamma$ to be the amount of discount which is taken from observed trigrams, and $c^*$ to be the new discounted counts for observed trigrams, then the discounted MLE would be:
 
-8. $\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:$ where
+8. $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:$ where
 
 9. $c^*(w_{i-2},\:w_{i-1},\:w) = c(w_{i-2},\:w_{i-1},\:w) - \gamma$
 
+From here it follows that the amount of discounted probability mass taken from the observed trigrams can then be defined as:
+
+10. $\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:$ where
+
 At this point, we've finished the first step by defining the amount of probability mass taken from the observed trigrams as a function of some discounted amount $\gamma$.  Now we need to know how to assign this discounted probability mass to unseen trigrams.  Katz proposed that this be done proportionally to the backed-off bigram probability parameters.  If the estimate for this backed-off bigram probability is $q_{BO}(w_i\:|\:w_{i-1})$, then the amount of discounted probability mass $\alpha(w_{i-2},\:w_{i-1})$ assigned to an unknown trigram $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ would be:
 
-10. $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}$
+11. $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}$
 
 where the term $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ refers to all the words *w* in the set $\mathcal{B}(w_{i-2},\:w_{i-1})$ which are all words which terminate an **unobserved** trigram.
 
