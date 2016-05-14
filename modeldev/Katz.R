@@ -95,6 +95,24 @@ getUTTWinB <- function(bigramPrefix, trigrams) {
     return(wInB)
 }
 
+## Returns a two column data.table of observed trigrams that start with
+## bigramPrefix in the first column named ngram and frequencies/counts in the 
+## second column named freq.
+getObsTrigs <- function(bigramPrefix, trigrams) {
+    regex <- sprintf("%s%s", "^", bigramPrefix)
+    trigs.winA <- trigrams[grep(regex, trigrams$ngram)]
+    return(trigs.winA)
+}
+
+getUnobsTrigs <- function(bigramPrefix, trigrams) {
+    unobsTriTails <- getUTTWinB(bigramPrefix, trigrams)
+    unobsTrigs <- vector(mode="character", length=length(unobsTriTails))
+    for(i in 1:length(unobsTriTails)) {
+        unobsTrigs[i] <- sprintf('%s%s%s', bigramPrefix, '_', unobsTriTails[i])
+    }
+    return(unobsTrigs)
+}
+
 ## Returns the total probability mass discounted from all observed TRIGRAMS.
 ## This is the amount of probability mass which is redistributed to
 ## UNOBSERVED trigrams. If no trigrams starting with bigram$ngram[1] exist,
