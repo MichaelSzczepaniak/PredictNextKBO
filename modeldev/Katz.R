@@ -97,7 +97,8 @@ getUTTWinB <- function(bigramPrefix, trigrams) {
 
 ## Returns a two column data.table of observed trigrams that start with
 ## bigramPrefix in the first column named ngram and frequencies/counts in the 
-## second column named freq.
+## second column named freq. If no observed trigrams with bigramPrefix exist,
+## and empty data.table is returned.
 getObsTrigs <- function(bigramPrefix, trigrams) {
     regex <- sprintf("%s%s", "^", bigramPrefix)
     trigs.winA <- trigrams[grep(regex, trigrams$ngram)]
@@ -145,6 +146,20 @@ getAlphaBigram <- function(discount=0.5, bigrams, unigram) {
     if(nrow(bigsThatStartWithUnig) < 1) return(-1)
     alphaBi <- 1 - (sum(bigsThatStartWithUnig$freq - discount) / unigram$freq)
     return(alphaBi)
+}
+
+## Returns the probability estimate for observed trigrams with bigramPrefix.
+## If no such trigrams exist, returns -1.
+calc.qBO.trigramA <- function(discount=0.5, bigramPrefix, trigrams) {
+    obsTrigsA <- getObsTrigs(bigramPrefix, trigrams)
+    obsCount <- sum(obsTrigsA$freq)
+    qBO.A <- (obsTrigsA$freq - discount) / obsCount
+    names(qBO.A) <- obsTrigsA$ngram
+    return(qBO.A)
+}
+
+calc.qBO.trigramB <- function() {
+    
 }
 
 ## Returns a named numeric vector where the name of each element is a bigram
