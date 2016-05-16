@@ -81,7 +81,7 @@ where $w_{i-2}$ is the word prior to $w_{i-1}$.
 
 As long as we have seen one or more bigrams or trigrams, we can use 5. or 6. to estimate the probability of the last word $w_i$ given the previous one ($w_{i-1}$) or two ($w_{i-2},\:w_{i-1}$).  If we want to estimate probabilities using trigrams, but no trigrams are observed, we could "back-off" and estimate the probability using the bigram.  If no bigrams exist, we could estimate using the unigram probability.  The *Stupid Back-off* (SBO) model essentially does this without consideration of unseen n-grams, but performs quite will with large scale n-gram tables.  The SBO is one of the two models implemented in the **PredictNextDuo** project, but is not discussed further in this article.  For further details regarding the SBO, the paper written by the creators of this alogrithm can be found [here.](http://www.aclweb.org/anthology/D07-1090.pdf)
 
-#### Unobserved N-grams
+#### Accounting for Unobserved N-grams
 As mentioned earlier, the KBOT estimates probabilities of unseen n-grams by redistributing some of the probability of observed trigrams to those that are unobserved through discounting. So the first step in this process is to determine amount of probability mass that gets taken from the observed trigrams.  The second step will be to determine how that taken probability mass is redistributed.
 
 The total probability mass of the observer trigrams can be written as:
