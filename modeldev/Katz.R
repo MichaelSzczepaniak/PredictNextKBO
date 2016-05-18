@@ -116,14 +116,14 @@ getObsTrigs <- function(bigramPrefix, trigrams) {
 
 ## Returns the probability estimate for observed trigrams with bigramPrefix
 ## calculated from equation 11.
-## Vector element names are the trigrams corresponding to the probability est.
-## If no such trigrams exist, returns NULL.
-calc.qBO.trigramA <- function(discount=0.5, bigramPrefix, trigrams) {
+## First col of the datatable are the trigrams corresponding to the probability
+## estimate.  If no such trigrams exist, returns NULL.
+calc.qBO.trigramsA <- function(discount=0.5, bigramPrefix, trigrams) {
     obsTrigsA <- getObsTrigs(bigramPrefix, trigrams)
     if(nrow(obsTrigsA) < 1) return(NULL)
     obsCount <- sum(obsTrigsA$freq)
-    qBO.A <- (obsTrigsA$freq - discount) / obsCount
-    names(qBO.A) <- obsTrigsA$ngram
+    probs <- (obsTrigsA$freq - discount) / obsCount
+    qBO.A <- data.table(ngram=obsTrigsA$ngram, probs=probs)
     return(qBO.A)
 }
 
@@ -225,6 +225,10 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
     return(dt)
 }
 
+## Returns the probability estimate for unobserved trigrams with bigramPrefix
+## calculated from equation 16.
+## Vector element names are the trigrams corresponding to the probability est.
+## If no such trigrams exist, returns NULL.
 calc.qBO.trigramB <- function() {
     qBoUnobsBigs <- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix,
                                       trigrams, bigrams, unigrams, unigram)
