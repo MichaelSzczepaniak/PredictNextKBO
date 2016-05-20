@@ -147,6 +147,8 @@ The following code was used used to create to create the unigram, bigram, and tr
 
 ```{r message=FALSE, warning=FALSE}
 library(quanteda)
+library(data.table)
+library(readr)
 
 ## Returns a named vector of n-grams and their associated frequencies
 ## extracted from the character vector dat.
@@ -179,9 +181,29 @@ getNgramFreqs <- function(ng, dat, igfs=NULL, sent.parse=FALSE,
     return(ngram.freq)
 }
 
-unigrams <- getNgramFreqs(1, ltcorpus)
-bigrams <- getNgramFreqs(2, ltcorpus)
-trigrams <- getNgramFreqs(3, ltcorpus)
+## Returns a 2 column data.table. The first column (ngram) contains the
+## unigram (if n=1), the bigram (if n=2), or trigram (if n=3). The second column
+## (freq) contains the frequency or count of the ngram found in linesCorpus.
+##
+## prefixFilter - If not NULL, tells the function to return only rows where
+##                ngram column starts with prefixFilter.
+getNgramTables <- function(n, linesCorpus, prefixFilter=NULL) {
+    ngrams <- getNgramFreqs(n, linesCorpus)
+    ngrams.dt <- data.table(ngram=names(ngrams), freq=ngrams)
+    if(length(grep('^SOS', ngrams.dt$ngram)) > 0) {
+        ngrams.dt <- ngrams.dt[-grep('^SOS', ngrams.dt$ngram),]
+    }
+    if(!is.null(prefixFilter)) {
+        regex <- sprintf('%s%s', '^', prefixFilter)
+        ngrams.dt <- ngrams.dt[grep(regex, ngrams.dt$ngram),]
+    }
+    
+    return(ngrams.dt)
+}
+
+unigrams <- getNgramTables(1, ltcorpus)
+bigrams <- getNgramTables(2, ltcorpus)
+trigrams <- getNgramTables(3, ltcorpus)
 unigrams; bigrams; trigrams
 ```
 
@@ -199,6 +221,38 @@ For this example, we'll select the bigram: `sell the`
 The code below finds the observed trigrams starting with specified bigram and calculates their probabilities.  In our simple example, we can look at the table of trigrams above and see that there is only one trigram that starts with `sell the` which is `sell the book`.  Applying equations 12. and 13, we get $q_{BO}(book\:|\:sell,\:the) = (1 - 0.5) / 1 = 0.5$ which is also the result given from the code.
 
 ```{r}
+## Returns a two column data.table of observed trigrams that start with
+## bigramPrefix in the first column named ngram and frequencies/counts in the 
+## second column named freq. If no observed trigrams with bigramPrefix exist,
+## and empty data.table is returned.
+getObsTrigs <- function(bigramPrefix, trigrams) {
+    regex <- sprintf("%s%s", "^", bigramPrefix)
+    trigs.winA <- trigrams[grep(regex, trigrams$ngram)]
+    return(trigs.winA)
+}
 
+## Returns the probability estimate for observed trigrams with bigramPrefix
+## calculated from equation 12.
+## The first column of the datatable are the trigrams corresponding to the
+## probability estimate that are in the second column.
+## If no observed trigrams exist, returns NULL.
+calc.qBO.trigramsA <- function(discount=0.5, bigramPrefix, trigrams) {
+    obsTrigsA <- getObsTrigs(bigramPrefix, trigrams)
+    if(nrow(obsTrigsA) < 1) return(NULL)
+    obsCount <- sum(obsTrigsA$freq)
+    probs <- (obsTrigsA$freq - discount) / obsCount
+    qBO.A <- data.table(ngram=obsTrigsA$ngram, probs=probs)
+    return(qBO.A)
+}
+
+obsTrigrams <- calc.qBO.trigramsA(bigramPrefix='sell_the', trigrams=trigrams)
+obsTrigrams
 ```
 
+#### Step 3. Calculate Probabilities of Words Completing Unobserved Trigrams
+
+This is most complex step as it involves backing off to the bigram level.  Here is breakdown of the sub-steps in these calculations:
+
+i. stuff
+ii. more stuff
+iii. more stuff
