@@ -115,17 +115,21 @@ More formally, if the estimate for this backed-off unigram probability is $q_{BO
 
 17. $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}$
 
-where the terms $w\:\in\:\mathcal{B}(w_{i-1})$ and $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{B}$ which are all words that terminate an **unobserved** bigram starting with $(w_{i-1})$ or trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.
+where the terms $w\:\in\:\mathcal{B}(w_{i-1})$ and $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{B}$ which are all words that terminate an **unobserved** bigram starting with $(w_{i-1})$ or trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  Notice that the subscripts in the $q$ terms on the right side of equation 16. are **ML**.  This is because at this point, we are using the Maximum Likelihood estimate for the unigrams.
 
-#### Steps in Applying the Alogrithm
+#### Steps in Applying the KBO Trigram Alogrithm
 
-1. Create table of unigram, bigram, and trigram counts.
-2. Select the values for $\gamma_2$ and $\gamma_3$.
-3. tbd
-4. tbd
-5. tbd
-6. tbd
-7. Select $w_i$ with the highest $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ as the prediction.
+0. Organize the data needed to use the equations defined above:
+  + Create tables of unigram, bigram, and trigram counts.
+  + Select the values for discounts at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.
+1. Select a bigram that precedes the word you want to predict: $(w_{i-2}, w_{i-1})$
+2. Calculate the probabilities for words that complete **observed** trigrams from equation 12.: $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$
+3. Calculate the probabilities for words that complete **unobserved** trigrams from equation 17.: $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$
+4. Select $w_i$ with the highest $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ as the prediction.
+
+#### Calculating Probabilities for Unobserved N-grams
+
+The steps described in the previous section as straightforward, but step 3. deserves futher explaination.  Each $q_{BO}$ term in equation 17. needs to be calculated using either equation 10. or equation 16. depending on whether the bigram $(w_{i-1}, w_i)$ is observed or unobserved.  If this bigram is observed, equation 10. should be used.  If it is unobserved, equation 16. should be used.
 
 ### Example of Applying the Algorithm: The Little Corpus That Could
 
