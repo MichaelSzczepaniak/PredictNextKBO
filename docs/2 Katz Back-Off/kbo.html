@@ -200,7 +200,7 @@ P(its\:water\:is\:so\:transparent) = P(its) ×P (water\:|\:its) × P(is\:|\:its\
 </ol>
 <p>where the terms <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{A}\)</span> which are all words that terminate an observed bigram starting with <span class="math inline">\((w_{i-1})\)</span> or trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively. If we define <span class="math inline">\(\gamma_2\)</span> to be the amount of discount taken from observed bigram counts, <span class="math inline">\(\gamma_2\)</span> the amount of discount taken from observed trigram counts, and <span class="math inline">\(c^*\)</span> to be the new discounted counts for observed bigrams and trigrams, then the discounted MLE would be written as:</p>
 <ol start="10" style="list-style-type: decimal">
-<li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \frac{c^*(w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> for bigrams, where</p></li>
+<li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:\)</span> for bigrams, where</p></li>
 <li><p><span class="math inline">\(c^*(w_{i-1},\:w) = c(w_{i-1},\:w) - \gamma_2\:\:\:\:\)</span> and</p></li>
 <li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> for trigrams, where</p></li>
 <li><p><span class="math inline">\(c^*(w_{i-2},\:w_{i-1},\:w) = c(w_{i-2},\:w_{i-1},\:w) - \gamma_3\)</span></p></li>
@@ -211,41 +211,50 @@ P(its\:water\:is\:so\:transparent) = P(its) ×P (water\:|\:its) × P(is\:|\:its\
 <li><p><span class="math inline">\(\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> for trigrams.</p></li>
 </ol>
 <p>At this point, we’ve finished the first step by defining the amount of probability mass taken from the observed bigrams and trigrams as a function of some discounted amount <span class="math inline">\(\gamma_n\)</span>. Now we need to know how to assign this discounted probability mass to unseen bigrams and trigrams. Katz proposed that this be done proportionally to the backed-off (n-1)-gram probability parameters. In other words, an unobserved trigram probability would be estimated in proportion to the bigram tail and unobserved bigram probabilities would be estimated in proportion to the unigram tail.</p>
-<p>More formally, if the estimate for this backed-off unigram probability is <span class="math inline">\(q_{BO}(w_i)\)</span> and the backed off bigram probability is <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span>, then the amount of discounted probability mass <span class="math inline">\(\alpha(w_{i-1})\)</span> assigned to unknown bigrams <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> and <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> assigned to unknown trigrams <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> would be:</p>
+<p>More formally, if the estimate for this backed-off unigram probability is <span class="math inline">\(q_{ML}(w_i)\)</span> and the backed off bigram probability is <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span>, then the amount of discounted probability mass <span class="math inline">\(\alpha(w_{i-1})\)</span> assigned to unknown bigrams <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> and <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> assigned to unknown trigrams <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> would be:</p>
 <ol start="16" style="list-style-type: decimal">
 <li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \alpha(w_{i-1})\frac{q_{ML}(w_i)}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-1})}q_{ML}(w)}\)</span></p></li>
 <li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}\)</span></p></li>
 </ol>
-<p>where the terms <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{B}\)</span> which are all words that terminate an <strong>unobserved</strong> bigram starting with <span class="math inline">\((w_{i-1})\)</span> or trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively.</p>
+<p>respectively, where the terms <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{B}\)</span> which are all words that terminate an <strong>unobserved</strong> bigram starting with <span class="math inline">\((w_{i-1})\)</span> or trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively. Notice that the subscripts in the <span class="math inline">\(q\)</span> terms on the right side of equation 16. are <strong>ML</strong>. This is because at this point, we are using the Maximum Likelihood estimate for the unigrams.</p>
 </div>
-<div id="steps-in-applying-the-alogrithm" class="section level4">
-<h4>Steps in Applying the Alogrithm</h4>
-<ol style="list-style-type: decimal">
-<li>Create table of unigram, bigram, and trigram counts.</li>
-<li>Select the values for <span class="math inline">\(\gamma_2\)</span> and <span class="math inline">\(\gamma_3\)</span>.</li>
-<li>tbd</li>
-<li>tbd</li>
-<li>tbd</li>
-<li>tbd</li>
+<div id="steps-in-applying-the-kbo-trigram-alogrithm" class="section level4">
+<h4>Steps in Applying the KBO Trigram Alogrithm</h4>
+<ol start="0" style="list-style-type: decimal">
+<li>Organize the data needed to use the equations defined above:
+<ol style="list-style-type: lower-roman">
+<li>Create tables of unigram, bigram, and trigram counts.</li>
+<li>Select the values for discounts at the bigram and trigram levels: <span class="math inline">\(\gamma_2\)</span> and <span class="math inline">\(\gamma_3\)</span>.</li>
+</ol></li>
+<li>Select a bigram that precedes the word you want to predict: <span class="math inline">\((w_{i-2}, w_{i-1})\)</span></li>
+<li>Calculate the probabilities for words that complete <strong>observed</strong> trigrams from equation 12.: <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span></li>
+<li>Calculate the probabilities for words that complete <strong>unobserved</strong> trigrams from equation 17.: <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span></li>
 <li>Select <span class="math inline">\(w_i\)</span> with the highest <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> as the prediction.</li>
 </ol>
+</div>
+<div id="calculating-probabilities-for-unobserved-n-grams" class="section level4">
+<h4>Calculating Probabilities for Unobserved N-grams</h4>
+<p>The steps described in the previous section as straightforward, but step 3. deserves futher explaination. Each <span class="math inline">\(q_{BO}\)</span> term in equation 17. needs to be calculated using either equation 10. or equation 16. depending on whether the bigram <span class="math inline">\((w_{i-1}, w_i)\)</span> is observed or unobserved. If the bigram is observed, equation 10. should be used. If it is unobserved, equation 16. should be used.</p>
 </div>
 </div>
 <div id="example-of-applying-the-algorithm-the-little-corpus-that-could" class="section level3">
 <h3>Example of Applying the Algorithm: The Little Corpus That Could</h3>
-<p>As implied earlier, a corpus is a body of text from which we build and test LMs. To illustrate how the mathematical formulation of the KBOT model works, it’s helpful to look at a simple corpus that is small enough to see n-gram counts, but large enough to illustrate the impact of unforseen n-grams on the calculations. The following sample corpus was extended from an example provided by Michael Collins <a href="https://d396qusza40orc.cloudfront.net/nlangp/quiz_questions/week1.pdf">on page 4 of the week 1 lecture questions</a></p>
+<p>As implied earlier, a corpus is a body of text from which we build and test LMs. To illustrate how the mathematical formulation of the KBO Trigram model works, it’s helpful to look at a simple corpus that is small enough to see n-gram counts, but large enough to illustrate the impact of unobserved n-grams on the calculations. The following sample corpus was extended from an example provided by Michael Collins <a href="https://d396qusza40orc.cloudfront.net/nlangp/quiz_questions/week1.pdf">on page 4 of the week 1 lecture questions</a></p>
 <pre class="r"><code>ltcorpus &lt;- readLines(&quot;little_test_corpus1.txt&quot;)
 ltcorpus</code></pre>
 <pre><code>## [1] &quot;SOS buy the book EOS&quot;    &quot;SOS buy the book EOS&quot;   
 ## [3] &quot;SOS buy the book EOS&quot;    &quot;SOS buy the book EOS&quot;   
 ## [5] &quot;SOS sell the book EOS&quot;   &quot;SOS buy the house EOS&quot;  
 ## [7] &quot;SOS buy the house EOS&quot;   &quot;SOS paint the house EOS&quot;</code></pre>
-<p>In this corpus, SOS and EOS are tokens used to denote <em>start of sentence</em> and <em>end-of-sentence</em>. Why this is done will become clear later in the example.</p>
-<div id="step-1.-unigram-bigram-and-trigram-counts" class="section level4">
-<h4>Step 1. Unigram, Bigram and Trigram counts</h4>
-<p>This article will use the <strong>quanteda</strong> package written by Ken Benoit and Paul Nulty to construct the n-grams. My experience with this package is that it performs much faster than <strong>tm</strong> and <strong>RWeka</strong> for these types of tasks, but of course, your mileage may vary. A nice little getting started guide to this package can be found <a href="https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html">here</a>.</p>
-<p>The following code was used used to create to create the unigram, bigram, and trigrams tables shown below the code.</p>
+<p>In this corpus, SOS and EOS are tokens used to denote <em>start of sentence</em> and <em>end-of-sentence</em>.</p>
+<div id="step-0.-i.-unigram-bigram-and-trigram-counts" class="section level4">
+<h4>Step 0. i. Unigram, Bigram and Trigram counts</h4>
+<p>This article will use the <strong>quanteda</strong> package written by Ken Benoit and Paul Nulty to construct the n-grams. My experience with this package is that it performs much faster than <strong>tm</strong> and <strong>RWeka</strong> for these types of tasks, but of course, your mileage may vary. A nice little getting started guide to quanteda can be found <a href="https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html">here</a>.</p>
+<p>The following code was used to create the unigram, bigram, and trigrams tables shown below the code.</p>
 <pre class="r"><code>library(quanteda)
+library(data.table)
+library(readr)
+library(stringr)
 
 ## Returns a named vector of n-grams and their associated frequencies
 ## extracted from the character vector dat.
@@ -278,29 +287,249 @@ getNgramFreqs &lt;- function(ng, dat, igfs=NULL, sent.parse=FALSE,
     return(ngram.freq)
 }
 
-unigrams &lt;- getNgramFreqs(1, ltcorpus)
-bigrams &lt;- getNgramFreqs(2, ltcorpus)
-trigrams &lt;- getNgramFreqs(3, ltcorpus)
+## Returns a 2 column data.table. The first column (ngram) contains the
+## unigram (if n=1), the bigram (if n=2), or trigram (if n=3). The second column
+## (freq) contains the frequency or count of the ngram found in linesCorpus.
+##
+## prefixFilter - If not NULL, tells the function to return only rows where
+##                ngram column starts with prefixFilter.
+getNgramTables &lt;- function(n, linesCorpus, prefixFilter=NULL) {
+    ngrams &lt;- getNgramFreqs(n, linesCorpus)
+    ngrams.dt &lt;- data.table(ngram=names(ngrams), freq=ngrams)
+    if(length(grep('^SOS', ngrams.dt$ngram)) &gt; 0) {
+        ngrams.dt &lt;- ngrams.dt[-grep('^SOS', ngrams.dt$ngram),]
+    }
+    if(!is.null(prefixFilter)) {
+        regex &lt;- sprintf('%s%s', '^', prefixFilter)
+        ngrams.dt &lt;- ngrams.dt[grep(regex, ngrams.dt$ngram),]
+    }
+    
+    return(ngrams.dt)
+}
+
+unigrams &lt;- getNgramTables(1, ltcorpus)
+bigrams &lt;- getNgramTables(2, ltcorpus)
+trigrams &lt;- getNgramTables(3, ltcorpus)
 unigrams; bigrams; trigrams</code></pre>
-<pre><code>##  book   buy   EOS house paint  sell   SOS   the 
-##     5     6     8     3     1     1     8     8</code></pre>
-<pre><code>##  book_EOS   buy_the house_EOS paint_the  sell_the   SOS_buy SOS_paint 
-##         5         6         3         1         1         6         1 
-##  SOS_sell  the_book the_house 
-##         1         5         3</code></pre>
-<pre><code>##    buy_the_book   buy_the_house paint_the_house   sell_the_book 
-##               4               2               1               1 
-##     SOS_buy_the   SOS_paint_the    SOS_sell_the    the_book_EOS 
-##               6               1               1               5 
-##   the_house_EOS 
-##               3</code></pre>
+<pre><code>##    ngram freq
+## 1:  book    5
+## 2:   buy    6
+## 3:   EOS    8
+## 4: house    3
+## 5: paint    1
+## 6:  sell    1
+## 7:   the    8</code></pre>
+<pre><code>##        ngram freq
+## 1:  book_EOS    5
+## 2:   buy_the    6
+## 3: house_EOS    3
+## 4: paint_the    1
+## 5:  sell_the    1
+## 6:  the_book    5
+## 7: the_house    3</code></pre>
+<pre><code>##              ngram freq
+## 1:    buy_the_book    4
+## 2:   buy_the_house    2
+## 3: paint_the_house    1
+## 4:   sell_the_book    1
+## 5:    the_book_EOS    5
+## 6:   the_house_EOS    3</code></pre>
+</div>
+<div id="step-0.-ii.-selecting-bigram-and-trigram-discounts" class="section level4">
+<h4>Step 0. ii. Selecting bigram and trigram discounts</h4>
+<p>For this example, we’ll use <span class="math inline">\(\gamma_2 = \gamma_3 = 0.5\)</span>. In practice, these values would be obtained by cross-validation. A great treatment of cross-validation can be found in <a href="http://www-bcf.usc.edu/~gareth/ISL/">Chapter 5 of this (free) book [10]</a> which are discussed by the authors in these three videos: [<a href="https://www.youtube.com/watch?v=_2ij6eaaSl0">11</a>], [<a href="https://www.youtube.com/watch?v=nZAM5OXrktY">12</a>], and [<a href="https://www.youtube.com/watch?v=S06JpVoNaA0">13</a>].</p>
+</div>
+<div id="step-1.-select-bigram-preceding-word-to-be-predicted" class="section level4">
+<h4>Step 1. Select Bigram Preceding Word to be Predicted</h4>
+<p>For this example, we’ll select the bigram: <code>sell the</code></p>
+</div>
+<div id="step-2.-calculate-probabilities-of-words-completing-observed-trigrams" class="section level4">
+<h4>Step 2. Calculate Probabilities of Words Completing Observed Trigrams</h4>
+<p>The code below finds the observed trigrams starting with a specified bigram and calculates their probabilities. In our simple example, we can look at the table of trigrams above and see that there is only one trigram that starts with <code>sell the</code> which is <code>sell the book</code>. Applying equations 12. and 13, we get <span class="math inline">\(q_{BO}(book\:|\:sell,\:the) = (1 - 0.5) / 1 = 0.5\)</span> which is also the result provided from the code below.</p>
+<pre class="r"><code>bigPre &lt;- 'sell_the'
+
+## Returns a two column data.table of observed trigrams that start with
+## bigramPrefix in the first column named ngram and frequencies/counts in the 
+## second column named freq. If no observed trigrams with bigramPrefix exist,
+## and empty data.table is returned.
+getObsTrigs &lt;- function(bigramPrefix, trigrams) {
+    regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
+    trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram)]
+    return(trigs.winA)
+}
+
+## Returns the probability estimate for observed trigrams with bigramPrefix
+## calculated from equation 12.
+## The first column of the datatable are the trigrams corresponding to the
+## probability estimate that are in the second column.
+## If no observed trigrams exist, returns NULL.
+calc.qBO.trigramsA &lt;- function(discount=0.5, bigramPrefix, trigrams) {
+    obsTrigsA &lt;- getObsTrigs(bigramPrefix, trigrams)
+    if(nrow(obsTrigsA) &lt; 1) return(NULL)
+    obsCount &lt;- sum(obsTrigsA$freq)
+    probs &lt;- (obsTrigsA$freq - discount) / obsCount
+    qBO.A &lt;- data.table(ngram=obsTrigsA$ngram, prob=probs)
+    return(qBO.A)
+}
+
+obsTrigrams &lt;- calc.qBO.trigramsA(bigramPrefix=bigPre, trigrams=trigrams)
+obsTrigrams</code></pre>
+<pre><code>##            ngram prob
+## 1: sell_the_book  0.5</code></pre>
+</div>
+<div id="step-3.-calculate-probabilities-of-words-completing-unobserved-trigrams" class="section level4">
+<h4>Step 3. Calculate Probabilities of Words Completing Unobserved Trigrams</h4>
+<p>This is the the most complex step as it involves backing off to the bigram level. Here is a breakdown of the sub-steps in these calculations:</p>
+<ol style="list-style-type: lower-roman">
+<li>Find all the words that complete unobserved trigrams. These are the words in the set <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})\)</span> described earlier.</li>
+<li>Calculate <span class="math inline">\(q_{BO}\)</span> for each observed bigram in the denominator of equation 17. using equation 10.</li>
+<li>Calculate <span class="math inline">\(\alpha(w_{i-1})\)</span> from equation 14.</li>
+<li>Calculate <span class="math inline">\(q_{BO}\)</span> for each unobserved bigram in the denominator of equation 17. using equation 16.</li>
+<li>Calculate <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> from equation 15.</li>
+<li>Calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> for each <span class="math inline">\(w_i\)</span> from equation 17.</li>
+</ol>
+<div id="step-3.-i.-find-unobserved-trigrams" class="section level5">
+<h5>Step 3. i. Find Unobserved Trigrams</h5>
+<pre class="r"><code>## Returns the OBSERVED trigram tail words (OTTW) that start with bigramPrefix.
+## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
+## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
+##
+## If no trigrams start with bigramPrefix an empty character vector is returned.
+getOTTWinA &lt;- function(bigramPrefix, trigrams) {
+    regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
+    trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram)]
+    patToReplace &lt;- sprintf(&quot;%s%s&quot;, bigramPrefix, &quot;_&quot;)
+    wInA &lt;- str_replace(trigs.winA$ngram, patToReplace, &quot;&quot;)
+    return(wInA)
+}
+
+## Returns the UNOBSERVED trigram tail words (UTTW) that start with bigramPrefix.
+## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
+## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
+getUTTWinB &lt;- function(bigramPrefix, trigrams, unigrams) {
+    allUnigrams &lt;- unigrams$ngram #getNgramTables(1)$ngram
+    wInA &lt;- getOTTWinA(bigramPrefix, trigrams)
+    if(length(wInA) &lt; 1) {
+        wInB &lt;- allunigrams
+    } else {
+        wInB &lt;- setdiff(allUnigrams, wInA)
+    }
+    return(wInB)
+}
+
+## Returns a vector of unobserved trigrams that start with bigramPrefix
+getUnobsTrigs &lt;- function(bigramPrefix, trigrams, unigrams) {
+    unobsTriTails &lt;- getUTTWinB(bigramPrefix, trigrams, unigrams)
+    unobsTrigs &lt;- vector(mode=&quot;character&quot;, length=length(unobsTriTails))
+    for(i in 1:length(unobsTriTails)) {
+        unobsTrigs[i] &lt;- sprintf('%s%s%s', bigramPrefix, '_', unobsTriTails[i])
+    }
+    return(unobsTrigs)
+}
+
+unobsTrigrams &lt;- getUnobsTrigs(bigPre, trigrams, unigrams)
+unobsTrigrams</code></pre>
+<pre><code>## [1] &quot;sell_the_buy&quot;   &quot;sell_the_EOS&quot;   &quot;sell_the_house&quot; &quot;sell_the_paint&quot;
+## [5] &quot;sell_the_sell&quot;  &quot;sell_the_the&quot;</code></pre>
+</div>
+<div id="step-3.-ii.-calculate-q_bo-for-observed-bigrams" class="section level5">
+<h5>Step 3. ii. Calculate <span class="math inline">\(q_{BO}\)</span> for Observed Bigrams</h5>
+<p>The code below implements equation 10. to calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> for observed bigrams:</p>
+</div>
+<div id="step-3.-iii.-calculate-alphaw_i-1" class="section level5">
+<h5>Step 3. iii. Calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></h5>
+<p>The code below implements equation 14. to calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></p>
+<pre class="r"><code>## Returns the total probability mass discounted from all observed BIGRAMS.
+## This is the amount of probability mass which is redistributed to
+## UNOBSERVED bigrams. If no bigrams starting with unigram$ngram[1] exist,
+## NULL is returned.
+## bigrams - data.frame or data.table of bigrams (1st column) and
+##           frequencies (2nd column)
+## unigram - single row frequency table with unigram in first col and frequency
+##           in the second.
+getAlphaBigram &lt;- function(discount=0.5, bigrams, unigram) {
+    # get all bigrams that start with unigram
+    regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, unigram$ngram[1])
+    bigsThatStartWithUnig &lt;- bigrams[grep(regex, bigrams$ngram),]
+    if(nrow(bigsThatStartWithUnig) &lt; 1) return(NULL)
+    alphaBi &lt;- 1 - (sum(bigsThatStartWithUnig$freq - discount) / unigram$freq)
+    return(alphaBi)
+}
+
+unig &lt;- str_split(bigPre, '_')[[1]][2]
+unigram &lt;- getNgramTables(1, ltcorpus, unig)
+alphaBig &lt;- getAlphaBigram(bigrams=bigrams, unigram = unigram)
+alphaBig</code></pre>
+<pre><code>## [1] 0.125</code></pre>
+</div>
+<div id="step-3.-iv.-calculate-q_bo-for-unubserved-bigrams" class="section level5">
+<h5>Step 3. iv. Calculate <span class="math inline">\(q_{BO}\)</span> for Unubserved Bigrams</h5>
+<p>The code below implements equation 10. to calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> for unobserved bigrams:</p>
+<pre class="r"><code>## Returns a 3 column data.table. First column (ngram) = bigrams that are the
+## last two words of unobserved trigrams that start with bigramPrefix.
+## Second column (btfreq) = frequency/count of the bigrams, -1 if unobserved
+## Third column (utfreq) = frequency/count of the unigram tail word in bigram
+## bigrams - all the bigrams in the corpus
+## unigrams - all the unigrams in the corpus
+getUnobsBigramsTable &lt;- function(bigramPrefix, unobsTrigs, bigrams, unigrams) {
+    bigramTails &lt;- vector(mode='character', length = length(unobsTrigs))
+    bigramTailCounts &lt;- rep(-1, length(unobsTrigs))
+    unigramTailCounts &lt;- rep(-1, length(unobsTrigs))
+    for(i in 1:length(unobsTrigs)) {
+        bigramTail &lt;- str_split(unobsTrigs[i], '_')[[1]]
+        unigramTail &lt;- bigramTail[3]
+        bigramTail &lt;- sprintf('%s%s%s', bigramTail[2], '_', bigramTail[3])
+        bigramTails[i] &lt;- bigramTail
+        bigramIndex &lt;- which(bigrams$ngram == bigramTail)
+        if(length(bigramIndex) &gt; 0) {
+            bigramTailCounts[i] &lt;- bigrams$freq[bigramIndex]
+        } else {
+            bigramTailCounts[i] &lt;- -1
+        }
+        unigramTailIndex &lt;- which(unigrams$ngram == unigramTail)
+        unigramTailCounts[i] &lt;- unigrams$freq[unigramTailIndex]
+    }
+    dt &lt;- data.table(ngram=bigramTails, btfreq=bigramTailCounts,
+                     utfreq=unigramTailCounts)
+    return(dt)
+}
+
+## Returns a data.table with the first column (ngram) containing the bigram
+## tails of unobserved trigrams that start with bigramPrefix. The second column
+## (probs) holds the conditional probability estimate for the last word of the
+## bigram tail given the last word of the bigramPrefix (middle word of the 
+## unobserved trigram).
+##
+## bigDiscount - bigram discount
+## bigramPrefix - first two words of unobserved trigrams we want to estimate
+##                probabilities of
+## trigrams - data.table of all trigrams in corpus and their counts/frequencies
+## bigrams - data.table of all bigrams in corpus and their counts/frequencies
+## unigrams - data.table of all unigrams in corpus and their counts/frequencies
+calc.qBO.bigramsB &lt;- function(bigDiscount=0.5, bigramPrefix,
+                              trigrams, bigrams, unigrams) {
+    unobsTrigs &lt;- getUnobsTrigs(bigramPrefix, trigrams)
+    unobBis &lt;- getUnobsBigramsTable(bigramPrefix, unobsTrigs, bigrams, unigrams)
+    unobBiProbs &lt;- rep(-1, length(unobBis$ngram))
+    # calc discounted prob. mass at bigram level
+    unig &lt;- str_split(bigramPrefix, '_')[[1]][2]
+    unigram=getNgramTables(1, prefixFilter = unig)
+    alphaBig &lt;- getAlphaBigram(bigDiscount, bigrams, unigram)
+    uniSumUnobs &lt;- sum(filter(unobBis, btfreq == -1)$utfreq)
+    for(i in 1:length(unobBis$ngram)) {
+        if(unobBis$btfreq[i] &gt; 0) {
+            # bigram tail observed: calc qBO from eqn. 9.
+            unobBiProbs[i] &lt;- (unobBis$btfreq[i]-bigDiscount)/unigram$freq[1]
+        } else {
+            # bigram tail NOT observed: calc qBO w/ bigram from eqn. 15.
+            unobBiProbs[i] &lt;- alphaBig * unobBis$utfreq[i] / uniSumUnobs
+        }
+    }
+    dt &lt;- data.table(ngram=unobBis$ngram, probs=unobBiProbs)
+    return(dt)
+}</code></pre>
 </div>
 </div>
-<div id="probability-density" class="section level3">
-<h3>Probability Density</h3>
-<p>You can also embed plots, for example:</p>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAbfklEQVR4nO3d63aiWBSFUfP+L91jdOWiXBSWR87ZMOeftkyA3US/0oDU7QuAyK33AABVCShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQgIKEBJQgJCAAoQEFCAkoAAhAQUICShASEABQmMH9AbQTPtENV9jQ733NnAuzRvVeoXT9b8z+gf+wgAuq1pA38y/gALt1Aro2y+gBRRop1RAp8XcX1ABBdqpFtCX97xaQ7tpgKurFNCF15t7X4IKKNBOsYBuuu/pKppNA1yegAKEBBQgJKAAoWIBdRAJGEelgDqNCRhKtYA6kR4YRqmA+ignMJJaAZ0XdPfyHxkLOI09cSkW0C+XswM+aVdg6gX0LQIKPPMbzk0FFVCAH3fZPGdAvYUHPuU+ERtyUS2gDiIBn3PqgDqNCfikMwfUifTAR508oC/vebWGdtMAp3PigLqYCPBZ5w7opvuerqLZNMD5nPg0pt0BXTjm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" title alt width="672" /></p>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
 </div>
 
 
