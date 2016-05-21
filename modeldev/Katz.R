@@ -115,16 +115,22 @@ getObsTrigs <- function(bigramPrefix, trigrams) {
 }
 
 ## Returns the probability estimate for observed trigrams with bigramPrefix
-## calculated from equation 11.
-## First col of the datatable are the trigrams corresponding to the probability
-## estimate.  If no such trigrams exist, returns NULL.
+## calculated from equation 12.
+## The first column of the datatable are the trigrams corresponding to the
+## probability estimate that are in the second column.
+## If no observed trigrams exist, returns NULL.
 calc.qBO.trigramsA <- function(discount=0.5, bigramPrefix, trigrams) {
     obsTrigsA <- getObsTrigs(bigramPrefix, trigrams)
     if(nrow(obsTrigsA) < 1) return(NULL)
     obsCount <- sum(obsTrigsA$freq)
     probs <- (obsTrigsA$freq - discount) / obsCount
-    qBO.A <- data.table(ngram=obsTrigsA$ngram, probs=probs)
+    qBO.A <- data.table(ngram=obsTrigsA$ngram, probs=prob)
     return(qBO.A)
+}
+
+
+calc.qBO.bigramsA <- function() {
+    
 }
 
 ## Returns a 3 column data.table. First column (ngram) = bigrams that are the
@@ -195,7 +201,10 @@ getUnobsTrigs <- function(bigramPrefix, trigrams) {
 
 ## Returns a data.table with the first column (ngram) containing the bigram
 ## tails of unobserved trigrams that start with bigramPrefix. The second column
-## (probs) holds the probability estimate for the bigram tail described above.
+## (prob) holds the conditional probability estimate for the last word of the
+## bigram tail given the last word of the bigramPrefix (middle word of the 
+## unobserved trigram).
+##
 ## bigDiscount - bigram discount
 ## bigramPrefix - first two words of unobserved trigrams we want to estimate
 ##                probabilities of
@@ -221,7 +230,7 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
             unobBiProbs[i] <- alphaBig * unobBis$utfreq[i] / uniSumUnobs
         }
     }
-    dt <- data.table(ngram=unobBis$ngram, probs=unobBiProbs)
+    dt <- data.table(ngram=unobBis$ngram, prob=unobBiProbs)
     return(dt)
 }
 
