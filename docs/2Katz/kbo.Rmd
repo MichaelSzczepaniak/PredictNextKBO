@@ -160,9 +160,8 @@ The following code was used to create the unigram, bigram, and trigrams tables s
 ## igfs - Character vector of words (features) to ignore from frequency table
 ## sort.by.ngram - sorts the return vector by the names
 ## sort.by.freq - sorts the return vector by frequency/count
-getNgramFreqs <- function(ng, dat, igfs=NULL, sent.parse=FALSE,
+getNgramFreqs <- function(ng, dat, igfs=NULL,
                           sort.by.ngram=TRUE, sort.by.freq=FALSE) {
-    if(sent.parse) { dat <- breakOutSentences(dat) }
     # http://stackoverflow.com/questions/36629329/
     # how-do-i-keep-intra-word-periods-in-unigrams-r-quanteda
     if(is.null(igfs)) {
@@ -183,11 +182,13 @@ getNgramFreqs <- function(ng, dat, igfs=NULL, sent.parse=FALSE,
 }
 
 ## Returns a 2 column data.table. The first column (ngram) contains the
-## unigram (if n=1), the bigram (if n=2), or trigram (if n=3). The second column
+## unigram (if n=1), the bigram (if n=2), etc.. The second column
 ## (freq) contains the frequency or count of the ngram found in linesCorpus.
 ##
-## prefixFilter - If not NULL, tells the function to return only rows where
-##                ngram column starts with prefixFilter.
+## linesCorpus - character vector
+## prefixFilter - string/character vector: If not NULL, tells the function
+##                to return only rows where ngram column starts with prefixFilter.
+##                If NULL, returns all the ngram and count rows.
 getNgramTables <- function(n, linesCorpus, prefixFilter=NULL) {
     ngrams <- getNgramFreqs(n, linesCorpus)
     ngrams.dt <- data.table(ngram=names(ngrams), freq=ngrams)
@@ -392,7 +393,7 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
     unobBiProbs <- rep(-1, length(unobBis$ngram))
     # calc discounted prob. mass at bigram level
     unig <- str_split(bigramPrefix, '_')[[1]][2]
-    unigram=getNgramTables(1, ltcorpus , unig)
+    unigram <- getNgramTables(1, ltcorpus , unig)
     alphaBig <- getAlphaBigram(bigDiscount, bigrams, unigram)
     uniSumUnobs <- sum(filter(unobBis, btfreq == 0)$utfreq)
     for(i in 1:length(unobBis$ngram)) {

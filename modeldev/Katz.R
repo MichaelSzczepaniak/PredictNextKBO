@@ -14,9 +14,8 @@ options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 ## igfs - Character vector of words (features) to ignore from frequency table
 ## sort.by.ngram - sorts the return vector by the names
 ## sort.by.freq - sorts the return vector by frequency/count
-getNgramFreqs <- function(ng, dat, igfs=NULL, sent.parse=FALSE,
+getNgramFreqs <- function(ng, dat, igfs=NULL,
                           sort.by.ngram=TRUE, sort.by.freq=FALSE) {
-    if(sent.parse) { dat <- breakOutSentences(dat) }
     # http://stackoverflow.com/questions/36629329/
     # how-do-i-keep-intra-word-periods-in-unigrams-r-quanteda
     if(is.null(igfs)) {
@@ -37,26 +36,16 @@ getNgramFreqs <- function(ng, dat, igfs=NULL, sent.parse=FALSE,
 }
 
 ## Returns a 2 column data.table. The first column (ngram) contains the
-## unigram (if n=1), the bigram (if n=2), or trigram (if n=3). The second column
-## (freq) contains the frequency or count of the ngram found in inputFile if
-## isFreqTable=FALSE.
+## unigram (if n=1), the bigram (if n=2), etc.. The second column
+## (freq) contains the frequency or count of the ngram found in linesCorpus.
 ##
-## If isFreqTable is TRUE, input file is assumed to be a 2 column csv file with
-## first column header = "ngram" and second column header = "freq". Data in 
-## these 2 columns are assumed to be as is described above for returned table.
-##
-## prefixFilter - If not NULL, tells the function to return only rows where
-##                ngram column starts with prefixFilter.
-getNgramTables <- function(n, inputFile="../data/little_test_corpus1.txt",
-                           isFreqTable=FALSE, prefixFilter=NULL) {
-    ngrams.dt <- NULL
-    if(isFreqTable) {
-        ngrams.dt <- read.csv(inputFile, stringsAsFactors=FALSE)
-    } else {
-        lines <- read_lines(inputFile)
-        ngrams <- getNgramFreqs(n, lines)
-        ngrams.dt <- data.table(ngram=names(ngrams), freq=ngrams)
-    }
+## linesCorpus - character vector
+## prefixFilter - string/character vector: If not NULL, tells the function
+##                to return only rows where ngram column starts with prefixFilter.
+##                If NULL, returns all the ngram and count rows.
+getNgramTables <- function(n, linesCorpus, prefixFilter=NULL) {
+    ngrams <- getNgramFreqs(n, linesCorpus)
+    ngrams.dt <- data.table(ngram=names(ngrams), freq=ngrams)
     if(length(grep('^SOS', ngrams.dt$ngram)) > 0) {
         ngrams.dt <- ngrams.dt[-grep('^SOS', ngrams.dt$ngram),]
     }
@@ -124,7 +113,7 @@ calc.qBO.trigramsA <- function(discount=0.5, bigramPrefix, trigrams) {
     if(nrow(obsTrigsA) < 1) return(NULL)
     obsCount <- sum(obsTrigsA$freq)
     probs <- (obsTrigsA$freq - discount) / obsCount
-    qBO.A <- data.table(ngram=obsTrigsA$ngram, probs=prob)
+    qBO.A <- data.table(ngram=obsTrigsA$ngram, prob=probs)
     return(qBO.A)
 }
 
@@ -152,7 +141,7 @@ getUnobsBigramsTable <- function(bigramPrefix, unobsTrigs, bigrams, unigrams) {
         if(length(bigramIndex) > 0) {
             bigramTailCounts[i] <- bigrams$freq[bigramIndex]
         } else {
-            bigramTailCounts[i] <- -1
+            bigramTailCounts[i] <- 0
         }
         unigramTailIndex <- which(unigrams$ngram == unigramTail)
         unigramTailCounts[i] <- unigrams$freq[unigramTailIndex]
@@ -178,8 +167,8 @@ getOTTWinA <- function(bigramPrefix, trigrams) {
 ## Returns the UNOBSERVED trigram tail words (UTTW) that start with bigramPrefix.
 ## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
 ## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
-getUTTWinB <- function(bigramPrefix, trigrams) {
-    allUnigrams <- getNgramTables(1)$ngram
+getUTTWinB <- function(bigramPrefix, trigrams, unigrams) {
+    allUnigrams <- unigrams$ngram
     wInA <- getOTTWinA(bigramPrefix, trigrams)
     if(length(wInA) < 1) {
         wInB <- allunigrams
@@ -190,8 +179,8 @@ getUTTWinB <- function(bigramPrefix, trigrams) {
 }
 
 ## Returns a vector of unobserved trigrams that start with bigramPrefix
-getUnobsTrigs <- function(bigramPrefix, trigrams) {
-    unobsTriTails <- getUTTWinB(bigramPrefix, trigrams)
+getUnobsTrigs <- function(bigramPrefix, trigrams, unigrams) {
+    unobsTriTails <- getUTTWinB(bigramPrefix, trigrams, unigrams)
     unobsTrigs <- vector(mode="character", length=length(unobsTriTails))
     for(i in 1:length(unobsTriTails)) {
         unobsTrigs[i] <- sprintf('%s%s%s', bigramPrefix, '_', unobsTriTails[i])
@@ -201,7 +190,7 @@ getUnobsTrigs <- function(bigramPrefix, trigrams) {
 
 ## Returns a data.table with the first column (ngram) containing the bigram
 ## tails of unobserved trigrams that start with bigramPrefix. The second column
-## (prob) holds the conditional probability estimate for the last word of the
+## (probs) holds the conditional probability estimate for the last word of the
 ## bigram tail given the last word of the bigramPrefix (middle word of the 
 ## unobserved trigram).
 ##
@@ -213,20 +202,21 @@ getUnobsTrigs <- function(bigramPrefix, trigrams) {
 ## unigrams - data.table of all unigrams in corpus and their counts/frequencies
 calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
                               trigrams, bigrams, unigrams) {
-    unobsTrigs <- getUnobsTrigs(bigramPrefix, trigrams)
+    unobsTrigs <- getUnobsTrigs(bigramPrefix, trigrams=trigrams,
+                                unigrams=unigrams)
     unobBis <- getUnobsBigramsTable(bigramPrefix, unobsTrigs, bigrams, unigrams)
     unobBiProbs <- rep(-1, length(unobBis$ngram))
     # calc discounted prob. mass at bigram level
     unig <- str_split(bigramPrefix, '_')[[1]][2]
-    unigram=getNgramTables(1, prefixFilter = unig)
+    unigram <- getNgramTables(1, ltcorpus , unig)
     alphaBig <- getAlphaBigram(bigDiscount, bigrams, unigram)
-    uniSumUnobs <- sum(filter(unobBis, btfreq == -1)$utfreq)
+    uniSumUnobs <- sum(filter(unobBis, btfreq == 0)$utfreq)
     for(i in 1:length(unobBis$ngram)) {
         if(unobBis$btfreq[i] > 0) {
-            # bigram tail observed: calc qBO from eqn. 9.
+            # bigram tail observed: calc qBO from eqn. 10.
             unobBiProbs[i] <- (unobBis$btfreq[i]-bigDiscount)/unigram$freq[1]
         } else {
-            # bigram tail NOT observed: calc qBO w/ bigram from eqn. 15.
+            # bigram tail NOT observed: calc qBO w/ bigram from eqn. 16.
             unobBiProbs[i] <- alphaBig * unobBis$utfreq[i] / uniSumUnobs
         }
     }

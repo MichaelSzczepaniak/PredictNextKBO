@@ -251,12 +251,7 @@ ltcorpus</code></pre>
 <h4>Step 0. i. Unigram, Bigram and Trigram counts</h4>
 <p>This article will use the <strong>quanteda</strong> package written by Ken Benoit and Paul Nulty to construct the n-grams. My experience with this package is that it performs much faster than <strong>tm</strong> and <strong>RWeka</strong> for these types of tasks, but of course, your mileage may vary. A nice little getting started guide to quanteda can be found <a href="https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html">here</a>.</p>
 <p>The following code was used to create the unigram, bigram, and trigrams tables shown below the code.</p>
-<pre class="r"><code>library(quanteda)
-library(data.table)
-library(readr)
-library(stringr)
-
-## Returns a named vector of n-grams and their associated frequencies
+<pre class="r"><code>## Returns a named vector of n-grams and their associated frequencies
 ## extracted from the character vector dat.
 ##
 ## ng - Defines the type of n-gram to be extracted: unigram if ng=1,
@@ -265,9 +260,8 @@ library(stringr)
 ## igfs - Character vector of words (features) to ignore from frequency table
 ## sort.by.ngram - sorts the return vector by the names
 ## sort.by.freq - sorts the return vector by frequency/count
-getNgramFreqs &lt;- function(ng, dat, igfs=NULL, sent.parse=FALSE,
+getNgramFreqs &lt;- function(ng, dat, igfs=NULL,
                           sort.by.ngram=TRUE, sort.by.freq=FALSE) {
-    if(sent.parse) { dat &lt;- breakOutSentences(dat) }
     # http://stackoverflow.com/questions/36629329/
     # how-do-i-keep-intra-word-periods-in-unigrams-r-quanteda
     if(is.null(igfs)) {
@@ -288,11 +282,13 @@ getNgramFreqs &lt;- function(ng, dat, igfs=NULL, sent.parse=FALSE,
 }
 
 ## Returns a 2 column data.table. The first column (ngram) contains the
-## unigram (if n=1), the bigram (if n=2), or trigram (if n=3). The second column
+## unigram (if n=1), the bigram (if n=2), etc.. The second column
 ## (freq) contains the frequency or count of the ngram found in linesCorpus.
 ##
-## prefixFilter - If not NULL, tells the function to return only rows where
-##                ngram column starts with prefixFilter.
+## linesCorpus - character vector
+## prefixFilter - string/character vector: If not NULL, tells the function
+##                to return only rows where ngram column starts with prefixFilter.
+##                If NULL, returns all the ngram and count rows.
 getNgramTables &lt;- function(n, linesCorpus, prefixFilter=NULL) {
     ngrams &lt;- getNgramFreqs(n, linesCorpus)
     ngrams.dt &lt;- data.table(ngram=names(ngrams), freq=ngrams)
@@ -307,10 +303,10 @@ getNgramTables &lt;- function(n, linesCorpus, prefixFilter=NULL) {
     return(ngrams.dt)
 }
 
-unigrams &lt;- getNgramTables(1, ltcorpus)
-bigrams &lt;- getNgramTables(2, ltcorpus)
-trigrams &lt;- getNgramTables(3, ltcorpus)
-unigrams; bigrams; trigrams</code></pre>
+unigs &lt;- getNgramTables(1, ltcorpus)
+bigrs &lt;&lt;- getNgramTables(2, ltcorpus)
+trigs &lt;&lt;- getNgramTables(3, ltcorpus)
+unigs; bigrs; trigs</code></pre>
 <pre><code>##    ngram freq
 ## 1:  book    5
 ## 2:   buy    6
@@ -372,7 +368,7 @@ calc.qBO.trigramsA &lt;- function(discount=0.5, bigramPrefix, trigrams) {
     return(qBO.A)
 }
 
-obsTrigrams &lt;- calc.qBO.trigramsA(bigramPrefix=bigPre, trigrams=trigrams)
+obsTrigrams &lt;- calc.qBO.trigramsA(bigramPrefix=bigPre, trigrams=trigs)
 obsTrigrams</code></pre>
 <pre><code>##            ngram prob
 ## 1: sell_the_book  0.5</code></pre>
@@ -382,9 +378,8 @@ obsTrigrams</code></pre>
 <p>This is the the most complex step as it involves backing off to the bigram level. Here is a breakdown of the sub-steps in these calculations:</p>
 <ol style="list-style-type: lower-roman">
 <li>Find all the words that complete unobserved trigrams. These are the words in the set <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})\)</span> described earlier.</li>
-<li>Calculate <span class="math inline">\(q_{BO}\)</span> for each observed bigram in the denominator of equation 17. using equation 10.</li>
 <li>Calculate <span class="math inline">\(\alpha(w_{i-1})\)</span> from equation 14.</li>
-<li>Calculate <span class="math inline">\(q_{BO}\)</span> for each unobserved bigram in the denominator of equation 17. using equation 16.</li>
+<li>Calculate <span class="math inline">\(q_{BO}\)</span> for each bigram in the denominator of equation 17. using equation 10. if the bigram is observed or equation 16. if it is unobserved.</li>
 <li>Calculate <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> from equation 15.</li>
 <li>Calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> for each <span class="math inline">\(w_i\)</span> from equation 17.</li>
 </ol>
@@ -427,17 +422,14 @@ getUnobsTrigs &lt;- function(bigramPrefix, trigrams, unigrams) {
     return(unobsTrigs)
 }
 
-unobsTrigrams &lt;- getUnobsTrigs(bigPre, trigrams, unigrams)
+unobsTrigrams &lt;- getUnobsTrigs(bigramPrefix=bigPre, trigrams=trigs,
+                               unigrams=unigs)
 unobsTrigrams</code></pre>
 <pre><code>## [1] &quot;sell_the_buy&quot;   &quot;sell_the_EOS&quot;   &quot;sell_the_house&quot; &quot;sell_the_paint&quot;
 ## [5] &quot;sell_the_sell&quot;  &quot;sell_the_the&quot;</code></pre>
 </div>
-<div id="step-3.-ii.-calculate-q_bo-for-observed-bigrams" class="section level5">
-<h5>Step 3. ii. Calculate <span class="math inline">\(q_{BO}\)</span> for Observed Bigrams</h5>
-<p>The code below implements equation 10. to calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> for observed bigrams:</p>
-</div>
-<div id="step-3.-iii.-calculate-alphaw_i-1" class="section level5">
-<h5>Step 3. iii. Calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></h5>
+<div id="step-3.-ii.-calculate-alphaw_i-1" class="section level5">
+<h5>Step 3. ii. Calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></h5>
 <p>The code below implements equation 14. to calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></p>
 <pre class="r"><code>## Returns the total probability mass discounted from all observed BIGRAMS.
 ## This is the amount of probability mass which is redistributed to
@@ -457,13 +449,13 @@ getAlphaBigram &lt;- function(discount=0.5, bigrams, unigram) {
 }
 
 unig &lt;- str_split(bigPre, '_')[[1]][2]
-unigram &lt;- getNgramTables(1, ltcorpus, unig)
-alphaBig &lt;- getAlphaBigram(bigrams=bigrams, unigram = unigram)
+unig &lt;- getNgramTables(1, ltcorpus, unig)
+alphaBig &lt;- getAlphaBigram(bigrams=bigrs, unigram=unig)
 alphaBig</code></pre>
 <pre><code>## [1] 0.125</code></pre>
 </div>
-<div id="step-3.-iv.-calculate-q_bo-for-unubserved-bigrams" class="section level5">
-<h5>Step 3. iv. Calculate <span class="math inline">\(q_{BO}\)</span> for Unubserved Bigrams</h5>
+<div id="step-3.-iii.-calculate-q_bo-for-bigrams" class="section level5">
+<h5>Step 3. iii. Calculate <span class="math inline">\(q_{BO}\)</span> for Bigrams</h5>
 <p>The code below implements equation 10. to calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> for unobserved bigrams:</p>
 <pre class="r"><code>## Returns a 3 column data.table. First column (ngram) = bigrams that are the
 ## last two words of unobserved trigrams that start with bigramPrefix.
@@ -484,7 +476,7 @@ getUnobsBigramsTable &lt;- function(bigramPrefix, unobsTrigs, bigrams, unigrams)
         if(length(bigramIndex) &gt; 0) {
             bigramTailCounts[i] &lt;- bigrams$freq[bigramIndex]
         } else {
-            bigramTailCounts[i] &lt;- -1
+            bigramTailCounts[i] &lt;- 0
         }
         unigramTailIndex &lt;- which(unigrams$ngram == unigramTail)
         unigramTailCounts[i] &lt;- unigrams$freq[unigramTailIndex]
@@ -508,26 +500,52 @@ getUnobsBigramsTable &lt;- function(bigramPrefix, unobsTrigs, bigrams, unigrams)
 ## unigrams - data.table of all unigrams in corpus and their counts/frequencies
 calc.qBO.bigramsB &lt;- function(bigDiscount=0.5, bigramPrefix,
                               trigrams, bigrams, unigrams) {
-    unobsTrigs &lt;- getUnobsTrigs(bigramPrefix, trigrams)
+    unobsTrigs &lt;- getUnobsTrigs(bigramPrefix, trigrams=trigrams,
+                                unigrams=unigrams)
     unobBis &lt;- getUnobsBigramsTable(bigramPrefix, unobsTrigs, bigrams, unigrams)
     unobBiProbs &lt;- rep(-1, length(unobBis$ngram))
     # calc discounted prob. mass at bigram level
     unig &lt;- str_split(bigramPrefix, '_')[[1]][2]
-    unigram=getNgramTables(1, prefixFilter = unig)
+    unigram &lt;- getNgramTables(1, ltcorpus , unig)
     alphaBig &lt;- getAlphaBigram(bigDiscount, bigrams, unigram)
-    uniSumUnobs &lt;- sum(filter(unobBis, btfreq == -1)$utfreq)
+    uniSumUnobs &lt;- sum(filter(unobBis, btfreq == 0)$utfreq)
     for(i in 1:length(unobBis$ngram)) {
         if(unobBis$btfreq[i] &gt; 0) {
-            # bigram tail observed: calc qBO from eqn. 9.
+            # bigram tail observed: calc qBO from eqn. 10.
             unobBiProbs[i] &lt;- (unobBis$btfreq[i]-bigDiscount)/unigram$freq[1]
         } else {
-            # bigram tail NOT observed: calc qBO w/ bigram from eqn. 15.
+            # bigram tail NOT observed: calc qBO w/ bigram from eqn. 16.
             unobBiProbs[i] &lt;- alphaBig * unobBis$utfreq[i] / uniSumUnobs
         }
     }
-    dt &lt;- data.table(ngram=unobBis$ngram, probs=unobBiProbs)
+    dt &lt;- data.table(ngram=unobBis$ngram, prob=unobBiProbs)
     return(dt)
-}</code></pre>
+}
+
+# ut &lt;- getUnobsTrigs(bigramPrefix=bigPre, trigrams=trigs, unigrams=unigs)
+# ut
+# ubt &lt;- getUnobsBigramsTable(bigramPrefix=bigPre, unobsTrigs=ut,
+#                             bigrams=bigrs, unigrams=unigs)
+# ubt
+
+qboBigs &lt;- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix=bigPre,
+                                trigrams=trigs, bigrams=bigrs,
+                                unigrams=unigs)
+qboBigs</code></pre>
+<pre><code>##        ngram        prob
+## 1:   the_buy 0.031250000
+## 2:   the_EOS 0.041666667
+## 3: the_house 0.312500000
+## 4: the_paint 0.005208333
+## 5:  the_sell 0.005208333
+## 6:   the_the 0.041666667</code></pre>
+</div>
+<div id="checking-the-birgram-calculations" class="section level5">
+<h5>Checking the Birgram Calculations</h5>
+<p>Before doing the final calculations for the unobserved trigrams, let’s do a simple check on our calculations on the bigram level. In the previous table, all the bigrams except <code>the_house</code> are unobserved which means that if we sum all the unobserved bigram probabilities, we should get the total bigram discount which is <span class="math inline">\(\alpha(w_{i-1})\)</span>. As we see below, this looks like it checks out.</p>
+<pre class="r"><code>unobs &lt;- qboBigs[-3,]
+sum(unobs$prob)</code></pre>
+<pre><code>## [1] 0.125</code></pre>
 </div>
 </div>
 </div>
