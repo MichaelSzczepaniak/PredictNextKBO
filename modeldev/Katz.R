@@ -57,25 +57,6 @@ getNgramTables <- function(n, linesCorpus, prefixFilter=NULL) {
     return(ngrams.dt)
 }
 
-
-
-## Returns the total probability mass discounted from all observed TRIGRAMS.
-## This is the amount of probability mass which is redistributed to
-## UNOBSERVED trigrams. If no trigrams starting with bigram$ngram[1] exist,
-## NULL is returned.
-## trigrams - data.frame or data.table of trigrams (1st column) and
-##            frequencies (2nd column)
-## bigram - single row frequency table with bigram in first col and frequency
-##          in the second.
-getAlphaTrigram <- function(discount=0.5, trigrams, bigram) {
-    # get all trigrams that start with bigram
-    regex <- sprintf("%s%s", "^", bigram$ngram[1])
-    trigsThatStartWithBig <- trigrams[grep(regex, trigrams$ngram),]
-    if(nrow(trigsThatStartWithBig) < 1) return(NULL)
-    alphaTri <- 1 - (sum(trigsThatStartWithBig$freq - discount) / bigram$freq)
-    return(alphaTri)
-}
-
 ## Returns the total probability mass discounted from all observed BIGRAMS.
 ## This is the amount of probability mass which is redistributed to
 ## UNOBSERVED bigrams. If no bigrams starting with unigram$ngram[1] exist,
@@ -115,11 +96,6 @@ calc.qBO.trigramsA <- function(discount=0.5, bigramPrefix, trigrams) {
     probs <- (obsTrigsA$freq - discount) / obsCount
     qBO.A <- data.table(ngram=obsTrigsA$ngram, prob=probs)
     return(qBO.A)
-}
-
-
-calc.qBO.bigramsA <- function() {
-    
 }
 
 ## Returns a 3 column data.table. First column (ngram) = bigrams that are the
@@ -224,13 +200,50 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
     return(dt)
 }
 
-## Returns the probability estimate for unobserved trigrams with bigramPrefix
-## calculated from equation 16.
-## Vector element names are the trigrams corresponding to the probability est.
-## If no such trigrams exist, returns NULL.
-calc.qBO.trigramB <- function() {
-    qBoUnobsBigs <- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix,
-                                      trigrams, bigrams, unigrams, unigram)
-    sum.qBoUnobsBigs <- sum(qBoUnobsBigs$probs)
+## Returns the total probability mass discounted from all observed TRIGRAMS.
+## This is the amount of probability mass which is redistributed to
+## UNOBSERVED trigrams. If no trigrams starting with bigram$ngram[1] exist,
+## NULL is returned.
+## triDiscount - amount to discount observed trigrams
+## trigrams - data.frame or data.table of all the trigrams in the corpus 
+##            (1st column) and their frequency/count (2nd column)
+## bigram - single row frequency table where the first col (ngram) is the bigram
+##          which are the first two words of unobserved trigrams we want to
+##          estimate probabilities of (same as bigramPrefix in previous functions
+##          listed above) delimited with '_'. The second column (freq) is the
+##          frequency/count of the bigram listed in the 1st column.
+getAlphaTrigram <- function(triDiscount=0.5, trigrams, bigram) {
+    # get all trigrams that start with bigram
+    regex <- sprintf("%s%s", "^", bigram$ngram[1])
+    trigsThatStartWithBig <- trigrams[grep(regex, trigrams$ngram),]
+    if(nrow(trigsThatStartWithBig) < 1) return(NULL)
+    alphaTri <- 1 - (sum(trigsThatStartWithBig$freq - triDiscount) / bigram$freq)
+    return(alphaTri)
 }
 
+## Returns a two column data table with column names ngram and prob.  The first
+## is formatted as w1_w2_w3 meaning that the values in the prob column are
+## probability estimates of q_BO(w3 | w1, w2) for unobserved trigrams that start
+## with bigramPrefix (w1, w2) calculated from equation 17.
+##
+## bigDiscount - amount to discount observed bigrams
+## bigramPrefix - first two words of unobserved trigrams we want to estimate
+##                probabilities of
+## trigrams - data.frame or data.table of all the trigrams in the corpus 
+##            (1st column) and their frequency/count (2nd column)
+## bigrams - data.frame or data.table of all the bigrams in the corpus 
+##            (1st column) and their frequency/count (2nd column)
+## unigrams - data.frame or data.table of all the unigrams in the corpus 
+##            (1st column) and their frequency/count (2nd column)
+calc.qBO.trigramB <- function(bigDiscount=0.5, bigramPrefix, trigrams, bigrams,
+                              unigrams, alphaTrigr) {
+    qBoUnobsBigs <- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix=bigramPrefix,
+                                      trigrams=trigrams, bigrams=bigrams,
+                                      unigrams=unigrams)
+    sum.qBoUnobsBigs <- sum(qBoUnobsBigs$prob)
+    qBoUnobsTrigProbs <- alphaTrigr * qBoUnobsBigs$prob / sum.qBoUnobsBigs
+    qBoUnobsTrigrams <- paste0(str_split(bigramPrefix, '_')[[1]][1],
+                               '_', qBoUnobsBigs$ngram)
+    dt <- data.table(ngram=qBoUnobsTrigrams, prob=qBoUnobsTrigProbs)
+    return(dt)
+}

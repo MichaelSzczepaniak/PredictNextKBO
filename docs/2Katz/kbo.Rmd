@@ -416,8 +416,7 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
 # ubt
 
 qboBigs <- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix=bigPre,
-                                trigrams=trigs, bigrams=bigrs,
-                                unigrams=unigs)
+                             trigrams=trigs, bigrams=bigrs, unigrams=unigs)
 qboBigs
 ```
 
@@ -428,5 +427,70 @@ Before doing the final calculations for the unobserved trigrams, let's do a simp
 ```{r}
 unobs <- qboBigs[-3,]
 sum(unobs$prob)
+```
+
+##### Step 3. iv. Calculate $\alpha(w_{i-2},\:w_{i-1})$ Discount for Trigrams
+
+The **getAlphaTrigram** function shown below implements equation 15. above to compute the trigram discount.  Here we us it to compute the trigram discount for $q_{BO}(house\:|\:sell,\:the)$:
+
+```{r}
+## Returns the total probability mass discounted from all observed TRIGRAMS.
+## This is the amount of probability mass which is redistributed to
+## UNOBSERVED trigrams. If no trigrams starting with bigram$ngram[1] exist,
+## NULL is returned.
+## triDiscount - amount to discount observed trigrams
+## trigrams - data.frame or data.table of all the trigrams in the corpus 
+##            (1st column) and their frequency/count (2nd column)
+## bigram - single row frequency table where the first col (ngram) is the bigram
+##          which are the first two words of unobserved trigrams we want to
+##          estimate probabilities of (same as bigramPrefix in previous functions
+##          listed above) delimited with '_'. The second column (freq) is the
+##          frequency/count of the bigram listed in the 1st column.
+getAlphaTrigram <- function(triDiscount=0.5, trigrams, bigram) {
+    # get all trigrams that start with bigram
+    regex <- sprintf("%s%s", "^", bigram$ngram[1])
+    trigsThatStartWithBig <- trigrams[grep(regex, trigrams$ngram),]
+    if(nrow(trigsThatStartWithBig) < 1) return(NULL)
+    alphaTri <- 1 - (sum(trigsThatStartWithBig$freq - triDiscount) / bigram$freq)
+    return(alphaTri)
+}
+
+bigr <- getNgramTables(2, ltcorpus, prefixFilter = bigPre)
+alphaTrig <- getAlphaTrigram(0.5, trigs, bigr)
+alphaTrig
+```
+
+##### Step 3. v. Calculate $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ for Unobserved Trigrams
+
+```{r}
+## Returns a two column data table with column names ngram and prob.  The first
+## col is formatted as w1_w2_w3 meaning that the values in the prob column are
+## probability estimates of q_BO(w3 | w1, w2) for unobserved trigrams that start
+## with bigramPrefix (w1, w2) calculated from equation 17.
+##
+## bigDiscount - amount to discount observed bigrams
+## bigramPrefix - first two words of unobserved trigrams we want to estimate
+##                probabilities of
+## trigrams - data.frame or data.table of all the trigrams in the corpus 
+##            (1st column) and their frequency/count (2nd column)
+## bigrams - data.frame or data.table of all the bigrams in the corpus 
+##            (1st column) and their frequency/count (2nd column)
+## unigrams - data.frame or data.table of all the unigrams in the corpus 
+##            (1st column) and their frequency/count (2nd column)
+calc.qBO.trigramB <- function(bigDiscount=0.5, bigramPrefix, trigrams, bigrams,
+                              unigrams, alphaTrigr) {
+    qBoUnobsBigs <- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix=bigramPrefix,
+                                      trigrams=trigrams, bigrams=bigrams,
+                                      unigrams=unigrams)
+    sum.qBoUnobsBigs <- sum(qBoUnobsBigs$prob)
+    qBoUnobsTrigProbs <- alphaTrigr * qBoUnobsBigs$prob / sum.qBoUnobsBigs
+    qBoUnobsTrigrams <- paste0(str_split(bigramPrefix, '_')[[1]][1],
+                               '_', qBoUnobsBigs$ngram)
+    dt <- data.table(ngram=qBoUnobsTrigrams, prob=qBoUnobsTrigProbs)
+    return(dt)
+}
+
+qBO.trigs.B <- calc.qBO.trigramB(0.5, bigPre, trigs, bigrs, unigs, alphaTrig)
+qBO.trigs.B
 ```
 
