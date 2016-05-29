@@ -17,7 +17,7 @@ library(dplyr)
 ```
 
 ### Introduction
-Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextDuo**](https://github.com/MichaelSzczepaniak/PredictNextDuo) as a web app deployed on [shinyapps.io](https://michael-szczepaniak.shinyapps.io/predictnextduo/).  
+Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextKBO**](https://github.com/MichaelSzczepaniak/PredictNextKBO) as a web app deployed on [shinyapps.io](https://michael-szczepaniak.shinyapps.io/predictnextkbo/).  
 
 Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.
 
@@ -431,7 +431,7 @@ sum(unobs$prob)
 
 ##### Step 3. iv. Calculate $\alpha(w_{i-2},\:w_{i-1})$ Discount for Trigrams
 
-The **getAlphaTrigram** function shown below implements equation 15. above to compute the trigram discount.  Here we us it to compute the trigram discount for $q_{BO}(house\:|\:sell,\:the)$:
+The **getAlphaTrigram** function shown below implements equation 15. above to compute the trigram discount.  Here we use it to compute the trigram discount for $q_{BO}(house\:|\:sell,\:the)$:
 
 ```{r}
 ## Returns the total probability mass discounted from all observed TRIGRAMS.
@@ -494,3 +494,40 @@ qBO.trigs.B <- calc.qBO.trigramB(0.5, bigPre, trigs, bigrs, unigs, alphaTrig)
 qBO.trigs.B
 ```
 
+#### Step 4. Select $w_i$ with the highest $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$
+
+We've done all the calculations required to make our prediction.  These are summarized in the table below:
+
+```{r}
+all_trigrams <- rbind(obsTrigrams, qBO.trigs.B)
+all_trigrams
+sum(all_trigrams$prob)  # good idea to check our work
+```
+From the above table, we can see that **book** would be our prediction as the code below confirms:
+```{r}
+predict_trigram <- all_trigrams[which.max(all_trigrams$prob),]
+predict_trigram
+```
+
+### An Interesting Question
+
+Any good data scientist at this point would be asking themselves some questions about their results, especially if they have not worked with a particular algorithm before.  Let's explore one such question to see if we can deepen our understanding.
+
+In the example we just completed, our prediction of **book** was based on the fact that $q_{BO}(book\:|\:sell,\:the)$ was higher than any other $q_{BO}(w_i\:|\:sell,\:the)$.  But this wasn't really very interesting because *sell the book* was an observed trigram and the next closest probability $q_{BO}(house\:|\:sell,\:the)$ was based on an unobserved trigram *sell the house*.  This leads us to wonder if observed trigrams always trump unobserved trigrams.
+
+We can prove to ourselves that this is not the case with a simple experiment.  Let's redo the above calculations with increased discount rates at both bigram and trigram levels.  If we increase our discount rates from 0.5 to 0.7, what happens?  If we set $\gamma_2 = \gamma_3 = 0.7$, these are the results we get:
+
+```{r}
+gamma2=0.7; gamma3=0.7
+obsTrigrams <- calc.qBO.trigramsA(gamma3, bigramPrefix=bigPre, trigrams=trigs)
+alphaBig <- getAlphaBigram(gamma2, bigrams=bigrs, unigram=unig)
+qboBigs <- calc.qBO.bigramsB(bigDiscount=gamma2, bigramPrefix=bigPre,
+                             trigrams=trigs, bigrams=bigrs, unigrams=unigs)
+alphaTrig <- getAlphaTrigram(gamma3, trigs, bigr)
+qBO.trigs.B <- calc.qBO.trigramB(gamma3, bigPre, trigs, bigrs, unigs, alphaTrig)
+all_trigrams <- rbind(obsTrigrams, qBO.trigs.B)
+all_trigrams
+predict_trigram <- all_trigrams[which.max(all_trigrams$prob),]
+predict_trigram
+```
+Now we get a different result!  So we learned that the discount rates matter.  As mentioned earlier, the values we should use for these discount rates should be determined by cross-validation and will be strongly dependent upon the corpus used for the training.

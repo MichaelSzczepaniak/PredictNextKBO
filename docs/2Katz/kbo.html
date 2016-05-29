@@ -118,7 +118,7 @@ $(document).ready(function () {
 
 <div id="introduction" class="section level3">
 <h3>Introduction</h3>
-<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextDuo"><strong>PredictNextDuo</strong></a> as a web app deployed on <a href="https://michael-szczepaniak.shinyapps.io/predictnextduo/">shinyapps.io</a>.</p>
+<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextKBO"><strong>PredictNextKBO</strong></a> as a web app deployed on <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/">shinyapps.io</a>.</p>
 <p>Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.</p>
 </div>
 <div id="what-is-the-katz-back-off-kbo-model" class="section level3">
@@ -548,7 +548,7 @@ sum(unobs$prob)</code></pre>
 </div>
 <div id="step-3.-iv.-calculate-alphaw_i-2w_i-1-discount-for-trigrams" class="section level5">
 <h5>Step 3. iv. Calculate <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> Discount for Trigrams</h5>
-<p>The <strong>getAlphaTrigram</strong> function shown below implements equation 15. above to compute the trigram discount. Here we us it to compute the trigram discount for <span class="math inline">\(q_{BO}(house\:|\:sell,\:the)\)</span>:</p>
+<p>The <strong>getAlphaTrigram</strong> function shown below implements equation 15. above to compute the trigram discount. Here we use it to compute the trigram discount for <span class="math inline">\(q_{BO}(house\:|\:sell,\:the)\)</span>:</p>
 <pre class="r"><code>## Returns the total probability mass discounted from all observed TRIGRAMS.
 ## This is the amount of probability mass which is redistributed to
 ## UNOBSERVED trigrams. If no trigrams starting with bigram$ngram[1] exist,
@@ -615,6 +615,55 @@ qBO.trigs.B</code></pre>
 ## 6:   sell_the_the 0.047619048</code></pre>
 </div>
 </div>
+<div id="step-4.-select-w_i-with-the-highest-q_bow_iw_i-2w_i-1" class="section level4">
+<h4>Step 4. Select <span class="math inline">\(w_i\)</span> with the highest <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span></h4>
+<p>We’ve done all the calculations required to make our prediction. These are summarized in the table below:</p>
+<pre class="r"><code>all_trigrams &lt;- rbind(obsTrigrams, qBO.trigs.B)
+all_trigrams</code></pre>
+<pre><code>##             ngram        prob
+## 1:  sell_the_book 0.500000000
+## 2:   sell_the_buy 0.035714286
+## 3:   sell_the_EOS 0.047619048
+## 4: sell_the_house 0.357142857
+## 5: sell_the_paint 0.005952381
+## 6:  sell_the_sell 0.005952381
+## 7:   sell_the_the 0.047619048</code></pre>
+<pre class="r"><code>sum(all_trigrams$prob)  # good idea to check our work</code></pre>
+<pre><code>## [1] 1</code></pre>
+<p>From the above table, we can see that <strong>book</strong> would be our prediction as the code below confirms:</p>
+<pre class="r"><code>predict_trigram &lt;- all_trigrams[which.max(all_trigrams$prob),]
+predict_trigram</code></pre>
+<pre><code>##            ngram prob
+## 1: sell_the_book  0.5</code></pre>
+</div>
+</div>
+<div id="an-interesting-question" class="section level3">
+<h3>An Interesting Question</h3>
+<p>Any good data scientist at this point would be asking themselves some questions about their results, especially if they have not worked with a particular algorithm before. Let’s explore one such question to see if we can deepen our understanding.</p>
+<p>In the example we just completed, our prediction of <strong>book</strong> was based on the fact that <span class="math inline">\(q_{BO}(book\:|\:sell,\:the)\)</span> was higher than any other <span class="math inline">\(q_{BO}(w_i\:|\:sell,\:the)\)</span>. But this wasn’t really very interesting because <em>sell the book</em> was an observed trigram and the next closest probability <span class="math inline">\(q_{BO}(house\:|\:sell,\:the)\)</span> was based on an unobserved trigram <em>sell the house</em>. This leads us to wonder if observed trigrams always trump unobserved trigrams.</p>
+<p>We can prove to ourselves that this is not the case with a simple experiment. Let’s redo the above calculations with increased discount rates at both bigram and trigram levels. If we increase our discount rates from 0.5 to 0.7, what happens? If we set <span class="math inline">\(\gamma_2 = \gamma_3 = 0.7\)</span>, these are the results we get:</p>
+<pre class="r"><code>gamma2=0.7; gamma3=0.7
+obsTrigrams &lt;- calc.qBO.trigramsA(gamma3, bigramPrefix=bigPre, trigrams=trigs)
+alphaBig &lt;- getAlphaBigram(gamma2, bigrams=bigrs, unigram=unig)
+qboBigs &lt;- calc.qBO.bigramsB(bigDiscount=gamma2, bigramPrefix=bigPre,
+                             trigrams=trigs, bigrams=bigrs, unigrams=unigs)
+alphaTrig &lt;- getAlphaTrigram(gamma3, trigs, bigr)
+qBO.trigs.B &lt;- calc.qBO.trigramB(gamma3, bigPre, trigs, bigrs, unigs, alphaTrig)
+all_trigrams &lt;- rbind(obsTrigrams, qBO.trigs.B)
+all_trigrams</code></pre>
+<pre><code>##             ngram        prob
+## 1:  sell_the_book 0.300000000
+## 2:   sell_the_buy 0.050000000
+## 3:   sell_the_EOS 0.066666667
+## 4: sell_the_house 0.500000000
+## 5: sell_the_paint 0.008333333
+## 6:  sell_the_sell 0.008333333
+## 7:   sell_the_the 0.066666667</code></pre>
+<pre class="r"><code>predict_trigram &lt;- all_trigrams[which.max(all_trigrams$prob),]
+predict_trigram</code></pre>
+<pre><code>##             ngram prob
+## 1: sell_the_house  0.5</code></pre>
+<p>Now we get a different result! So we learned that the discount rates matter. As mentioned earlier, the values we should use for these discount rates should be determined by cross-validation and will be strongly dependent upon the corpus used for the training.</p>
 </div>
 
 
