@@ -1,18 +1,27 @@
 ---
-title: "NLP Predicting Next Word Project - Preprocessing & EDA"
+title: "Predicting Next Word Using Katz Back-Off: Preprocessing & EDA"
 author: "Michael Szczepaniak"
 date: "May 2016"
 output: html_document
-url: http://rpubs.com/mszczepaniak/predictnextduo
+url: http://rpubs.com/mszczepaniak/predictnextkbo
 ---
-## Synopsis  
+## Background  
 World wide mobile internet usage is projected to continue its rapid growth over the next few years.  According to a [Statista Fact Sheet](http://www.statista.com/statistics/284202/mobile-phone-internet-user-penetration-worldwide/), the percentage of mobile phone users accessing the internet will rise to 63.4% in 2019 up from 48.8% in 2014.  This increased ownship has resulted in more people spending increasing amounts of time on mobile devices for email, social networking, banking and other activities. Because typing on these devices is an awkward and tedious task, smart keyboard applications based on predictive text analytics have emerged to make typing easier.  
 
-The goal of this application is to develop a prototype predictive web application that suggests the next word in a text based message based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.
+## Objective
+The goal of this application is to develop a prototype predictive web application that suggests the next word in a text based message based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  A Katz Back-Off (KBO) Trigram  Language Model was selected as the algorithm to make these predictions for 3 primary reasons:
+
+1. [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf) was considered, but this model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  The three English corpus files used in this project were on the order of 200Mb.
+2. The SBO doesn't estimate true probabilities, rather it uses just the relative frequencies as a score and bases its predection based on the highest score.
+3. The SBO does not do any estimation on unobserved n-grams, but instead backs all the way off to the bigram probability.  The KBO model incorporates smoothing in order to estimate probabilities of unobserved n-grams.
+
+In addition to the three reasons listed above, because the SBO is much simplier to implement, I felt the project would be more meaningful and challenging to work on something a bit more complex like the KBO.
 
 ## Acquiring and Cleaning the Data
 ### Acquiring and Reading the Data
-The data was downloaded from [this link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) and stored locally. If this link is no longer available, the data can obtained from [here](https://www.dropbox.com/s/uk7d4gp1c7bgmxc/Coursera-SwiftKey.zip?raw=1). The file was download to a directory called **data** in a local project and unzipped there.  The the unzipped data contained four subdirectories: **de_DE** (German), **en_US** (US english), **fi_FI** (Finnish), and **ru_RU** (Russian). This project focuses on the English corpora residing in the **en_US** folder. This folder contains three files named **en_US.blogs.txt**, **en_US.news.txt**, and **en_US.twitter.txt**.
+The data was originally downloaded from [this link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) and stored locally. If this link is no longer available, the data can obtained from [my dropbox](https://www.dropbox.com/s/uk7d4gp1c7bgmxc/Coursera-SwiftKey.zip?raw=1). The zip file was download to a directory called **data** in a local project and unzipped there.  The the unzipped data contained four subdirectories: **de_DE** (German), **en_US** (US english), **fi_FI** (Finnish), and **ru_RU** (Russian). This project focuses on the English corpora residing in the **en_US** folder. This folder contains three files named **en_US.blogs.txt**, **en_US.news.txt**, and **en_US.twitter.txt**.
+
+With the data residing locally, the following code was used to read each file into a character array.
 
 ```{r message=FALSE, warning=FALSE, results='hide'}
 # install packages if needed
@@ -23,25 +32,16 @@ if(length(new.packages) > 0) install.packages(new.packages)
 libs <- c("dplyr", "readr")
 lapply(libs, require, character.only=TRUE)  # load libs
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
-# set parameters
-dataDir <- "../data/en_US/"
-filenames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
+
 fullpaths <- sprintf("%s%s", dataDir, filenames)
 ## Different issues with each data file forces use of different read functions
-getFileLines <- function(fileId) {
-    fileLines <- NULL
-    if(fileId == "blogs") {
-        fileLines <- readLines(sprintf("%s%s", dataDir, filenames[1]))
-    }
-    else if(fileId == "news") {
-        fileLines <- read_lines(sprintf("%s%s", dataDir, filenames[2]))
-    }
-    else if(fileId == "twitter") {
-        fileLines <- readLines(sprintf("%s%s", dataDir, filenames[3]))
-    }
+getFileLines <- function(fileId, dataDir) {
+    filenames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
+    if(grep(fileId, filenames) > 0) index <- grep(fileId, filenames)
     else {
-        cat("getFilesLines: INVALID fileId parameter!")
+        cat('getFileLines could undestand what file to read:', fileId)
+        return(NULL)
     }
-    
+    fileLines <- read_lines(sprintf("%s%s", dataDir, filenames[index]))
     return(fileLines)
 }
