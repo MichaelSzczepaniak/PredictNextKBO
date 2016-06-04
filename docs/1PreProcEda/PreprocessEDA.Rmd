@@ -1,7 +1,7 @@
 ---
 title: "Predicting Next Word Using Katz Back-Off: Preprocessing & EDA"
 author: "Michael Szczepaniak"
-date: "May 2016"
+date: "June 2016"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictnextkbo
 ---
@@ -9,11 +9,10 @@ url: http://rpubs.com/mszczepaniak/predictnextkbo
 World wide mobile internet usage is projected to continue its rapid growth over the next few years.  According to a [Statista Fact Sheet](http://www.statista.com/statistics/284202/mobile-phone-internet-user-penetration-worldwide/), the percentage of mobile phone users accessing the internet will rise to 63.4% in 2019 up from 48.8% in 2014.  This increased ownship has resulted in more people spending increasing amounts of time on mobile devices for email, social networking, banking and other activities. Because typing on these devices is an awkward and tedious task, smart keyboard applications based on predictive text analytics have emerged to make typing easier.  
 
 ## Objective
-The goal of this application is to develop a prototype predictive web application that suggests the next word in a text based message based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  A Katz Back-Off (KBO) Trigram  Language Model was selected as the algorithm to make these predictions for 3 primary reasons:
+The goal of this project is to develop a prototype predictive web application that suggests the next word in a text based message based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm to make these predictions.  A detailed description of how this algorithm works can be found here.  The KBO Trigram was chosen for 2 primary reasons:
 
-1. [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf) was considered, but this model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  The three English corpus files used in this project were on the order of 200Mb.
-2. The SBO doesn't estimate true probabilities, rather it uses just the relative frequencies as a score and bases its predection based on the highest score.
-3. The SBO does not do any estimation on unobserved n-grams, but instead backs all the way off to the bigram probability.  The KBO model incorporates smoothing in order to estimate probabilities of unobserved n-grams.
+1. **Size -** One of the simpliest LMs considered was the [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf), but this model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  Since this app was deployed on a 1Gb shinyapp.io instance, I didn't think I'd have enough space for the n-grams tables needed to do a decent job with predictions.
+2. **Accuracy on small corpus -** The SBO does not do any estimation on unobserved n-grams, but instead backs off to the nearest matched n-gram until it reaches the unigram.  The KBO model incorporates a form of smoothing in order to estimate probabilities of unobserved n-grams which appears to be more accurate when using a limited number of n-grams (trigrams in this case).
 
 In addition to the three reasons listed above, because the SBO is much simplier to implement, I felt the project would be more meaningful and challenging to work on something a bit more complex like the KBO.
 
@@ -32,16 +31,20 @@ if(length(new.packages) > 0) install.packages(new.packages)
 libs <- c("dplyr", "readr")
 lapply(libs, require, character.only=TRUE)  # load libs
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
-
-fullpaths <- sprintf("%s%s", dataDir, filenames)
+dataDir <- '../data/en_US' # data dir on local sys - needs to be modified to were you keep data
+fileNames <- c('en_US.blogs.txt', 'en_US.news.txt', 'en_US.twitter.txt')
+fullpaths <- sprintf("%s%s", dataDir, fileNames)
 ## Different issues with each data file forces use of different read functions
-getFileLines <- function(fileId, dataDir) {
-    filenames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
-    if(grep(fileId, filenames) > 0) index <- grep(fileId, filenames)
+getFileLines <- function(fileId, dataDir=dataDir, fnames=fileNames) {
+    if(grep(fileId, fnames) > 0) index <- grep(fileId, fnames)
     else {
         cat('getFileLines could undestand what file to read:', fileId)
         return(NULL)
     }
-    fileLines <- read_lines(sprintf("%s%s", dataDir, filenames[index]))
+    fileLines <- read_lines(sprintf("%s%s", dataDir, fnames[index]))
     return(fileLines)
 }
+
+
+
+```
