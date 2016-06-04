@@ -110,7 +110,7 @@ $(document).ready(function () {
 
 <h1 class="title">Predicting Next Word Using Katz Back-Off: Preprocessing &amp; EDA</h1>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>May 2016</em></h4>
+<h4 class="date"><em>June 2016</em></h4>
 
 </div>
 
@@ -121,11 +121,10 @@ $(document).ready(function () {
 </div>
 <div id="objective" class="section level2">
 <h2>Objective</h2>
-<p>The goal of this application is to develop a prototype predictive web application that suggests the next word in a text based message based on what has been typed in by the user. For example, a user may type <em>I love Italian</em> and the the application might suggest: <em>food</em>, <em>shoes</em>, or <em>opera</em>. A Katz Back-Off (KBO) Trigram Language Model was selected as the algorithm to make these predictions for 3 primary reasons:</p>
+<p>The goal of this project is to develop a prototype predictive web application that suggests the next word in a text based message based on what has been typed in by the user. For example, a user may type <em>I love Italian</em> and the the application might suggest: <em>food</em>, <em>shoes</em>, or <em>opera</em>. A Katz Back-Off (KBO) Trigram Language Model (LM) was selected as the algorithm to make these predictions. A detailed description of how this algorithm works can be found here. The KBO Trigram was chosen for 2 primary reasons:</p>
 <ol style="list-style-type: decimal">
-<li><a href="http://www.aclweb.org/anthology/D07-1090.pdf">A Stupid Back-Off (SBO) model</a> was considered, but this model tends to do well with large web-scale n-gram tables. The authors of this algorithm built tarabyte-sized language models. The three English corpus files used in this project were on the order of 200Mb.</li>
-<li>The SBO doesn’t estimate true probabilities, rather it uses just the relative frequencies as a score and bases its predection based on the highest score.</li>
-<li>The SBO does not do any estimation on unobserved n-grams, but instead backs all the way off to the bigram probability. The KBO model incorporates smoothing in order to estimate probabilities of unobserved n-grams.</li>
+<li><strong>Size -</strong> One of the simpliest LMs considered was the <a href="http://www.aclweb.org/anthology/D07-1090.pdf">A Stupid Back-Off (SBO) model</a>, but this model tends to do well with large web-scale n-gram tables. The authors of this algorithm built tarabyte-sized language models. Since this app deployed on a 1Gb shinyapp.io instance, I didn’t think I’d have enough space for the n-grams tables needed to do a decent job with predictions.</li>
+<li><strong>Accuracy on small corpus -</strong> The SBO does not do any estimation on unobserved n-grams, but instead backs off to the nearest matched n-gram until it reaches the unigram. The KBO model incorporates a form of smoothing in order to estimate probabilities of unobserved n-grams which appears to be more accurate when using a limited number of n-grams (trigrams in this case).</li>
 </ol>
 <p>In addition to the three reasons listed above, because the SBO is much simplier to implement, I felt the project would be more meaningful and challenging to work on something a bit more complex like the KBO.</p>
 </div>
@@ -133,7 +132,8 @@ $(document).ready(function () {
 <h2>Acquiring and Cleaning the Data</h2>
 <div id="acquiring-and-reading-the-data" class="section level3">
 <h3>Acquiring and Reading the Data</h3>
-<p>The data was downloaded from <a href="https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip">this link</a> and stored locally. If this link is no longer available, the data can obtained from <a href="https://www.dropbox.com/s/uk7d4gp1c7bgmxc/Coursera-SwiftKey.zip?raw=1">my dropbox</a>. The file was download to a directory called <strong>data</strong> in a local project and unzipped there. The the unzipped data contained four subdirectories: <strong>de_DE</strong> (German), <strong>en_US</strong> (US english), <strong>fi_FI</strong> (Finnish), and <strong>ru_RU</strong> (Russian). This project focuses on the English corpora residing in the <strong>en_US</strong> folder. This folder contains three files named <strong>en_US.blogs.txt</strong>, <strong>en_US.news.txt</strong>, and <strong>en_US.twitter.txt</strong>.</p>
+<p>The data was originally downloaded from <a href="https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip">this link</a> and stored locally. If this link is no longer available, the data can obtained from <a href="https://www.dropbox.com/s/uk7d4gp1c7bgmxc/Coursera-SwiftKey.zip?raw=1">my dropbox</a>. The zip file was download to a directory called <strong>data</strong> in a local project and unzipped there. The the unzipped data contained four subdirectories: <strong>de_DE</strong> (German), <strong>en_US</strong> (US english), <strong>fi_FI</strong> (Finnish), and <strong>ru_RU</strong> (Russian). This project focuses on the English corpora residing in the <strong>en_US</strong> folder. This folder contains three files named <strong>en_US.blogs.txt</strong>, <strong>en_US.news.txt</strong>, and <strong>en_US.twitter.txt</strong>.</p>
+<p>With the data residing locally, the following code was used to read each file into a character array.</p>
 <pre class="r"><code># install packages if needed
 list.of.packages &lt;- c(&quot;dplyr&quot;, &quot;readr&quot;)
 new.packages &lt;- list.of.packages[!(list.of.packages %in% installed.packages()[,&quot;Package&quot;])]
@@ -142,26 +142,17 @@ if(length(new.packages) &gt; 0) install.packages(new.packages)
 libs &lt;- c(&quot;dplyr&quot;, &quot;readr&quot;)
 lapply(libs, require, character.only=TRUE)  # load libs
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
-# set parameters
-dataDir &lt;- &quot;../data/en_US/&quot;
-filenames &lt;- c(&quot;en_US.blogs.txt&quot;, &quot;en_US.news.txt&quot;, &quot;en_US.twitter.txt&quot;)
-fullpaths &lt;- sprintf(&quot;%s%s&quot;, dataDir, filenames)
+dataDir &lt;- '../data/en_US' # data dir on local sys - needs to be modified to were you keep data
+fileNames &lt;- c('en_US.blogs.txt', 'en_US.news.txt', 'en_US.twitter.txt')
+fullpaths &lt;- sprintf(&quot;%s%s&quot;, dataDir, fileNames)
 ## Different issues with each data file forces use of different read functions
-getFileLines &lt;- function(fileId) {
-    fileLines &lt;- NULL
-    if(fileId == &quot;blogs&quot;) {
-        fileLines &lt;- readLines(sprintf(&quot;%s%s&quot;, dataDir, filenames[1]))
-    }
-    else if(fileId == &quot;news&quot;) {
-        fileLines &lt;- read_lines(sprintf(&quot;%s%s&quot;, dataDir, filenames[2]))
-    }
-    else if(fileId == &quot;twitter&quot;) {
-        fileLines &lt;- readLines(sprintf(&quot;%s%s&quot;, dataDir, filenames[3]))
-    }
+getFileLines &lt;- function(fileId, dataDir=dataDir, fnames=fileNames) {
+    if(grep(fileId, fnames) &gt; 0) index &lt;- grep(fileId, fnames)
     else {
-        cat(&quot;getFilesLines: INVALID fileId parameter!&quot;)
+        cat('getFileLines could undestand what file to read:', fileId)
+        return(NULL)
     }
-    
+    fileLines &lt;- read_lines(sprintf(&quot;%s%s&quot;, dataDir, fnames[index]))
     return(fileLines)
 }</code></pre>
 </div>
