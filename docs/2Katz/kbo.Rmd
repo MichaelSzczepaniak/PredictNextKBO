@@ -17,7 +17,7 @@ library(dplyr)
 ```
 
 ### Introduction
-Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextKBO**](https://github.com/MichaelSzczepaniak/PredictNextKBO) as a web app deployed on [shinyapps.io](https://michael-szczepaniak.shinyapps.io/predictnextkbo/).  
+Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextKBO**](https://github.com/MichaelSzczepaniak/PredictNextKBO) as a web app deployed at [https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/).  
 
 Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.
 
