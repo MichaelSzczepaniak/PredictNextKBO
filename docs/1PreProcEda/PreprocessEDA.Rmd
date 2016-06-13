@@ -3,39 +3,62 @@ title: "Predicting Next Word Using Katz Back-Off: Preprocessing & EDA"
 author: "Michael Szczepaniak"
 date: "June 2016"
 output: html_document
-url: http://rpubs.com/mszczepaniak/predictnextkbo
+url: http://rpubs.com/mszczepaniak/preprockbo
 ---
 ## Background  
 World wide mobile internet usage is projected to continue its rapid growth over the next few years.  According to a [Statista Fact Sheet](http://www.statista.com/statistics/284202/mobile-phone-internet-user-penetration-worldwide/), the percentage of mobile phone users accessing the internet will rise to 63.4% in 2019 up from 48.8% in 2014.  This increased ownship has resulted in more people spending increasing amounts of time on mobile devices for email, social networking, banking and other activities. Because typing on these devices is an awkward and tedious task, smart keyboard applications based on predictive text analytics have emerged to make typing easier.  
 
-## Objective
-The goal of this project is to develop a prototype predictive web application that suggests the next word in a text based message based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm to make these predictions.  A detailed description of how this algorithm works can be found here.  The KBO Trigram was chosen for 2 primary reasons:
+## Objectives
+The first goal of this project was to develop a prototype predictive web application that suggests the next word in a message of text based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm to make these predictions.  A detailed description of how this algorithm works can be found [at this link](http://rpubs.com/mszczepaniak/prednextkbo).  The KBO Trigram was chosen for two main reasons:
 
-1. **Size -** One of the simpliest LMs considered was the [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf), but this model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  Since this app was deployed on a 1Gb shinyapp.io instance, I didn't think I'd have enough space for the n-grams tables needed to do a decent job with predictions.
+1. **Size -** One of the simpliest LMs considered was the [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf), but this model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  Since this app was deployed on a 1Gb shinyapp.io instance, I didn't think enough data was available to do a decent job with predictions using SBO.
 2. **Accuracy on small corpus -** The SBO does not do any estimation on unobserved n-grams, but instead backs off to the nearest matched n-gram until it reaches the unigram.  The KBO model incorporates a form of smoothing in order to estimate probabilities of unobserved n-grams which appears to be more accurate when using a limited number of n-grams (trigrams in this case).
 
-In addition to the three reasons listed above, because the SBO is much simplier to implement, I felt the project would be more meaningful and challenging to work on something a bit more complex like the KBO.
+In addition to the reasons listed above, because the SBO is much simplier to implement, I felt the project would be more intersting and challenging to work on if something more complex like the KBO was selected.
 
-## Acquiring and Cleaning the Data
-### Acquiring and Reading the Data
+The second goal was to make this work reproducable. To meet this objective, all code used to pre-process the data, implement the model, and train the model are provided.  All pre-processing code is provided in the **Appendix** section of this R Markdown document.
+
+## Acquiring and Partitioning the Data
 The data was originally downloaded from [this link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) and stored locally. If this link is no longer available, the data can obtained from [my dropbox](https://www.dropbox.com/s/uk7d4gp1c7bgmxc/Coursera-SwiftKey.zip?raw=1). The zip file was download to a directory called **data** in a local project and unzipped there.  The the unzipped data contained four subdirectories: **de_DE** (German), **en_US** (US english), **fi_FI** (Finnish), and **ru_RU** (Russian). This project focuses on the English corpora residing in the **en_US** folder. This folder contains three files named **en_US.blogs.txt**, **en_US.news.txt**, and **en_US.twitter.txt**.
 
-With the data residing locally, the following code was used to read each file into a character array.
+With the data residing locally, the **writeTrainTestFiles** function was used to read each of the three data files, partition each them into 80% training and 20% hold-out test sets, and then write these two partitioned files locally.  The training set was used to train the model to determine values for the two model parameters: bigram discount rate and trigram discount rate.  [Descriptions of what these parameters are can be found here.](http://rpubs.com/mszczepaniak/prednextkbo)
 
-```{r message=FALSE, warning=FALSE, results='hide'}
+### Cleaning the Data
+After the data was read in, it was cleaned using the following steps:
+
+1. Sentence Parsing - This step broke the text into sentences. This changed the character vector from being one line per element to one sentence per element.
+2. Pre-Profanity filter - This step converted the text to lower case, replaced chars similar to single quotes with simple ascii single quote chars, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.
+3. Profanity Removal - This step removed the profanity from the text.
+4. Post-Profanity filter - This step removed urls and other non-essential characters.
+
+The profanity removal step required required first building a profanity list.  This was done by taking the union of three lists from the following sources: [google](http://fffff.at/googles-official-list-of-bad-words/), [Luis von Ahn of Carnegio Mellon University ](http://www.cs.cmu.edu/~biglou/resources/bad-words.txt), and [a github project of Duncan Robertson from London, UK](https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt). These lists were downloaded and merged together using the **mergeTermLists** function and profanity was removed using the **removeProfanity** function. Both of these functions are listed in the **Appendix**.
+
+The above steps were executed off-line (not in this R Markdown file) because they were very time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.
+
+
+### Appendix
+
+```{r eval=FALSE}
 # install packages if needed
-list.of.packages <- c("dplyr", "readr")
+list.of.packages <- c('dplyr', 'readr', 'stringr', 'quanteda')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages) > 0) install.packages(new.packages)
 # load libraries
-libs <- c("dplyr", "readr")
-lapply(libs, require, character.only=TRUE)  # load libs
+# libs <- c('dplyr', 'readr', 'quanteda')
+lapply(list.of.packages, require, character.only=TRUE)  # load libs
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
-dataDir <- '../data/en_US' # data dir on local sys - needs to be modified to were you keep data
-fileNames <- c('en_US.blogs.txt', 'en_US.news.txt', 'en_US.twitter.txt')
-fullpaths <- sprintf("%s%s", dataDir, fileNames)
-## Different issues with each data file forces use of different read functions
-getFileLines <- function(fileId, dataDir=dataDir, fnames=fileNames) {
+# set parameters
+ddir <- "../data/en_US/" # assumes exec from dir at same level as data
+fnames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
+fullpaths <- sprintf("%s%s", ddir, fnames)
+
+## Reads the text corpus data file and returns a character array where every
+## element is a line from the file.
+## fileId = string, text fragment of file name to be read e.g. 'blogs', 'news',
+##          or 'twit'
+## dataDir = path to data file to be read
+## fnames = file names to be read which have fileId fragments
+getFileLines <- function(fileId, dataDir=ddir, fileNames=fnames) {
     if(grep(fileId, fnames) > 0) index <- grep(fileId, fnames)
     else {
         cat('getFileLines could undestand what file to read:', fileId)
@@ -45,6 +68,133 @@ getFileLines <- function(fileId, dataDir=dataDir, fnames=fileNames) {
     return(fileLines)
 }
 
-
-
+## Breaks the en_US.<fileType>.txt into training and test sets and writes out
+## these files.
+## fileType - string, one of 3 values: 'blogs', 'news', or 'twitter'
+## train.fraction - float between 0 and 1, fractional amount of data to be used
+##                  in the training set
+## dataDir - relative path to the data directory
+writeTrainTestFiles <- function(fileType, train.fraction=0.8,
+                                dataDir=ddir) {
+    set.seed(71198)
+    prefix <- "en_US."
+    in.postfix <- ".txt"
+    train.postfix <- ".train.txt"
+    test.postfix <- ".test.txt"
+    infile <- sprintf("%s%s%s%s", dataDir, prefix, fileType, in.postfix)
+    dat <- getFileLines(fileType)
+    line.count <- length(dat)
+    train.size <- as.integer(train.fraction * line.count)
+    test.size <- line.count - train.size
+    train.indices <- sample(1:line.count, train.size, replace=FALSE)
+    train.indices <- train.indices[order(train.indices)]
+    test.indices <- setdiff(1:line.count, train.indices)
+    train.set <- dat[train.indices]
+    ofile <- sprintf('%s%s%s%s', dataDir, prefix, fileType, train.postfix)
+    writeLines(train.set, ofile)
+    test.set <- dat[test.indices]
+    ofile <- sprintf('%s%s%s%s', dataDir, prefix, fileType, test.postfix)
+    writeLines(test.set, ofile)
+    
+    # return(list(train=train.indices, test=test.indices))
+}
 ```
+
+
+```{r eval=FALSE}
+## Returns a dataframe of profanity words built as a superset of two sources
+## src1 and src2.
+## The default sources used to build the list are:
+## 1) http://fffff.at/googles-official-list-of-bad-words/
+## 2) http://www.cs.cmu.edu/~biglou/resources/bad-words.txt
+## Note: 1) was converted from the JSON format to newline-delimited text
+mergeTermLists <- function(dataDir="../data/en_US/",
+                           src1=sprintf("%s%s", dataDir, "profanity.google.txt"),
+                           src2=sprintf("%s%s", dataDir, "profanity.biglou.txt"),
+                           skipLines1=1, skipLines2=1) {
+    v1 <- read.csv(src1, sep="\n", header=FALSE, skip=skipLines1,
+                   stringsAsFactors=FALSE)
+    v1 <- v1[1:nrow(v1), "V1"]
+    v2 <- read.csv(src2, sep="\n", header=FALSE, skip=skipLines2,
+                   stringsAsFactors=FALSE)
+    v2 <- v2[1:nrow(v2), "V1"]
+    
+    merged.list <- data.frame(badwords = union(v1, v2))
+    
+    return(merged.list)
+}
+
+## Removes URLs and anything not a word, space, or basic punctuation character
+## such as ?.!,:'- in a somewhat intelligent manner.
+postProfClean <- function(samp, is.news=TRUE) {
+    # Build regex to remove URLs. No shorthand character classes in R,
+    # so need to create by hand
+    wordChars <- "A-Za-z0-9_\\-"
+    urlRegex <- sprintf("%s%s%s", "(http|https)(://)?[", wordChars, "]+")
+    urlRegex <- sprintf("%s%s%s%s", urlRegex, "(.[", wordChars, "]+)+")
+    urlRegex <- sprintf("%s%s%s%s", urlRegex, "[", wordChars, ".,@?^=%&:/~\\+#]*")
+    # urlRegex <- "(http|https)://[\w\-_]+(\.[\w\-_]+)+[\w\-.,@?^=%&:/~\\+#]*"
+    samp <- gsub(urlRegex, "", samp, perl=TRUE)
+    if(!is.news) { samp <- nonNewsPostProfClean(samp) }
+    # remove anything that's not an alpha, digit, or basic punctuation char
+    # will replace digits with NUM later
+    samp <- gsub("[^A-Za-z0-9?.!,:'\\-]", " ", samp, perl=TRUE)
+    samp <- gsub("( ){2,}", " ", samp, perl=TRUE)  # replace >=2 spaces w/single space
+    samp <- gsub("^( . )", " ", samp, perl=TRUE)
+    samp <- gsub("^( ){1,}", "", samp, perl=TRUE)  # remove leading spaces
+    samp <- gsub("[ ]{1,}$", "", samp, perl=TRUE)  # remove trailing spaces
+    # remove non-alpha char's that start sentences
+    samp <- gsub("^[^A-Za-z]+", "", samp)
+    # make lines that don't end in . ! or ? empty so they'll be removed later
+    samp <- gsub("^.*[^.!?]$", "", samp)
+    # replace non-word-period by just period
+    samp <- gsub("([^A-Za-z0-9]+.)$", ".", samp)
+    # remove lines that don't have any alpha characters
+    samp <- gsub("^[^A-Za-z]+$", "", samp, perl=TRUE)
+    # remove empty lines
+    samp <- samp[which(samp  != "")]
+    # replace 2 or more spaces with a single space
+    samp <- gsub("[ ]{2,}", " ", samp, perl=TRUE)
+    # normalize text to lower case
+    samp <- tolower(samp)
+    # replace sequences of digits by NUM token: after lower case to keep
+    # this special token UPPER CASE in the processed file
+    samp <- gsub("[0-9]+", "NUM", samp)
+    
+    return(samp)
+}
+
+## Does additional cleaning for twitter and blog files
+nonNewsPostProfClean <- function(flines) {
+    cat("start nonNewsPostProfClean:", as.character(Sys.time()), "\n")
+    # remove all lines that don't contain alpha char's
+    flines.edit <- gsub("^[^a-z]$", "", flines, ignore.case=T, perl=T)
+    flines.edit <- flines.edit[which(flines.edit != "")]
+    # remove most variants of the all-time favorite profanity word which
+    # weren't caught by profanity filter
+    flines.edit <- gsub("(f+u+c+k+)", "", flines.edit,
+                        ignore.case=TRUE, perl=TRUE)
+    # remove 'omg' and 'wow'
+    flines.edit <- gsub("(omg|o m g)", "", flines.edit, ignore.case=TRUE, perl=TRUE)
+    flines.edit <- gsub("(wow|w o w)", "", flines.edit, ignore.case=TRUE, perl=TRUE)
+    # remove trailing periods
+    flines.edit <- gsub("^[.]+", "", flines.edit, ignore.case=TRUE, perl=TRUE)
+    # remove embedded periods
+    flines.edit <- gsub("([a-z]+)([.]+)([a-z]+)", "\\1 \\3", flines.edit,
+                        ignore.case=TRUE, perl=TRUE)
+    # replace space-period-space with just space
+    flines.edit <- gsub(" [.] ", " ", flines.edit, ignore.case=TRUE, perl=TRUE)
+    # remove periods assoc'd w/ morning and evening time abbrev's
+    flines.edit <- gsub("(a m.)", "am", flines.edit,
+                        ignore.case=TRUE, perl=TRUE)
+    flines.edit <- gsub("(p m.)", "pm", flines.edit,
+                        ignore.case=TRUE, perl=TRUE)
+    # remove remaining www instances
+    flines.edit <- gsub("[a-z][.][a-z]", " ", flines.edit,
+                        ignore.case=TRUE, perl=TRUE)
+    cat("finish nonNewsPostProfClean:", as.character(Sys.time()), "\n")
+    
+    return(flines.edit)
+}
+```
+
