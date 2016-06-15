@@ -116,7 +116,7 @@ annealSaintErrors <- function(charVect, status.check=10000) {
         }
         i <- i + 1
         if(counter == check.status) {
-            completed <- (100*i) / length(sentenceTokens)
+            completed <- (100*i) / length(charVect)
             cat(i, "annealSaintErrors: lines annealed ",
                 completed, "% completed", as.character(Sys.time()), "\n")
             counter <- 0
