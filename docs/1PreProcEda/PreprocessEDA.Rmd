@@ -1,5 +1,5 @@
 ---
-title: "Predicting Next Word Using Katz Back-Off: Preprocessing & EDA"
+title: "Predicting Next Word Using Katz Back-Off: Objectives, Preprocessing & EDA"
 author: "Michael Szczepaniak"
 date: "June 2016"
 output: html_document
@@ -8,15 +8,30 @@ url: http://rpubs.com/mszczepaniak/preprockbo
 ## Background  
 World wide mobile internet usage is projected to continue its rapid growth over the next few years.  According to a [Statista Fact Sheet](http://www.statista.com/statistics/284202/mobile-phone-internet-user-penetration-worldwide/), the percentage of mobile phone users accessing the internet will rise to 63.4% in 2019 up from 48.8% in 2014.  This increased ownship has resulted in more people spending increasing amounts of time on mobile devices for email, social networking, banking and other activities. Because typing on these devices is an awkward and tedious task, smart keyboard applications based on predictive text analytics have emerged to make typing easier.  
 
-## Objectives
-The first goal of this project was to develop a prototype predictive web application that suggests the next word in a message of text based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm to make these predictions.  A detailed description of how this algorithm works can be found [at this link](http://rpubs.com/mszczepaniak/prednextkbo).  The KBO Trigram was chosen for two main reasons:
+## Goal & Objectives
+The overall goal of this project was to develop a prototype predictive web application that suggests the next word in a message of text based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  This goal was broken down into four objectives:
 
-1. **Size -** One of the simpliest LMs considered was the [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf), but this model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  Since this app was deployed on a 1Gb shinyapp.io instance, I didn't think enough data was available to do a decent job with predictions using SBO.
-2. **Accuracy on small corpus -** The SBO does not do any estimation on unobserved n-grams, but instead backs off to the nearest matched n-gram until it reaches the unigram.  The KBO model incorporates a form of smoothing in order to estimate probabilities of unobserved n-grams which appears to be more accurate when using a limited number of n-grams (trigrams in this case).
+### Objective #1 - Model Development
+A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm to make these predictions.  A detailed [description of how this algorithm works can be found here](http://rpubs.com/mszczepaniak/prednextkbo).  The KBO Trigram was chosen for three main reasons:
 
-In addition to the reasons listed above, because the SBO is much simplier to implement, I felt the project would be more intersting and challenging to work on if something more complex like the KBO was selected.
+1. **Size -** One of the simpliest LMs considered was the [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf).  This model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  Because this app was deployed on a 1Gb shinyapp.io instance, I didn't think there was enough data to do a decent job with predictions.
+2. **Accuracy on small corpus -** The SBO does not consider or account for unobserved n-grams, but instead backs off to the nearest matched n-gram until it reaches the unigram.  The KBO model incorporates a form of smoothing in order to estimate probabilities of unobserved n-grams which appears to be more accurate when using a limited number of n-grams (trigrams in this case).
+3. **Interesting and challenging - ** Because the SBO is much simplier to implement, I felt the project would be more intersting and challenging to work on if the more complex KBO algorithm was selected for implementation.
 
-The second goal was to make this work reproducable. To meet this objective, all code used to pre-process the data, implement the model, and train the model are provided.  All pre-processing code is provided in the **Appendix** section of this R Markdown document.
+### Objective #2 - Partition and Clean the Data and Perform an Initial EDA
+This document describes the details around how the data was partitioned, how it was cleaned, and how the intial exploratory data analysis (EDA) was done.  This was the most time consuming step which is was no surprise given [what some of the literature reports with regard to these kinds of projects.](https://www.jstatsoft.org/index.php/jss/article/view/v059i10/v59i10.pdf)
+
+The data was initially split into an 80% training set and a 20% test set.  All cleaning, EDA and parameter optimization work was performed on the training set.
+
+### Objective #3 - Parameter Optimization
+[As described here](http://rpubs.com/mszczepaniak/prednextkbo), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here](http://rpubs.com/mszczepaniak/kbotparamcv).
+
+### Objective #4 - Make the Work Reproducible
+This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, and that all code was made available.  All pre-processing code (Objective #2) is provided in the **Appendix** section of this R Markdown document.
+
+### Objective #5 - Deploy the App on shinyapps.io
+The results of meeting this objective can be found by visiting:
+[https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/)
 
 ## Acquiring and Partitioning the Data
 The data was originally downloaded from [this link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) and stored locally. If this link is no longer available, the data can obtained from [my dropbox](https://www.dropbox.com/s/uk7d4gp1c7bgmxc/Coursera-SwiftKey.zip?raw=1). The zip file was download to a directory called **data** in a local project and unzipped there.  The the unzipped data contained four subdirectories: **de_DE** (German), **en_US** (US english), **fi_FI** (Finnish), and **ru_RU** (Russian). This project focuses on the English corpora residing in the **en_US** folder. This folder contains three files named **en_US.blogs.txt**, **en_US.news.txt**, and **en_US.twitter.txt**.
@@ -24,17 +39,21 @@ The data was originally downloaded from [this link](https://d396qusza40orc.cloud
 With the data residing locally, the **writeTrainTestFiles** function was used to read each of the three data files, partition each them into 80% training and 20% hold-out test sets, and then write these two partitioned files locally.  The training set was used to train the model to determine values for the two model parameters: bigram discount rate and trigram discount rate.  [Descriptions of what these parameters are can be found here.](http://rpubs.com/mszczepaniak/prednextkbo)
 
 ### Cleaning the Data
-After the data was read in, it was cleaned using the following steps:
+After the data was read and partitioned into training and test sets, the training files were cleaned using the following steps:
 
-1. Sentence Parsing - This step broke the text into sentences. This changed the character vector from being one line per element to one sentence per element.
+1. Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element.  One artifact of this step was that things like "St." which are used as a contraction for "Saint" were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.
 2. Pre-Profanity filter - This step converted the text to lower case, replaced chars similar to single quotes with simple ascii single quote chars, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.
 3. Profanity Removal - This step removed the profanity from the text.
 4. Post-Profanity filter - This step removed urls and other non-essential characters.
 
-The profanity removal step required required first building a profanity list.  This was done by taking the union of three lists from the following sources: [google](http://fffff.at/googles-official-list-of-bad-words/), [Luis von Ahn of Carnegio Mellon University ](http://www.cs.cmu.edu/~biglou/resources/bad-words.txt), and [a github project of Duncan Robertson from London, UK](https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt). These lists were downloaded and merged together using the **mergeTermLists** function and profanity was removed using the **removeProfanity** function. Both of these functions are listed in the **Appendix**.
+The profanity removal step required required first building a profanity list.  This was done by taking the union of three lists from the following sources: [google](http://fffff.at/googles-official-list-of-bad-words/), [Luis von Ahn of Carnegie Mellon University ](http://www.cs.cmu.edu/~biglou/resources/bad-words.txt), and [a github project of Duncan Robertson from London, UK](https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt). These lists were downloaded and merged together using the **mergeTermLists** function and profanity was removed using the **removeProfanity** function. Both of these functions are listed in the **Appendix**.
 
-The above steps were executed off-line (not in this R Markdown file) because they were very time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.
+The above steps were executed off-line (not in this R Markdown file) because they were time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.
 
+#### Sentence Parsing
+The **parseSentsToFile** function was used to parse the data into a single sentence per line and then write the resulting files out for later processing.
+
+#### 
 
 ### Appendix
 
@@ -97,6 +116,96 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
     writeLines(test.set, ofile)
     
     # return(list(train=train.indices, test=test.indices))
+}
+
+## Returns a character vector where every element is a sentence of text.
+##
+## NOTE: This function will improperly parse "St. Something" into 2 sentences.
+##       It makes other mistakes which one could spend a crazy amount of time
+##       fixing, but these others errors are ignored in the interest of time.
+##
+##       To fix the "Saint" issue, the char vector returned by this function
+##       needs to be passing to the annealStSentences function to fix most
+##       (> 90% based on a manual analysis of the 1st 150k lines of the news
+##       file) of these errors.
+##
+## charVect - character vector where every element may contain 1 or more
+## sentences of text.
+## Preconditions: This function requires the quanteda package.
+breakOutSentences <- function(charVect) {
+    sentenceTokens <- tokenize(charVect, what="sentence")
+    sentNormCharVect <- vector(mode = "character")
+    for(i in 1:length(sentenceTokens)) {
+        sent.tokenized.line <- sentenceTokens[[i]]
+        sentNormCharVect <- append(sentNormCharVect, sent.tokenized.line)
+    }
+    
+    return(sentNormCharVect)
+}
+
+## Repairs (anneals) sentences that were initially parsed improperly across
+## the pattern "St. SomeSaintsName"
+annealSaintErrors <- function(charVect) {
+    i <- 1
+    annealedSents <- vector(mode='character')
+    next.sent <- ""
+    while(i < length(charVect)) {
+        curr.sent <- charVect[i]
+        next.sent <- charVect[i+1]
+        hasTerminalSt <- length(grep('(St[.])$', curr.sent)) > 0
+        if(hasTerminalSt) {
+            # sentence ends with St.: concat w/ following sentence
+            annealedSents <- append(annealedSents,
+                                    paste(curr.sent, next.sent))
+            i <- i + 1
+        } else {
+            annealedSents <- append(annealedSents, curr.sent)
+        }
+        i <- i + 1
+    }
+    annealedSents <- append(annealedSents, next.sent) # add last sentence
+    
+    return(annealedSents)
+}
+
+## Returns the file name of the training set data given fileId which can be
+## on of the 3 values: 'blogs', 'news', or 'twitter'
+getInputDataFileName <- function(fileId) {
+    isBlogs <- length(grep(fileId, 'blogs')) > 0
+    isNews <- length(grep(fileId, 'news')) > 0
+    isTwitter <- length(grep(fileId, 'twitter')) > 0
+    if(isBlogs) return(fnames.train[1])
+    if(isNews) return(fnames.train[2])
+    if(isTwitter) return(fnames.train[3])
+    
+    return("")
+}
+
+## Read inFileName, parses each line into sent, fixes most of the "Saint"
+## parsing errors and writes the results to a file names:
+## [original file name].1sents.txt
+parseSentsToFile <- function(inFileType,
+                             outDataDir=ddir,
+                             outFilePostfix=".1sents.txt") {
+    
+    inFileName <- getInputDataFileName(inFileType)
+    outFileName <- str_replace(inFileName, '.txt', outFilePostfix)
+    outFilePath <- sprintf("%s%s", outDataDir, outFileName)
+    cat("start parseSentsToFile:", as.character(Sys.time()), "\n")
+    cat("processing file:", inFileName, "\n")
+    cat("output will be written to:", outFilePath, "\n")
+    
+    flines <- getFileLines(fileId=inFileType, dataDir=ddir,
+                           fileNames=fnames.train)
+    
+    flines <- breakOutSentences(flines)
+    cat("parseSentsToFile breakOutSentences completed.", "\n")
+    cat("parseSentsToFile annealSaintErrors started...:", as.character(Sys.time()), "\n")
+    flines <- annealSaintErrors(flines)
+    
+    writeLines(flines, con = outFilePath)
+    cat("wrote output to file:", outFileName, "\n")
+    cat("finish parseSentsToFile:", as.character(Sys.time()), "\n")
 }
 ```
 

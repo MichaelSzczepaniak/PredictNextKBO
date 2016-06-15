@@ -1,29 +1,32 @@
-# install packages if needed
+# Install required packages only if they are needed.
 list.of.packages <- c('dplyr', 'readr', 'stringr', 'quanteda')
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages) > 0) install.packages(new.packages)
 # load libraries
-# libs <- c('dplyr', 'readr', 'quanteda')
 lapply(list.of.packages, require, character.only=TRUE)  # load libs
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 # set parameters
 ddir <- "../data/en_US/" # assumes exec from dir at same level as data
 fnames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
+fnames.train <- c("en_US.blogs.train.txt", "en_US.news.train.txt",
+                  "en_US.twitter.train.txt")
+
 fullpaths <- sprintf("%s%s", ddir, fnames)
 
 ## Reads the text corpus data file and returns a character array where every
 ## element is a line from the file.
-## fileId = string, text fragment of file name to be read e.g. 'blogs', 'news',
-##          or 'twit'
-## dataDir = path to data file to be read
-## fnames = file names to be read which have fileId fragments
+## fileId = string - text fragment of file name to be read. Must be one of 3
+##          values: 'blogs', 'news', or 'twitter'
+## dataDir = string - path to data file to be read
+## fileNames = character vector - File names to be read which have fileId
+##             fragments
 getFileLines <- function(fileId, dataDir=ddir, fileNames=fnames) {
-    if(grep(fileId, fnames) > 0) index <- grep(fileId, fnames)
+    if(grep(fileId, fnames) > 0) index <- grep(fileId, fileNames)
     else {
         cat('getFileLines could undestand what file to read:', fileId)
         return(NULL)
     }
-    fileLines <- read_lines(sprintf("%s%s", dataDir, fnames[index]))
+    fileLines <- read_lines(sprintf("%s%s", dataDir, fileNames[index]))
     return(fileLines)
 }
 
@@ -59,40 +62,104 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
 }
 
 ## Returns a character vector where every element is a sentence of text.
+##
+## NOTE: This function will improperly parse "St. Something" into 2 sentences.
+##       It makes other mistakes which one could spend a crazy amount of time
+##       fixing, but these others errors are ignored in the interest of time.
+##
+##       To fix the "Saint" issue, the char vector returned by this function
+##       needs to be passing to the annealStSentences function to fix most
+##       (> 90% based on a manual analysis of the 1st 150k lines of the news
+##       file) of these errors.
+##
 ## charVect - character vector where every element may contain 1 or more
 ## sentences of text.
-## REQUIRES quanteda package
-breakOutSentences <- function(charVect) {
-    require(quanteda)
-    qTokenizeText <- tokenize(charVect, what="sentence")
+## Preconditions: This function requires the quanteda package.
+breakOutSentences <- function(charVect, check.status=10000) {
+    sentenceTokens <- tokenize(charVect, what="sentence")
     sentNormCharVect <- vector(mode = "character")
-    for(i in 1:length(qTokenizeText)) {
-        sent.tokenized.line <- qTokenizeText[[i]]
+    counter <- 0
+    for(i in 1:length(sentenceTokens)) {
+        counter <- counter + 1
+        sent.tokenized.line <- sentenceTokens[[i]]
         sentNormCharVect <- append(sentNormCharVect, sent.tokenized.line)
+        if(counter == check.status) {
+            completed <- (100*i) / length(sentenceTokens)
+            cat(i, "breakOutSentences: lines parsed to sentences ",
+                completed, "% completed", as.character(Sys.time()), "\n")
+            counter <- 0
+        }
     }
     
     return(sentNormCharVect)
 }
 
-## Read inFileName, parses each line into sent
-parseSentsToFile <- function(inFileName,
+## Repairs (anneals) sentences that were initially parsed improperly across
+## the pattern "St. SomeSaintsName"
+annealSaintErrors <- function(charVect) {
+    i <- 1
+    annealedSents <- vector(mode='character')
+    next.sent <- ""
+    while(i < length(charVect)) {
+        curr.sent <- charVect[i]
+        next.sent <- charVect[i+1]
+        hasTerminalSt <- length(grep('(St[.])$', curr.sent)) > 0
+        if(hasTerminalSt) {
+            # sentence ends with St.: concat w/ following sentence
+            annealedSents <- append(annealedSents,
+                                    paste(curr.sent, next.sent))
+            i <- i + 1
+        } else {
+            annealedSents <- append(annealedSents, curr.sent)
+        }
+        i <- i + 1
+    }
+    annealedSents <- append(annealedSents, next.sent) # add last sentence
+    
+    return(annealedSents)
+}
+
+## Repairs (anneals) sentences that were initially parsed improperly across
+## the pattern "([0-9]{1,7} )([NSEW]|(NE|NW|SE|SW)[.] )([a-zA-Z]+ )St."
+# annealStreetErrors <- function(charVect) {}
+
+## Returns the file name of the training set data given fileId which can be
+## on of the 3 values: 'blogs', 'news', or 'twitter'
+getInputDataFileName <- function(fileId) {
+    isBlogs <- length(grep(fileId, 'blogs')) > 0
+    isNews <- length(grep(fileId, 'news')) > 0
+    isTwitter <- length(grep(fileId, 'twitter')) > 0
+    if(isBlogs) return(fnames.train[1])
+    if(isNews) return(fnames.train[2])
+    if(isTwitter) return(fnames.train[3])
+    
+    return("")
+}
+
+## Read inFileName, parses each line into sent, fixes most of the "Saint"
+## parsing errors and writes the results to a file names:
+## [original file name].1sents.txt
+parseSentsToFile <- function(inFileType,
                              outDataDir=ddir,
                              outFilePostfix=".1sents.txt") {
+    
+    inFileName <- getInputDataFileName(inFileType)
     outFileName <- str_replace(inFileName, '.txt', outFilePostfix)
     outFilePath <- sprintf("%s%s", outDataDir, outFileName)
     cat("start parseSentsToFile:", as.character(Sys.time()), "\n")
     cat("processing file:", inFileName, "\n")
-    cat("output will be written to:", outFileName, "\n")
-    require(quanteda)
-    flines <- getFileLines(inFileName)
+    cat("output will be written to:", outFilePath, "\n")
+    
+    flines <- getFileLines(fileId=inFileType, dataDir=ddir,
+                           fileNames=fnames.train)
     
     flines <- breakOutSentences(flines)
+    cat("parseSentsToFile breakOutSentences completed.", "\n")
+    cat("parseSentsToFile annealSaintErrors started...:", as.character(Sys.time()), "\n")
+    flines <- annealSaintErrors(flines)
     
     writeLines(flines, con = outFilePath)
     cat("wrote output to file:", outFileName, "\n")
     cat("finish parseSentsToFile:", as.character(Sys.time()), "\n")
 }
 
-preProcessCorpus <- function() {
-    parseSentsToFile(fnames[1])
-}
