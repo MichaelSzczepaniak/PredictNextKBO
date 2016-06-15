@@ -115,7 +115,7 @@ annealSaintErrors <- function(charVect, status.check=10000) {
             annealedSents <- append(annealedSents, curr.sent)
         }
         i <- i + 1
-        if(counter == check.status) {
+        if(counter == status.check) {
             completed <- (100*i) / length(charVect)
             cat(i, "annealSaintErrors: lines annealed ",
                 completed, "% completed", as.character(Sys.time()), "\n")
@@ -149,25 +149,30 @@ getInputDataFileName <- function(fileId) {
 ## [original file name].1sents.txt
 parseSentsToFile <- function(inFileType,
                              outDataDir=ddir,
-                             outFilePostfix=".1sents.txt") {
+                             outFilePostfix1=".1sents.txt",
+                             outFilePostfix2=".2sents.txt") {
     
     inFileName <- getInputDataFileName(inFileType)
-    outFileName <- str_replace(inFileName, '.txt', outFilePostfix)
-    outFilePath <- sprintf("%s%s", outDataDir, outFileName)
+    outFileName1 <- str_replace(inFileName, '.txt', outFilePostfix1)
+    outFileName2 <- str_replace(inFileName, '.txt', outFilePostfix2)
+    outFilePath1 <- sprintf("%s%s", outDataDir, outFileName1)
+    outFilePath2 <- sprintf("%s%s", outDataDir, outFileName2)
     cat("start parseSentsToFile:", as.character(Sys.time()), "\n")
     cat("processing file:", inFileName, "\n")
-    cat("output will be written to:", outFilePath, "\n")
+    cat("output will be written to:", outFilePath1, "\n")
     
     flines <- getFileLines(fileId=inFileType, dataDir=ddir,
                            fileNames=fnames.train)
     
     flines <- breakOutSentences(flines)
     cat("parseSentsToFile breakOutSentences completed.", "\n")
+    writeLines(flines, con = outFilePath1)
+    cat("output written to:", outFilePath1, "\n")
     cat("parseSentsToFile annealSaintErrors started...:", as.character(Sys.time()), "\n")
     flines <- annealSaintErrors(flines)
     
-    writeLines(flines, con = outFilePath)
-    cat("wrote output to file:", outFileName, "\n")
+    writeLines(flines, con = outFilePath2)
+    cat("St. annealed file written to:", outFilePath2, "\n")
     cat("finish parseSentsToFile:", as.character(Sys.time()), "\n")
 }
 
