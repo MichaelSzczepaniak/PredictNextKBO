@@ -96,11 +96,13 @@ breakOutSentences <- function(charVect, check.status=10000) {
 
 ## Repairs (anneals) sentences that were initially parsed improperly across
 ## the pattern "St. SomeSaintsName"
-annealSaintErrors <- function(charVect) {
-    i <- 1
+annealSaintErrors <- function(charVect, status.check=10000) {
     annealedSents <- vector(mode='character')
     next.sent <- ""
+    i <- 1
+    counter <- 0
     while(i < length(charVect)) {
+        counter <- counter + 1
         curr.sent <- charVect[i]
         next.sent <- charVect[i+1]
         hasTerminalSt <- length(grep('(St[.])$', curr.sent)) > 0
@@ -113,6 +115,12 @@ annealSaintErrors <- function(charVect) {
             annealedSents <- append(annealedSents, curr.sent)
         }
         i <- i + 1
+        if(counter == check.status) {
+            completed <- (100*i) / length(sentenceTokens)
+            cat(i, "annealSaintErrors: lines annealed ",
+                completed, "% completed", as.character(Sys.time()), "\n")
+            counter <- 0
+        }
     }
     annealedSents <- append(annealedSents, next.sent) # add last sentence
     
