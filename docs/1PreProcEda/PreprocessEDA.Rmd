@@ -27,7 +27,7 @@ The data was initially split into an 80% training set and a 20% test set.  All c
 [As described here](http://rpubs.com/mszczepaniak/prednextkbo), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here](http://rpubs.com/mszczepaniak/kbotparamcv).
 
 ### Objective #4 - Make the Work Reproducible
-This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files provided.  All pre-processing code (Objective #2) is provided in the **Appendix** section of this R Markdown document.
+This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files were provided.  All pre-processing code (Objective #2) is provided in the **Appendix** section of this R Markdown document.
 
 ### Objective #5 - Deploy the App on shinyapps.io
 The results of meeting this objective can be found by visiting:
@@ -57,10 +57,27 @@ The **parseSentsToFile** function was used to parse the data into a single sente
 + [en_US.blogs.train.2sents.txt](https://www.dropbox.com/s/f55ayzy9dcxv0yi/en_US.blogs.train.2sents.txt?dl=1)
 + [en_US.news.train.1sents.txt](https://www.dropbox.com/s/hxs3b3wqu9jpi7k/en_US.news.train.1sents.txt?dl=1)
 + [en_US.news.train.2sents.txt](https://www.dropbox.com/s/5w6yp3or6oyd3hu/en_US.news.train.2sents.txt?dl=1)
-+ en_US.twitter.train.txt.1sents.txt
++ [en_US.twitter.train.txt.1sents.txt](https://www.dropbox.com/s/v8x8taw3sgwxy02/en_US.twitter.train.1sents.txt?dl=1)
 + en_US.twitter.train.txt.2sents.txt
 
 Files ending in *1sents.txt* are the files initially parsed into sentences before fixing the issue of improper sentence breaks between the tokens *St. SomeSaintsName*.  Files ending in *2sents.txt* are the files that were ran through the **annealSaintErrors** function to fix these errors.
+
+Because the **annealSaintErrors** function didn't fix all the *St. SomeSaintsName* parse errors, each *2sents.txt* file was opened on Windows 10 in [NotePad++ v6.9.2 aka NP++](https://notepad-plus-plus.org/) and the following steps were performed:
+
+1. Make sure the cursor is at the beginning of the file.
+2. Execute a *Ctrl + H* to open the **Replace** window as shown below:
+
+<img src=manual_sent_parse_np++.jpg>
+
+
+3. In the *Find what* field, enter the following regular expression:  <code>(St[.])(\\r\\n)([A-Z]+)</code>  
+4. In the *Replace with* field, enter <code>\\1 \\3</code>
+5. In the *Search Mode* section, click the *Regular expression* radio button.
+6. Click the *Replace All* button.
+7. Save the file by clicking the disk icon.
+8. Click *File* from the upper menu and select *Exit* to exit the program.
+
+If future versions of NP++ do not behave the same way as v6.9.2, [this version can be downloaded here](https://www.dropbox.com/s/t7l03782ngh84dg/npp.6.9.2.Installer.exe?dl=1)
 
 #### Pre-Profanity Filtering
 
