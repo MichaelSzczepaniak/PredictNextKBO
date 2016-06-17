@@ -179,3 +179,37 @@ parseSentsToFile <- function(inFileType,
     cat("finish parseSentsToFile:", as.character(Sys.time()), "\n")
 }
 
+## Replace chars similar to single quotes with simple ascii single quote chars
+## and then removes anything not a word character or character needed to create
+## one of the profanity words/phrases in the profanity list.
+preProfFilter <- function(samp, perl.flag=TRUE, is.news=FALSE) {
+    # news file has char's that break gsub, so convert to ASCII and remove NA's
+    if(is.news) {
+        samp <- iconv(samp, from="UTF-8", to="ASCII")
+        samp <- samp[-which(is.na(samp))]
+    }
+    # Handle right single quotes: 387317 instances in the blog file
+    # http://stackoverflow.com/questions/2477452/%C3%A2%E2%82%AC%E2%84%A2-showing-on-page-instead-of
+    samp <- gsub("(\xE2\x80\x99)", "'", samp, perl=perl.flag)
+    # Handle other chars that are like single quotes:
+    samp <- gsub("[\U0027\U00B4\U0092\U0060\U02BB\U02BC\U2018\U2019]",
+                 "'", samp, perl=perl.flag)
+    # Remove chars that can't be used to create profanity
+    samp <- gsub("[^ A-Za-z0-9.!'_*+<>&@#()$\\^\\[\\]\\-]", "", samp, perl=perl.flag)
+    return(samp)
+}
+
+## Runs the pre-profanity filter on dataDir/inFileName and outputs results to
+## the same directory using outFilePostfix as the postfix in output file name.
+runPreProfFilter <- function(dataDir=ddir,
+                             inFileName='en_US.blogs.train.2sents.txt',
+                             outFilePostfix='.3preprof.txt') {
+    cat("START profanity removal of entire file", as.character(Sys.time()), "\n")
+    inPath <- sprintf("%s%s", dataDir, inFileName)
+    outFileName <- str_replace(inFileName, '.2sents.txt', outFilePostfix)
+    
+    outPath <- sprintf("%s%s", dataDir, outFileName)
+    preProfFiltered <- preProfFilter(readLines(inPath))
+    writeLines(preProfFiltered, outPath)
+    cat("FINISH profanity removal of entire file", as.character(Sys.time()), "\n")
+}
