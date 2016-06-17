@@ -140,9 +140,9 @@ $(document).ready(function () {
 <h3>Objective #3 - Parameter Optimization</h3>
 <p><a href="http://rpubs.com/mszczepaniak/prednextkbo">As described here</a>, the KBO Trigram has two parameters: the bigram discount rate (<span class="math inline">\(\gamma_2\)</span>) and the trigram discount rate (<span class="math inline">\(\gamma_3\)</span>). The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation. Better performing values for these parameters and the process by which they were obtained is <a href="http://rpubs.com/mszczepaniak/kbotparamcv">described here</a>.</p>
 </div>
-<div id="objective-4---make-the-project-work-reproducible" class="section level3">
-<h3>Objective #4 - Make the Project Work Reproducible</h3>
-<p>This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, and that all code was made available. All pre-processing code (Objective #2) is provided in the <strong>Appendix</strong> section of this R Markdown document.</p>
+<div id="objective-4---make-the-work-reproducible" class="section level3">
+<h3>Objective #4 - Make the Work Reproducible</h3>
+<p>This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files provided. All pre-processing code (Objective #2) is provided in the <strong>Appendix</strong> section of this R Markdown document.</p>
 </div>
 <div id="objective-5---deploy-the-app-on-shinyapps.io" class="section level3">
 <h3>Objective #5 - Deploy the App on shinyapps.io</h3>
@@ -155,15 +155,30 @@ $(document).ready(function () {
 <p>With the data residing locally, the <strong>writeTrainTestFiles</strong> function was used to read each of the three data files, partition each them into 80% training and 20% hold-out test sets, and then write these two partitioned files locally. The training set was used to train the model to determine values for the two model parameters: bigram discount rate and trigram discount rate. <a href="http://rpubs.com/mszczepaniak/prednextkbo">Descriptions of what these parameters are can be found here.</a></p>
 <div id="cleaning-the-data" class="section level3">
 <h3>Cleaning the Data</h3>
-<p>After the data was read in, it was cleaned using the following steps:</p>
+<p>After the data was read and partitioned into training and test sets, the training files were cleaned using the following steps:</p>
 <ol style="list-style-type: decimal">
-<li>Sentence Parsing - This step broke the text into sentences. This changed the character vector from being one line per element to one sentence per element. One artifact of this step was that things like “St.” which are used as a contraction for “Saint” were mistakenly taken to be the end of sentence by the parser. To compenstate for this behavior, a simple regex was used to</li>
+<li>Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element. One artifact of this step was that things like “St.” which are used as a contraction for “Saint” were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.</li>
 <li>Pre-Profanity filter - This step converted the text to lower case, replaced chars similar to single quotes with simple ascii single quote chars, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.</li>
 <li>Profanity Removal - This step removed the profanity from the text.</li>
 <li>Post-Profanity filter - This step removed urls and other non-essential characters.</li>
 </ol>
-<p>The profanity removal step required required first building a profanity list. This was done by taking the union of three lists from the following sources: <a href="http://fffff.at/googles-official-list-of-bad-words/">google</a>, <a href="http://www.cs.cmu.edu/~biglou/resources/bad-words.txt">Luis von Ahn of Carnegio Mellon University</a>, and <a href="https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt">a github project of Duncan Robertson from London, UK</a>. These lists were downloaded and merged together using the <strong>mergeTermLists</strong> function and profanity was removed using the <strong>removeProfanity</strong> function. Both of these functions are listed in the <strong>Appendix</strong>.</p>
-<p>The above steps were executed off-line (not in this R Markdown file) because they were very time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.</p>
+<p>The profanity removal step required required first building a profanity list. This was done by taking the union of three lists from the following sources: <a href="http://fffff.at/googles-official-list-of-bad-words/">google</a>, <a href="http://www.cs.cmu.edu/~biglou/resources/bad-words.txt">Luis von Ahn of Carnegie Mellon University</a>, and <a href="https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt">a github project of Duncan Robertson from London, UK</a>. These lists were downloaded and merged together using the <strong>mergeTermLists</strong> function and profanity was removed using the <strong>removeProfanity</strong> function. Both of these functions are listed in the <strong>Appendix</strong>.</p>
+<p>The above steps were executed off-line (not in this R Markdown file) because they were time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.</p>
+<div id="sentence-parsing" class="section level4">
+<h4>Sentence Parsing</h4>
+<p>The <strong>parseSentsToFile</strong> function was used to parse the data into a single sentence per line and then write the resulting files out for later processing. Two files per each of the original data files were generated at this step. These files were:</p>
+<ul>
+<li><a href="https://www.dropbox.com/s/9rudd8p6f91lzpa/en_US.blogs.train.1sents.txt?dl=1">en_US.blogs.train.1sents.txt</a></li>
+<li><a href="https://www.dropbox.com/s/f55ayzy9dcxv0yi/en_US.blogs.train.2sents.txt?dl=1">en_US.blogs.train.2sents.txt</a></li>
+<li><a href="https://www.dropbox.com/s/hxs3b3wqu9jpi7k/en_US.news.train.1sents.txt?dl=1">en_US.news.train.1sents.txt</a></li>
+<li><a href="https://www.dropbox.com/s/5w6yp3or6oyd3hu/en_US.news.train.2sents.txt?dl=1">en_US.news.train.2sents.txt</a></li>
+<li>en_US.twitter.train.txt.1sents.txt</li>
+<li>en_US.twitter.train.txt.2sents.txt</li>
+</ul>
+</div>
+<div id="section" class="section level4">
+<h4></h4>
+</div>
 </div>
 <div id="appendix" class="section level3">
 <h3>Appendix</h3>
@@ -225,6 +240,124 @@ writeTrainTestFiles &lt;- function(fileType, train.fraction=0.8,
     writeLines(test.set, ofile)
     
     # return(list(train=train.indices, test=test.indices))
+}
+
+## Returns a character vector where every element is a sentence of text.
+##
+## NOTE1: This function will improperly parse &quot;St. Something&quot; into 2 sentences.
+##        It makes other mistakes which one could spend a crazy amount of time
+##        fixing, but these others errors are ignored in the interest of time.
+##
+##        To fix the &quot;Saint&quot; issue, the char vector returned by this function
+##        needs to be passing to the annealSaintErrors function to fix most
+##        (&gt; 90% based on a manual analysis of the 1st 150k lines of the news
+##        file) of these errors.
+##
+## NOTE2: This function over 22 hrs to run on my quad-core Xeon with 16Gb RAM
+##        RAM on the twitter 80% training set.
+##
+## charVect - character vector where every element may contain 1 or more
+## sentences of text.
+## Preconditions: This function requires the quanteda package.
+breakOutSentences &lt;- function(charVect, check.status=10000) {
+    sentenceTokens &lt;- tokenize(charVect, what=&quot;sentence&quot;)
+    sentNormCharVect &lt;- vector(mode = &quot;character&quot;)
+    counter &lt;- 0
+    for(i in 1:length(sentenceTokens)) {
+        counter &lt;- counter + 1
+        sent.tokenized.line &lt;- sentenceTokens[[i]]
+        sentNormCharVect &lt;- append(sentNormCharVect, sent.tokenized.line)
+        if(counter == check.status) {
+            completed &lt;- (100*i) / length(sentenceTokens)
+            cat(i, &quot;breakOutSentences: lines parsed to sentences &quot;,
+                completed, &quot;% completed&quot;, as.character(Sys.time()), &quot;\n&quot;)
+            counter &lt;- 0
+        }
+    }
+    
+    return(sentNormCharVect)
+}
+
+## Repairs (anneals) sentences that were initially parsed improperly across
+## the pattern &quot;St. SomeSaintsName&quot;.  NOTE: This function took many hours
+## to complete on the training data sets.
+annealSaintErrors &lt;- function(charVect, status.check=10000) {
+    annealedSents &lt;- vector(mode='character')
+    next.sent &lt;- &quot;&quot;
+    i &lt;- 1
+    counter &lt;- 0
+    while(i &lt; length(charVect)) {
+        counter &lt;- counter + 1
+        curr.sent &lt;- charVect[i]
+        next.sent &lt;- charVect[i+1]
+        hasTerminalSt &lt;- length(grep('(St[.])$', curr.sent)) &gt; 0
+        if(hasTerminalSt) {
+            # sentence ends with St.: concat w/ following sentence
+            annealedSents &lt;- append(annealedSents,
+                                    paste(curr.sent, next.sent))
+            i &lt;- i + 1
+        } else {
+            annealedSents &lt;- append(annealedSents, curr.sent)
+        }
+        i &lt;- i + 1
+        if(counter == status.check) {
+            completed &lt;- (100*i) / length(charVect)
+            cat(i, &quot;annealSaintErrors: lines annealed &quot;,
+                completed, &quot;% completed&quot;, as.character(Sys.time()), &quot;\n&quot;)
+            counter &lt;- 0
+        }
+    }
+    annealedSents &lt;- append(annealedSents, next.sent) # add last sentence
+    
+    return(annealedSents)
+}
+
+## Returns the file name of the training set data given fileId which can be
+## on of the 3 values: 'blogs', 'news', or 'twitter'. Returns an empty string
+## (char vector), if fileId is not one of the 3 expected string values.
+getInputDataFileName &lt;- function(fileId) {
+    isBlogs &lt;- length(grep(fileId, 'blogs')) &gt; 0
+    isNews &lt;- length(grep(fileId, 'news')) &gt; 0
+    isTwitter &lt;- length(grep(fileId, 'twitter')) &gt; 0
+    if(isBlogs) return(fnames.train[1])
+    if(isNews) return(fnames.train[2])
+    if(isTwitter) return(fnames.train[3])
+    
+    return(&quot;&quot;)
+}
+
+## Read inFileName, parses each line into sentences, fixes most of the &quot;Saint&quot;
+## parsing errors and writes the results to a file names:
+## [original file name].1sents.txt after initial sentence parsing and
+## [original file name].2sents.txt after fixing improper sentence breaks across
+## the &quot;St. SomeSaintName&quot; tokens.
+parseSentsToFile &lt;- function(inFileType,
+                             outDataDir=ddir,
+                             outFilePostfix1=&quot;.1sents.txt&quot;,
+                             outFilePostfix2=&quot;.2sents.txt&quot;) {
+    
+    inFileName &lt;- getInputDataFileName(inFileType)
+    outFileName1 &lt;- str_replace(inFileName, '.txt', outFilePostfix1)
+    outFileName2 &lt;- str_replace(inFileName, '.txt', outFilePostfix2)
+    outFilePath1 &lt;- sprintf(&quot;%s%s&quot;, outDataDir, outFileName1)
+    outFilePath2 &lt;- sprintf(&quot;%s%s&quot;, outDataDir, outFileName2)
+    cat(&quot;start parseSentsToFile:&quot;, as.character(Sys.time()), &quot;\n&quot;)
+    cat(&quot;processing file:&quot;, inFileName, &quot;\n&quot;)
+    cat(&quot;output will be written to:&quot;, outFilePath1, &quot;\n&quot;)
+    
+    flines &lt;- getFileLines(fileId=inFileType, dataDir=ddir,
+                           fileNames=fnames.train)
+    
+    flines &lt;- breakOutSentences(flines)
+    cat(&quot;parseSentsToFile breakOutSentences completed.&quot;, &quot;\n&quot;)
+    writeLines(flines, con = outFilePath1)
+    cat(&quot;output written to:&quot;, outFilePath1, &quot;\n&quot;)
+    cat(&quot;parseSentsToFile annealSaintErrors started...:&quot;, as.character(Sys.time()), &quot;\n&quot;)
+    flines &lt;- annealSaintErrors(flines)
+    
+    writeLines(flines, con = outFilePath2)
+    cat(&quot;St. annealed file written to:&quot;, outFilePath2, &quot;\n&quot;)
+    cat(&quot;finish parseSentsToFile:&quot;, as.character(Sys.time()), &quot;\n&quot;)
 }</code></pre>
 <pre class="r"><code>## Returns a dataframe of profanity words built as a superset of two sources
 ## src1 and src2.

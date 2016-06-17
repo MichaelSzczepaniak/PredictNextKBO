@@ -27,7 +27,7 @@ The data was initially split into an 80% training set and a 20% test set.  All c
 [As described here](http://rpubs.com/mszczepaniak/prednextkbo), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here](http://rpubs.com/mszczepaniak/kbotparamcv).
 
 ### Objective #4 - Make the Work Reproducible
-This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, and that all code was made available.  All pre-processing code (Objective #2) is provided in the **Appendix** section of this R Markdown document.
+This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files provided.  All pre-processing code (Objective #2) is provided in the **Appendix** section of this R Markdown document.
 
 ### Objective #5 - Deploy the App on shinyapps.io
 The results of meeting this objective can be found by visiting:
@@ -51,7 +51,14 @@ The profanity removal step required required first building a profanity list.  T
 The above steps were executed off-line (not in this R Markdown file) because they were time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.
 
 #### Sentence Parsing
-The **parseSentsToFile** function was used to parse the data into a single sentence per line and then write the resulting files out for later processing.
+The **parseSentsToFile** function was used to parse the data into a single sentence per line and then write the resulting files out for later processing.  Two files per each of the original data files were generated at this step.  These files were:
+
++ [en_US.blogs.train.1sents.txt](https://www.dropbox.com/s/9rudd8p6f91lzpa/en_US.blogs.train.1sents.txt?dl=1)
++ [en_US.blogs.train.2sents.txt](https://www.dropbox.com/s/f55ayzy9dcxv0yi/en_US.blogs.train.2sents.txt?dl=1)
++ [en_US.news.train.1sents.txt](https://www.dropbox.com/s/hxs3b3wqu9jpi7k/en_US.news.train.1sents.txt?dl=1)
++ [en_US.news.train.2sents.txt](https://www.dropbox.com/s/5w6yp3or6oyd3hu/en_US.news.train.2sents.txt?dl=1)
++ en_US.twitter.train.txt.1sents.txt
++ en_US.twitter.train.txt.2sents.txt
 
 #### 
 
@@ -120,36 +127,50 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
 
 ## Returns a character vector where every element is a sentence of text.
 ##
-## NOTE: This function will improperly parse "St. Something" into 2 sentences.
-##       It makes other mistakes which one could spend a crazy amount of time
-##       fixing, but these others errors are ignored in the interest of time.
+## NOTE1: This function will improperly parse "St. Something" into 2 sentences.
+##        It makes other mistakes which one could spend a crazy amount of time
+##        fixing, but these others errors are ignored in the interest of time.
 ##
-##       To fix the "Saint" issue, the char vector returned by this function
-##       needs to be passing to the annealStSentences function to fix most
-##       (> 90% based on a manual analysis of the 1st 150k lines of the news
-##       file) of these errors.
+##        To fix the "Saint" issue, the char vector returned by this function
+##        needs to be passing to the annealSaintErrors function to fix most
+##        (> 90% based on a manual analysis of the 1st 150k lines of the news
+##        file) of these errors.
+##
+## NOTE2: This function over 22 hrs to run on my quad-core Xeon with 16Gb RAM
+##        RAM on the twitter 80% training set.
 ##
 ## charVect - character vector where every element may contain 1 or more
 ## sentences of text.
 ## Preconditions: This function requires the quanteda package.
-breakOutSentences <- function(charVect) {
+breakOutSentences <- function(charVect, check.status=10000) {
     sentenceTokens <- tokenize(charVect, what="sentence")
     sentNormCharVect <- vector(mode = "character")
+    counter <- 0
     for(i in 1:length(sentenceTokens)) {
+        counter <- counter + 1
         sent.tokenized.line <- sentenceTokens[[i]]
         sentNormCharVect <- append(sentNormCharVect, sent.tokenized.line)
+        if(counter == check.status) {
+            completed <- (100*i) / length(sentenceTokens)
+            cat(i, "breakOutSentences: lines parsed to sentences ",
+                completed, "% completed", as.character(Sys.time()), "\n")
+            counter <- 0
+        }
     }
     
     return(sentNormCharVect)
 }
 
 ## Repairs (anneals) sentences that were initially parsed improperly across
-## the pattern "St. SomeSaintsName"
-annealSaintErrors <- function(charVect) {
-    i <- 1
+## the pattern "St. SomeSaintsName".  NOTE: This function took many hours
+## to complete on the training data sets.
+annealSaintErrors <- function(charVect, status.check=10000) {
     annealedSents <- vector(mode='character')
     next.sent <- ""
+    i <- 1
+    counter <- 0
     while(i < length(charVect)) {
+        counter <- counter + 1
         curr.sent <- charVect[i]
         next.sent <- charVect[i+1]
         hasTerminalSt <- length(grep('(St[.])$', curr.sent)) > 0
@@ -162,6 +183,12 @@ annealSaintErrors <- function(charVect) {
             annealedSents <- append(annealedSents, curr.sent)
         }
         i <- i + 1
+        if(counter == status.check) {
+            completed <- (100*i) / length(charVect)
+            cat(i, "annealSaintErrors: lines annealed ",
+                completed, "% completed", as.character(Sys.time()), "\n")
+            counter <- 0
+        }
     }
     annealedSents <- append(annealedSents, next.sent) # add last sentence
     
@@ -169,7 +196,8 @@ annealSaintErrors <- function(charVect) {
 }
 
 ## Returns the file name of the training set data given fileId which can be
-## on of the 3 values: 'blogs', 'news', or 'twitter'
+## on of the 3 values: 'blogs', 'news', or 'twitter'. Returns an empty string
+## (char vector), if fileId is not one of the 3 expected string values.
 getInputDataFileName <- function(fileId) {
     isBlogs <- length(grep(fileId, 'blogs')) > 0
     isNews <- length(grep(fileId, 'news')) > 0
@@ -181,30 +209,37 @@ getInputDataFileName <- function(fileId) {
     return("")
 }
 
-## Read inFileName, parses each line into sent, fixes most of the "Saint"
+## Read inFileName, parses each line into sentences, fixes most of the "Saint"
 ## parsing errors and writes the results to a file names:
-## [original file name].1sents.txt
+## [original file name].1sents.txt after initial sentence parsing and
+## [original file name].2sents.txt after fixing improper sentence breaks across
+## the "St. SomeSaintName" tokens.
 parseSentsToFile <- function(inFileType,
                              outDataDir=ddir,
-                             outFilePostfix=".1sents.txt") {
+                             outFilePostfix1=".1sents.txt",
+                             outFilePostfix2=".2sents.txt") {
     
     inFileName <- getInputDataFileName(inFileType)
-    outFileName <- str_replace(inFileName, '.txt', outFilePostfix)
-    outFilePath <- sprintf("%s%s", outDataDir, outFileName)
+    outFileName1 <- str_replace(inFileName, '.txt', outFilePostfix1)
+    outFileName2 <- str_replace(inFileName, '.txt', outFilePostfix2)
+    outFilePath1 <- sprintf("%s%s", outDataDir, outFileName1)
+    outFilePath2 <- sprintf("%s%s", outDataDir, outFileName2)
     cat("start parseSentsToFile:", as.character(Sys.time()), "\n")
     cat("processing file:", inFileName, "\n")
-    cat("output will be written to:", outFilePath, "\n")
+    cat("output will be written to:", outFilePath1, "\n")
     
     flines <- getFileLines(fileId=inFileType, dataDir=ddir,
                            fileNames=fnames.train)
     
     flines <- breakOutSentences(flines)
     cat("parseSentsToFile breakOutSentences completed.", "\n")
+    writeLines(flines, con = outFilePath1)
+    cat("output written to:", outFilePath1, "\n")
     cat("parseSentsToFile annealSaintErrors started...:", as.character(Sys.time()), "\n")
     flines <- annealSaintErrors(flines)
     
-    writeLines(flines, con = outFilePath)
-    cat("wrote output to file:", outFileName, "\n")
+    writeLines(flines, con = outFilePath2)
+    cat("St. annealed file written to:", outFilePath2, "\n")
     cat("finish parseSentsToFile:", as.character(Sys.time()), "\n")
 }
 ```

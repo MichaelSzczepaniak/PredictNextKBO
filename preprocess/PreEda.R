@@ -63,14 +63,17 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
 
 ## Returns a character vector where every element is a sentence of text.
 ##
-## NOTE: This function will improperly parse "St. Something" into 2 sentences.
-##       It makes other mistakes which one could spend a crazy amount of time
-##       fixing, but these others errors are ignored in the interest of time.
+## NOTE1: This function will improperly parse "St. Something" into 2 sentences.
+##        It makes other mistakes which one could spend a crazy amount of time
+##        fixing, but these others errors are ignored in the interest of time.
 ##
-##       To fix the "Saint" issue, the char vector returned by this function
-##       needs to be passing to the annealStSentences function to fix most
-##       (> 90% based on a manual analysis of the 1st 150k lines of the news
-##       file) of these errors.
+##        To fix the "Saint" issue, the char vector returned by this function
+##        needs to be passing to the annealSaintErrors function to fix most
+##        (> 90% based on a manual analysis of the 1st 150k lines of the news
+##        file) of these errors.
+##
+## NOTE2: This function over 22 hrs to run on my quad-core Xeon with 16Gb RAM
+##        RAM on the twitter 80% training set.
 ##
 ## charVect - character vector where every element may contain 1 or more
 ## sentences of text.
@@ -95,7 +98,8 @@ breakOutSentences <- function(charVect, check.status=10000) {
 }
 
 ## Repairs (anneals) sentences that were initially parsed improperly across
-## the pattern "St. SomeSaintsName"
+## the pattern "St. SomeSaintsName".  NOTE: This function took many hours
+## to complete on the training data sets.
 annealSaintErrors <- function(charVect, status.check=10000) {
     annealedSents <- vector(mode='character')
     next.sent <- ""
@@ -127,12 +131,9 @@ annealSaintErrors <- function(charVect, status.check=10000) {
     return(annealedSents)
 }
 
-## Repairs (anneals) sentences that were initially parsed improperly across
-## the pattern "([0-9]{1,7} )([NSEW]|(NE|NW|SE|SW)[.] )([a-zA-Z]+ )St."
-# annealStreetErrors <- function(charVect) {}
-
 ## Returns the file name of the training set data given fileId which can be
-## on of the 3 values: 'blogs', 'news', or 'twitter'
+## on of the 3 values: 'blogs', 'news', or 'twitter'. Returns an empty string
+## (char vector), if fileId is not one of the 3 expected string values.
 getInputDataFileName <- function(fileId) {
     isBlogs <- length(grep(fileId, 'blogs')) > 0
     isNews <- length(grep(fileId, 'news')) > 0
@@ -144,9 +145,11 @@ getInputDataFileName <- function(fileId) {
     return("")
 }
 
-## Read inFileName, parses each line into sent, fixes most of the "Saint"
+## Read inFileName, parses each line into sentences, fixes most of the "Saint"
 ## parsing errors and writes the results to a file names:
-## [original file name].1sents.txt
+## [original file name].1sents.txt after initial sentence parsing and
+## [original file name].2sents.txt after fixing improper sentence breaks across
+## the "St. SomeSaintName" tokens.
 parseSentsToFile <- function(inFileType,
                              outDataDir=ddir,
                              outFilePostfix1=".1sents.txt",
