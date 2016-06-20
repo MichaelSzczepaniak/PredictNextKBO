@@ -179,24 +179,87 @@ parseSentsToFile <- function(inFileType,
     cat("finish parseSentsToFile:", as.character(Sys.time()), "\n")
 }
 
+## Converts charVect to ASCII and returns the converted character vector
+convertToAscii <- function(dataDir=ddir,
+                           inFilePostfix='.2sents.txt',
+                           outFilePostfix='.3ascii.txt') {
+    
+    infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                             inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                             inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                             inFilePostfix))
+    names(infiles) <- c('blogs', 'news', 'twitter')
+    outfiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                          outFilePostfix))
+    names(outfiles) <- names(infiles)
+    cat("convertToAscii: start UTF-8 to ASCII conversion...\n")
+    for(i in names(infiles)) {
+        charVect <- read_lines(infiles[i])
+        charVectAscii <- iconv(charVect, from="UTF-8", to="ASCII")
+        charVectAscii <- charVect[-which(is.na(charVectAscii))]
+        writeLines(charVectAscii, outfiles[i])
+    }
+    cat("convertToAscii: finished converting UTF-8 to ASCII.\n")
+}
+
+convertUnicodeTags <- function(dataDir=ddir,
+                               inFilePostfix='.3ascii.txt',
+                               outFilePostfix='.4nouni.txt') {
+    
+    infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                         inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                         inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                         inFilePostfix))
+    names(infiles) <- c('blogs', 'news', 'twitter')
+    outfiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                          outFilePostfix))
+    names(outfiles) <- names(infiles)
+    cat("convertToAscii: start UTF-8 to ASCII conversion...\n")
+    for(i in names(infiles)) {
+        
+    }
+    
+    pat <- "([\U0092])"
+    ucode <- str_extract(news[6:10], pat)
+    ucode <- gsub(pat, "|", news, perl=TRUE)
+    
+}
+
 ## Replace chars similar to single quotes with simple ascii single quote chars
 ## and then removes anything not a word character or character needed to create
 ## one of the profanity words/phrases in the profanity list.
-preProfFilter <- function(samp, perl.flag=TRUE, is.news=FALSE) {
-    # news file has char's that break gsub, so convert to ASCII and remove NA's
-    if(is.news) {
-        samp <- iconv(samp, from="UTF-8", to="ASCII")
-        samp <- samp[-which(is.na(samp))]
+preProfFilter <- function(charVect, perl.flag=TRUE, convertToAscii=FALSE) {
+    # Some char's in the corpus files break gsub, so convert to ASCII and remove
+    # the lines where NA's were inserted by converter.
+    if(convertToAscii) {
+        cat("preProfFilter: converting UTF-8 to ASCII...\n")
+        charVect <- iconv(charVect, from="UTF-8", to="ASCII")
+        charVect <- charVect[-which(is.na(charVect))]
     }
+    
     # Handle right single quotes: 387317 instances in the blog file
     # http://stackoverflow.com/questions/2477452/%C3%A2%E2%82%AC%E2%84%A2-showing-on-page-instead-of
-    samp <- gsub("(\xE2\x80\x99)", "'", samp, perl=perl.flag)
+    charVect <- gsub("(\xE2\x80\x99)", "'", charVect, perl=perl.flag)
     # Handle other chars that are like single quotes:
-    samp <- gsub("[\U0027\U00B4\U0092\U0060\U02BB\U02BC\U2018\U2019]",
-                 "'", samp, perl=perl.flag)
+    # charVect <- gsub("[\U0027\U00B4\U0092\U0060\U02BB\U02BC\U2018\U2019]",
+    #              "'", charVect, perl=perl.flag)
+    charVect <- gsub("(<U[+]0027>)|(<U[+]00B4>)|(<U[+]0092>)|(<U[+]0060>)|(<U[+]02BB>)|<U[+]02BC>)|(<U[+]2018>)|(<U[+]2019)]",
+                     "'", charVect, perl=perl.flag)
     # Remove chars that can't be used to create profanity
-    samp <- gsub("[^ A-Za-z0-9.!'_*+<>&@#()$\\^\\[\\]\\-]", "", samp, perl=perl.flag)
-    return(samp)
+    charVect <- gsub("[^ A-Za-z0-9.!'_*+<>&@#()$\\^\\[\\]\\-]", "", charVect, perl=perl.flag)
+    return(charVect)
 }
 
 ## Runs the pre-profanity filter on dataDir/inFileName and outputs results to
@@ -204,12 +267,40 @@ preProfFilter <- function(samp, perl.flag=TRUE, is.news=FALSE) {
 runPreProfFilter <- function(dataDir=ddir,
                              inFileName='en_US.blogs.train.2sents.txt',
                              outFilePostfix='.3preprof.txt') {
-    cat("START profanity removal of entire file", as.character(Sys.time()), "\n")
     inPath <- sprintf("%s%s", dataDir, inFileName)
+    cat("START runPreProfFilter on:", inPath, as.character(Sys.time()), "\n")
     outFileName <- str_replace(inFileName, '.2sents.txt', outFilePostfix)
     
     outPath <- sprintf("%s%s", dataDir, outFileName)
-    preProfFiltered <- preProfFilter(readLines(inPath))
+    fileLines <- read_lines(inPath)
+    preProfFiltered <- preProfFilter(charVect=fileLines)
     writeLines(preProfFiltered, outPath)
-    cat("FINISH profanity removal of entire file", as.character(Sys.time()), "\n")
+    cat("FINISH runPreProfFilter. File written to:", outPath,
+        as.character(Sys.time()), "\n")
+}
+
+## Merges two contigency tables firstTab and secondTab and returns the merged table
+mergeContingencyTables <- function(firstTab, secondTab, char.labels=TRUE) {
+    # normalize the first table
+    Un <- union(names(firstTab), names(secondTab))
+    third <- as.table(setNames(rep(0, length(Un)), Un))
+    firstTab1 <- c(firstTab, third)
+    firstTab2 <- firstTab1[!duplicated(names(firstTab1))]
+    if(char.labels) {
+        firstTabFull <- as.table(firstTab2[order(names(firstTab2))])
+    } else {
+        firstTabFull <- as.table(firstTab2[order(as.numeric(names(firstTab2)))])
+    }
+    # normalize the second table
+    secondTab1 <- c(secondTab, third)
+    secondTab2 <- secondTab1[!duplicated(names(secondTab1))]
+    if(char.labels) {
+        secondTabFull <- as.table(secondTab2[order(names(secondTab2))])
+    } else {
+        secondTabFull <- as.table(secondTab2[order(as.numeric(names(secondTab2)))])
+    }
+    
+    thirdFull <- firstTabFull + secondTabFull
+    
+    return(thirdFull)
 }
