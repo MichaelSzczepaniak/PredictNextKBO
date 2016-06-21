@@ -179,7 +179,8 @@ parseSentsToFile <- function(inFileType,
     cat("finish parseSentsToFile:", as.character(Sys.time()), "\n")
 }
 
-## Converts charVect to ASCII and returns the converted character vector
+## Removes all the non-ASCII characters from the sentence parse files and then
+## rewrites them back out with a .3ascii.txt extension
 convertToAscii <- function(dataDir=ddir,
                            inFilePostfix='.2sents.txt',
                            outFilePostfix='.3ascii.txt') {
