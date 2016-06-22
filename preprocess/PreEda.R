@@ -212,7 +212,7 @@ convertToAscii <- function(dataDir=ddir,
 ## Reads all the data files with the .3ascii.txt suffix, replaces the unicode
 ## tag delimiting contractions and plural possesive forms with a single quote.
 ## After replacing these tags with single quotes, the remaining tags are
-## removed before they are written back out with a .4notags.txt suffix.
+## replace with spaces before being written back out with a .4notags.txt suffix.
 convertUnicodeTags <- function(dataDir=ddir,
                                inFilePostfix='.3ascii.txt',
                                outFilePostfix='.4notags.txt') {
@@ -241,7 +241,9 @@ convertUnicodeTags <- function(dataDir=ddir,
                                                 "\\1'\\3")
         charVectImFix <- str_replace_all(charVectContractions, imFixPattern,
                                          "\\1'\\3")
-        charVectNoTags <- str_replace_all(charVectImFix, unicodePattern, '')
+        # Replace remaining unicode tags with spaces because extra spaces
+        # will get cleaned up in a later pre-processing step.
+        charVectNoTags <- str_replace_all(charVectImFix, unicodePattern, ' ')
         writeLines(charVectNoTags, outfiles[i])
     }
     cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
@@ -270,6 +272,57 @@ runPreProfFilter <- function(dataDir=ddir,
     writeLines(preProfFiltered, outPath)
     cat("FINISH runPreProfFilter. File written to:", outPath,
         as.character(Sys.time()), "\n")
+}
+
+removeUrls <- function(charVect) {
+    # Build regex to remove URLs. No shorthand character classes in R,
+    # so need to create by hand
+    wordChars <- "A-Za-z0-9_\\-"
+    urlRegex <- sprintf("%s%s%s", "(http|https)(://)?[", wordChars, "]+")
+    urlRegex <- sprintf("%s%s%s%s", urlRegex, "(.[", wordChars, "]+)+")
+    urlRegex <- sprintf("%s%s%s%s", urlRegex, "[", wordChars, ".,@?^=%&:/~\\+#]*")
+    # urlRegex <- "(http|https)://[\w\-_]+(\.[\w\-_]+)+[\w\-.,@?^=%&:/~\\+#]*"
+    samp <- gsub(urlRegex, "", samp, perl=TRUE)
+}
+
+## Removes URLs and anything not a word, space, or basic punctuation character
+## such as ?.!,:'- in a somewhat intelligent manner.
+postProfClean <- function(samp, is.news=TRUE) {
+    # Build regex to remove URLs. No shorthand character classes in R,
+    # so need to create by hand
+    wordChars <- "A-Za-z0-9_\\-"
+    urlRegex <- sprintf("%s%s%s", "(http|https)(://)?[", wordChars, "]+")
+    urlRegex <- sprintf("%s%s%s%s", urlRegex, "(.[", wordChars, "]+)+")
+    urlRegex <- sprintf("%s%s%s%s", urlRegex, "[", wordChars, ".,@?^=%&:/~\\+#]*")
+    # urlRegex <- "(http|https)://[\w\-_]+(\.[\w\-_]+)+[\w\-.,@?^=%&:/~\\+#]*"
+    samp <- gsub(urlRegex, "", samp, perl=TRUE)
+    if(!is.news) { samp <- nonNewsPostProfClean(samp) }
+    # remove anything that's not an alpha, digit basic punctuation char
+    # will replace digits with NUM later
+    samp <- gsub("[^A-Za-z0-9?.!,:'\\-]", " ", samp, perl=TRUE)
+    samp <- gsub("( ){2,}", " ", samp, perl=TRUE)  # replace >=2 spaces w/single space
+    samp <- gsub("^( . )", " ", samp, perl=TRUE)
+    samp <- gsub("^( ){1,}", "", samp, perl=TRUE)  # remove leading spaces
+    samp <- gsub("[ ]{1,}$", "", samp, perl=TRUE)  # remove trailing spaces
+    # remove non-alpha char's that start sentences
+    samp <- gsub("^[^A-Za-z]+", "", samp)
+    # make lines that don't end in . ! or ? empty so they'll be removed later
+    samp <- gsub("^.*[^.!?]$", "", samp)
+    # replace non-word-period by just period
+    samp <- gsub("([^A-Za-z0-9]+.)$", ".", samp)
+    # remove lines that don't have any alpha characters
+    samp <- gsub("^[^A-Za-z]+$", "", samp, perl=TRUE)
+    # remove empty lines
+    samp <- samp[which(samp  != "")]
+    # replace 2 or more spaces with a single space
+    samp <- gsub("[ ]{2,}", " ", samp, perl=TRUE)
+    # normalize text to lower case
+    samp <- tolower(samp)
+    # replace sequences of digits by NUM token: after lower case to keep
+    # this special token UPPER CASE in the processed file
+    samp <- gsub("[0-9]+", "NUM", samp)
+    
+    return(samp)
 }
 
 ## Merges two contigency tables firstTab and secondTab and returns the merged table

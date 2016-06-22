@@ -215,7 +215,7 @@ $(document).ready(function () {
 <li><a href="https://www.dropbox.com/s/wnss8ibfmuqcv9r/news.utags.csv?dl=1">news.utags.csv</a></li>
 <li><a href="https://www.dropbox.com/s/ol68voyjavrx3bm/twitter.utags.csv?dl=1">twitter.utags.csv</a></li>
 </ul>
-<p>A vast majority of these tags were <strong>&lt;U+FFFD&gt;</strong> which is a special code <a href="https://en.wikipedia.org/wiki/Specials_(Unicode_block)">used to replace an unknown or unrepresentable character</a>. Upon manual inpsection, it appeared that the most frequent use of this character which we would want to preserve was as a single quote in a contraction such as <em>isn’t</em> or <em>doesn’t</em> or as as plural possesive from such as <em>Tom’s</em> or <em>Mary’s</em>. The <strong>convertUnicodeTags</strong> function was created and used to replace unicodes tags with either a single quote or a empty string. The outputs from this function resulted in the following 3 files:</p>
+<p>A vast majority of these tags were <strong>&lt;U+FFFD&gt;</strong> which is a special code <a href="https://en.wikipedia.org/wiki/Specials_(Unicode_block)">used to replace an unknown or unrepresentable character</a>. Upon manual inpsection, it appeared that the most frequent use of this character which we would want to preserve was as a single quote in a contraction such as <em>isn’t</em> or <em>doesn’t</em> or as as plural possesive from such as <em>Tom’s</em> or <em>Mary’s</em>. The <strong>convertUnicodeTags</strong> function was created and used to replace unicodes tags with either a single quote or a space (which gets cleaned up in a later step). The outputs from this function resulted in the following 3 files:</p>
 <ul>
 <li><a href="https://www.dropbox.com/s/bi05a9wh8y921b5/en_US.blogs.train.4notags.txt?dl=1">en_US.blogs.train.4notags.txt</a></li>
 <li><a href="https://www.dropbox.com/s/tukbulgflyd6oer/en_US.news.train.4notags.txt?dl=1">en_US.news.train.4notags.txt</a></li>
@@ -484,7 +484,9 @@ convertUnicodeTags &lt;- function(dataDir=ddir,
                                                 &quot;\\1'\\3&quot;)
         charVectImFix &lt;- str_replace_all(charVectContractions, imFixPattern,
                                          &quot;\\1'\\3&quot;)
-        charVectNoTags &lt;- str_replace_all(charVectImFix, unicodePattern, '')
+        # Replace remaining unicode tags with space because extra spaces
+        # will get cleaned up later in the overall pre-processing steps.
+        charVectNoTags &lt;- str_replace_all(charVectImFix, unicodePattern, ' ')
         writeLines(charVectNoTags, outfiles[i])
     }
     cat(&quot;convertUnicodeTags: FINISHED replacing unicode tags.\n&quot;)
