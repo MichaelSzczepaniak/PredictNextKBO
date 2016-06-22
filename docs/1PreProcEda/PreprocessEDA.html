@@ -158,7 +158,7 @@ $(document).ready(function () {
 <p>After the data was read and partitioned into training and test sets, the training files were cleaned using the following steps:</p>
 <ol style="list-style-type: decimal">
 <li>Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element. One artifact of this step was that things like “St.” which are used as a contraction for “Saint” were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.</li>
-<li>Pre-Profanity Filtering - This step converted the text to lower case, replaced chars similar to single quotes with simple ascii single quote chars, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.</li>
+<li>Pre-Profanity Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.</li>
 <li>Profanity Removal - This step removed the profanity from the text.</li>
 <li>Post-Profanity Filtering - This step removed urls and other non-essential characters.</li>
 </ol>
@@ -173,7 +173,7 @@ $(document).ready(function () {
 <li><a href="https://www.dropbox.com/s/hxs3b3wqu9jpi7k/en_US.news.train.1sents.txt?dl=1">en_US.news.train.1sents.txt</a></li>
 <li><a href="https://www.dropbox.com/s/5w6yp3or6oyd3hu/en_US.news.train.2sents.txt?dl=1">en_US.news.train.2sents.txt</a></li>
 <li><a href="https://www.dropbox.com/s/v8x8taw3sgwxy02/en_US.twitter.train.1sents.txt?dl=1">en_US.twitter.train.txt.1sents.txt</a></li>
-<li>en_US.twitter.train.txt.2sents.txt</li>
+<li><a href="https://www.dropbox.com/s/20rxyhyx4ub8yeb/en_US.twitter.train.2sents.txt?dl=1">en_US.twitter.train.txt.2sents.txt</a></li>
 </ul>
 <p>Files ending in <em>1sents.txt</em> are the files initially parsed into sentences before fixing the issue of improper sentence breaks between the tokens <em>St. SomeSaintsName</em>. Files ending in <em>2sents.txt</em> are the files that were ran through the <strong>annealSaintErrors</strong> function to fix these errors.</p>
 <p>Because the <strong>annealSaintErrors</strong> function didn’t fix all the <em>St. SomeSaintsName</em> parse errors, each <em>2sents.txt</em> file was opened on Windows 10 in <a href="https://notepad-plus-plus.org/">NotePad++ v6.9.2 aka NP++</a> and the following steps were performed:</p>
@@ -191,13 +191,40 @@ $(document).ready(function () {
 <li>Save the file by clicking the disk icon.</li>
 <li>Click <em>File</em> from the upper menu and select <em>Exit</em> to exit the program.</li>
 </ol>
-<p>If future versions of NP++ do not behave the same way as v6.9.2, <a href="https://www.dropbox.com/s/t7l03782ngh84dg/npp.6.9.2.Installer.exe?dl=1">this version can be downloaded here</a></p>
+<p>If future versions of NP++ do not behave the same as described for v6.9.2, <a href="https://www.dropbox.com/s/t7l03782ngh84dg/npp.6.9.2.Installer.exe?dl=1">this version can be downloaded here</a></p>
 </div>
 <div id="pre-profanity-filtering" class="section level4">
 <h4>Pre-Profanity Filtering</h4>
+<p>After completion of sentence parsing, the resulting files were UTF-8 encoded but still contained some unusual characters. To clean out these characters, each file was ran through the function <strong>convertToAscii</strong> which passed the contents through an ASCII encoder and then rewrote out the contents with a <strong>.3ascii.txt</strong> extension. Links to these files are provided below:</p>
+<ul>
+<li><a href="https://www.dropbox.com/s/9u1q35cp2jjgldz/en_US.blogs.train.3ascii.txt?dl=1">en_US.blogs.train.3ascii.txt</a></li>
+<li><a href="https://www.dropbox.com/s/h1b0ma2wdo6vhw8/en_US.news.train.3ascii.txt?dl=1">en_US.news.train.3ascii.txt</a></li>
+<li><a href="https://www.dropbox.com/s/cqljea48343wj2u/en_US.twitter.train.3ascii.txt?dl=1">en_US.twitter.train.3ascii.txt</a></li>
+</ul>
+<p>This step removed all lines that contained unusual characters and resulted in removing 29 lines from the blogs file, 14 lines from the news, file and only 5 lines from the twitter file. However, these files still containted a lot of tags of the form <strong>&lt;U+hhhh&gt;</strong> where h is a hex digit from 0 to F. These were unicode tags that were generated during the data partitioning step when the partitioned files were written back out. As a result, the next challenge was figuring out how to deal with these tags. The following four options were considered:</p>
+<ol style="list-style-type: decimal">
+<li>leave them in the corpus</li>
+<li>remove all lines that contained these tags</li>
+<li>remove just the tags and leave the lines intact</li>
+<li>figure out reasonable ASCII character substitutions for each tag and do these substitutions</li>
+</ol>
+<p>Options 1. and 2. were ruled out because there were so many of these tokens: over 600k in the blogs file, over 200k in the news file, and over 100k in the twitter file, and keeping them would have distorted the n-gram tables while removing the lines would have reduced the n-gram counts. Both results would have reduced the quality of n-gram tables used by the model which would degrade its accuracy.</p>
+<p>In evaluating the remaining two options, frequency tables were constructed using the <strong>writeUnicodeTagFreqTables</strong> function. The resulting tables were:</p>
+<ul>
+<li><a href="https://www.dropbox.com/s/ep3e52eutgqdlig/blogs.utags.csv?dl=1">blogs.utags.csv</a></li>
+<li><a href="https://www.dropbox.com/s/wnss8ibfmuqcv9r/news.utags.csv?dl=1">news.utags.csv</a></li>
+<li><a href="https://www.dropbox.com/s/ol68voyjavrx3bm/twitter.utags.csv?dl=1">twitter.utags.csv</a></li>
+</ul>
+<p>A vast majority of these tags were <strong>&lt;U+FFFD&gt;</strong> which is a special code <a href="https://en.wikipedia.org/wiki/Specials_(Unicode_block)">used to replace an unknown or unrepresentable character</a>. Upon manual inpsection, it appeared that the most frequent use of this character which we would want to preserve was as a single quote in a contraction such as <em>isn’t</em> or <em>doesn’t</em> or as as plural possesive from such as <em>Tom’s</em> or <em>Mary’s</em>. The <strong>convertUnicodeTags</strong> function was created and used to replace unicodes tags with either a single quote or a empty string. The outputs from this function resulted in the following 3 files:</p>
+<ul>
+<li><a href="https://www.dropbox.com/s/bi05a9wh8y921b5/en_US.blogs.train.4notags.txt?dl=1">en_US.blogs.train.4notags.txt</a></li>
+<li><a href="https://www.dropbox.com/s/tukbulgflyd6oer/en_US.news.train.4notags.txt?dl=1">en_US.news.train.4notags.txt</a></li>
+<li><a href="https://www.dropbox.com/s/esychemqwlv926e/en_US.twitter.train.4notags.txt?dl=1">en_US.twitter.train.4notags.txt</a></li>
+</ul>
+<p>MORE TO DO HERE…</p>
 </div>
-<div id="section" class="section level4">
-<h4></h4>
+<div id="profanity-filtering" class="section level4">
+<h4>Profanity Filtering</h4>
 </div>
 </div>
 <div id="appendix" class="section level3">
@@ -379,21 +406,93 @@ parseSentsToFile &lt;- function(inFileType,
     cat(&quot;St. annealed file written to:&quot;, outFilePath2, &quot;\n&quot;)
     cat(&quot;finish parseSentsToFile:&quot;, as.character(Sys.time()), &quot;\n&quot;)
 }</code></pre>
-<pre class="r"><code>## Replace chars similar to single quotes with simple ascii single quote chars
-## and then removes anything not a word character or character needed to create
-## one of the profanity words/phrases in the profanity list.
-preProfFilter &lt;- function(samp, perl.flag=TRUE, is.news=FALSE) {
-    # news file has char's that break gsub, so convert to ASCII and remove NA's
-    if(is.news) {
-        samp &lt;- iconv(samp, from=&quot;UTF-8&quot;, to=&quot;ASCII&quot;)
-        samp &lt;- samp[-which(is.na(samp))]
+<pre class="r"><code>## Removes all the non-ASCII characters from the sentence parse files and then
+## rewrites them back out with a .3ascii.txt extension
+convertToAscii &lt;- function(dataDir=ddir,
+                           inFilePostfix='.2sents.txt',
+                           outFilePostfix='.3ascii.txt') {
+    
+    infiles &lt;- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                             inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                             inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                             inFilePostfix))
+    names(infiles) &lt;- c('blogs', 'news', 'twitter')
+    outfiles &lt;- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                          outFilePostfix))
+    names(outfiles) &lt;- names(infiles)
+    cat(&quot;convertToAscii: start UTF-8 to ASCII conversion...\n&quot;)
+    for(i in names(infiles)) {
+        charVect &lt;- read_lines(infiles[i])
+        charVectAscii &lt;- iconv(charVect, from=&quot;UTF-8&quot;, to=&quot;ASCII&quot;)
+        charVectAscii &lt;- charVect[-which(is.na(charVectAscii))]
+        writeLines(charVectAscii, outfiles[i])
     }
-    # Handle right single quotes: 387317 instances in the blog file
-    # http://stackoverflow.com/questions/2477452/%C3%A2%E2%82%AC%E2%84%A2-showing-on-page-instead-of
-    samp &lt;- gsub(&quot;(\xE2\x80\x99)&quot;, &quot;'&quot;, samp, perl=perl.flag)
-    # Handle other chars that are like single quotes:
-    samp &lt;- gsub(&quot;[\U0027\U00B4\U0092\U0060\U02BB\U02BC\U2018\U2019]&quot;,
-                 &quot;'&quot;, samp, perl=perl.flag)
+    cat(&quot;convertToAscii: finished converting UTF-8 to ASCII.\n&quot;)
+}
+
+## Builds and writes out frquency tables on the unicode tags in the 3ascii.txt
+## files
+writeUnicodeTagFreqTables &lt;-
+    function(index, dataDir=&quot;C:/data/dev/PredictNextKBO/data/en_US/&quot;) {
+        infiles &lt;- c(sprintf('%s%s', dataDir, 'en_US.blogs.train.3ascii.txt'),
+                     sprintf('%s%s', dataDir, 'en_US.news.train.3ascii.txt'),
+                     sprintf('%s%s', dataDir, 'en_US.twitter.train.3ascii.txt'))
+        names(infiles) &lt;- c('blogs', 'news', 'twitter')
+        unicodePatter &lt;- &quot;&lt;U[+][A-F0-9]{4}&gt;&quot;
+        data &lt;- read_lines(infiles[index])
+        ucodes &lt;- unlist(str_extract_all(data, unicodePatter))
+        ucodesTable &lt;- sort(table(ucodes), decreasing = TRUE)
+        write.csv(data.frame(tag=names(ucodesTable), freq=ucodesTable),
+                  sprintf('%s%s', names(infiles[index]), '.utags.csv'), row.names=FALSE)
+    }
+
+## Reads all the data files with the .3ascii.txt suffix, replaces the unicode
+## tag delimiting contractions and plural possesive forms with a single quote.
+## After replacing these tags with single quotes, the remaining tags are
+## removed before they are written back out with a .4notags.txt suffix.
+convertUnicodeTags &lt;- function(dataDir=ddir,
+                               inFilePostfix='.3ascii.txt',
+                               outFilePostfix='.4notags.txt') {
+    
+    infiles &lt;- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                         inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                         inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                         inFilePostfix))
+    names(infiles) &lt;- c('blogs', 'news', 'twitter')
+    outfiles &lt;- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                          outFilePostfix))
+    names(outfiles) &lt;- names(infiles)
+    cat(&quot;convertUnicodeTags: start replacing unicode tags...\n&quot;)
+    singleQuotePatter &lt;- &quot;([A-Za-z]{1})(&lt;U[+][A-Fa-f0-9]{4}&gt;)(s|d|ve|t|ll|re)&quot;
+    unicodePattern &lt;- &quot;&lt;U[+][A-Fa-f0-9]{4}&gt;&quot;
+    imFixPattern &lt;- &quot;([Ii])(&lt;U[+][A-Fa-f0-9]{4}&gt;)([mM])&quot;
+    for(i in names(infiles)) {
+        charVect &lt;- read_lines(infiles[i])
+        charVectContractions &lt;- str_replace_all(charVect, singleQuotePatter,
+                                                &quot;\\1'\\3&quot;)
+        charVectImFix &lt;- str_replace_all(charVectContractions, imFixPattern,
+                                         &quot;\\1'\\3&quot;)
+        charVectNoTags &lt;- str_replace_all(charVectImFix, unicodePattern, '')
+        writeLines(charVectNoTags, outfiles[i])
+    }
+    cat(&quot;convertUnicodeTags: FINISHED replacing unicode tags.\n&quot;)
+}
+
+## Removes anything not a word character or character needed to create
+## one of the profanity words/phrases in the profanity list.
+preProfFilter &lt;- function(samp, is.news=FALSE, perl.flag=TRUE) {
     # Remove chars that can't be used to create profanity
     samp &lt;- gsub(&quot;[^ A-Za-z0-9.!'_*+&lt;&gt;&amp;@#()$\\^\\[\\]\\-]&quot;, &quot;&quot;, samp, perl=perl.flag)
     return(samp)
@@ -404,14 +503,15 @@ preProfFilter &lt;- function(samp, perl.flag=TRUE, is.news=FALSE) {
 runPreProfFilter &lt;- function(dataDir=ddir,
                              inFileName='en_US.blogs.train.2sents.txt',
                              outFilePostfix='.3preprof.txt') {
-    cat(&quot;START profanity removal of entire file&quot;, as.character(Sys.time()), &quot;\n&quot;)
+    cat(&quot;START pre-profanity filtering&quot;, as.character(Sys.time()), &quot;\n&quot;)
     inPath &lt;- sprintf(&quot;%s%s&quot;, dataDir, inFileName)
     outFileName &lt;- str_replace(inFileName, '.2sents.txt', outFilePostfix)
     
     outPath &lt;- sprintf(&quot;%s%s&quot;, dataDir, outFileName)
-    preProfFiltered &lt;- preProfFilter(readLines(inPath))
+    fileLines &lt;- read_lines(inPath)
+    preProfFiltered &lt;- preProfFilter(samp=fileLines, is.news=is.news)
     writeLines(preProfFiltered, outPath)
-    cat(&quot;FINISH profanity removal of entire file&quot;, as.character(Sys.time()), &quot;\n&quot;)
+    cat(&quot;FINISH pre-profanity filtering&quot;, as.character(Sys.time()), &quot;\n&quot;)
 }</code></pre>
 <pre class="r"><code>## Returns a dataframe of profanity words built as a superset of two sources
 ## src1 and src2.

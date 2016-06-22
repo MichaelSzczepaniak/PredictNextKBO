@@ -209,9 +209,13 @@ convertToAscii <- function(dataDir=ddir,
     cat("convertToAscii: finished converting UTF-8 to ASCII.\n")
 }
 
+## Reads all the data files with the .3ascii.txt suffix, replaces the unicode
+## tag delimiting contractions and plural possesive forms with a single quote.
+## After replacing these tags with single quotes, the remaining tags are
+## removed before they are written back out with a .4notags.txt suffix.
 convertUnicodeTags <- function(dataDir=ddir,
                                inFilePostfix='.3ascii.txt',
-                               outFilePostfix='.4nouni.txt') {
+                               outFilePostfix='.4notags.txt') {
     
     infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
                          inFilePostfix),
@@ -227,40 +231,28 @@ convertUnicodeTags <- function(dataDir=ddir,
                   sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
                           outFilePostfix))
     names(outfiles) <- names(infiles)
-    cat("convertToAscii: start UTF-8 to ASCII conversion...\n")
+    cat("convertUnicodeTags: start replacing unicode tags...\n")
+    singleQuotePatter <- "([A-Za-z]{1})(<U[+][A-Fa-f0-9]{4}>)(s|d|ve|t|ll|re)"
+    unicodePattern <- "<U[+][A-Fa-f0-9]{4}>"
+    imFixPattern <- "([Ii])(<U[+][A-Fa-f0-9]{4}>)([mM])"
     for(i in names(infiles)) {
-        
+        charVect <- read_lines(infiles[i])
+        charVectContractions <- str_replace_all(charVect, singleQuotePatter,
+                                                "\\1'\\3")
+        charVectImFix <- str_replace_all(charVectContractions, imFixPattern,
+                                         "\\1'\\3")
+        charVectNoTags <- str_replace_all(charVectImFix, unicodePattern, '')
+        writeLines(charVectNoTags, outfiles[i])
     }
-    
-    pat <- "([\U0092])"
-    ucode <- str_extract(news[6:10], pat)
-    ucode <- gsub(pat, "|", news, perl=TRUE)
-    
+    cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
 }
 
-## Replace chars similar to single quotes with simple ascii single quote chars
-## and then removes anything not a word character or character needed to create
+## Removes anything not a word character or character needed to create
 ## one of the profanity words/phrases in the profanity list.
-preProfFilter <- function(charVect, perl.flag=TRUE, convertToAscii=FALSE) {
-    # Some char's in the corpus files break gsub, so convert to ASCII and remove
-    # the lines where NA's were inserted by converter.
-    if(convertToAscii) {
-        cat("preProfFilter: converting UTF-8 to ASCII...\n")
-        charVect <- iconv(charVect, from="UTF-8", to="ASCII")
-        charVect <- charVect[-which(is.na(charVect))]
-    }
-    
-    # Handle right single quotes: 387317 instances in the blog file
-    # http://stackoverflow.com/questions/2477452/%C3%A2%E2%82%AC%E2%84%A2-showing-on-page-instead-of
-    charVect <- gsub("(\xE2\x80\x99)", "'", charVect, perl=perl.flag)
-    # Handle other chars that are like single quotes:
-    # charVect <- gsub("[\U0027\U00B4\U0092\U0060\U02BB\U02BC\U2018\U2019]",
-    #              "'", charVect, perl=perl.flag)
-    charVect <- gsub("(<U[+]0027>)|(<U[+]00B4>)|(<U[+]0092>)|(<U[+]0060>)|(<U[+]02BB>)|<U[+]02BC>)|(<U[+]2018>)|(<U[+]2019)]",
-                     "'", charVect, perl=perl.flag)
+preProfFilter <- function(samp, is.news=FALSE, perl.flag=TRUE) {
     # Remove chars that can't be used to create profanity
-    charVect <- gsub("[^ A-Za-z0-9.!'_*+<>&@#()$\\^\\[\\]\\-]", "", charVect, perl=perl.flag)
-    return(charVect)
+    samp <- gsub("[^ A-Za-z0-9.!'_*+<>&@#()$\\^\\[\\]\\-]", "", samp, perl=perl.flag)
+    return(samp)
 }
 
 ## Runs the pre-profanity filter on dataDir/inFileName and outputs results to
