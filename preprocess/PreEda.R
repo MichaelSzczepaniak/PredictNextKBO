@@ -11,8 +11,6 @@ fnames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
 fnames.train <- c("en_US.blogs.train.txt", "en_US.news.train.txt",
                   "en_US.twitter.train.txt")
 
-fullpaths <- sprintf("%s%s", ddir, fnames)
-
 ## Reads the text corpus data file and returns a character array where every
 ## element is a line from the file.
 ## fileId = string - text fragment of file name to be read. Must be one of 3
@@ -72,11 +70,13 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
 ##        (> 90% based on a manual analysis of the 1st 150k lines of the news
 ##        file) of these errors.
 ##
-## NOTE2: This function over 22 hrs to run on my quad-core Xeon with 16Gb RAM
-##        RAM on the twitter 80% training set.
+## NOTE2: This function took over 22 hrs to run on my quad-core Xeon with
+##        16Gb RAM on the twitter 80% training set.
 ##
 ## charVect - character vector where every element may contain 1 or more
-## sentences of text.
+##            sentences of text
+## check.status - the number of lines to process before writing a status
+##                message to the console
 ## Preconditions: This function requires the quanteda package.
 breakOutSentences <- function(charVect, check.status=10000) {
     sentenceTokens <- tokenize(charVect, what="sentence")
@@ -179,74 +179,36 @@ parseSentsToFile <- function(inFileType,
     cat("finish parseSentsToFile:", as.character(Sys.time()), "\n")
 }
 
-## Removes all the non-ASCII characters from the sentence parse files and then
-## rewrites them back out with a .3ascii.txt extension
-convertToAscii <- function(dataDir=ddir,
-                           inFilePostfix='.2sents.txt',
-                           outFilePostfix='.3ascii.txt') {
-    
-    infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                             inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                             inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                             inFilePostfix))
-    names(infiles) <- c('blogs', 'news', 'twitter')
-    outfiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                          outFilePostfix))
-    names(outfiles) <- names(infiles)
+## Removes all the non-ASCII characters from charVect and then returns a
+## character vector that contains only ASCII characters.  This function is
+## intended to be passed to the runFilterAndWrite function.
+convertToAscii <- function(charVect) {
     cat("convertToAscii: start UTF-8 to ASCII conversion...\n")
-    for(i in names(infiles)) {
-        charVect <- read_lines(infiles[i])
-        charVectAscii <- iconv(charVect, from="UTF-8", to="ASCII")
-        charVectAscii <- charVect[-which(is.na(charVectAscii))]
-        writeLines(charVectAscii, outfiles[i])
-    }
+    charVectAscii <- iconv(charVect, from="UTF-8", to="ASCII")
+    charVectAscii <- charVect[-which(is.na(charVectAscii))]
     cat("convertToAscii: finished converting UTF-8 to ASCII.\n")
+    return(charVectAscii)
 }
 
-## Reads all the data files with the .3ascii.txt suffix, replaces the unicode
-## tag delimiting contractions and plural possesive forms with a single quote.
-## After replacing these tags with single quotes, the remaining tags are
-## replace with spaces before being written back out with a .4notags.txt suffix.
-convertUnicodeTags <- function(dataDir=ddir,
-                               inFilePostfix='.3ascii.txt',
-                               outFilePostfix='.4notags.txt') {
-    
-    infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                         inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                         inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                         inFilePostfix))
-    names(infiles) <- c('blogs', 'news', 'twitter')
-    outfiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                          outFilePostfix))
-    names(outfiles) <- names(infiles)
+## Replaces the unicode tag delimiting contractions and plural possesive forms
+## with a ASCII single quote character in the character vector charVect, 
+## replaces all other unicode tags with spaces, and then returns the updated
+## character vector.  This function is intended to be passed to the
+## runFilterAndWrite function.
+convertUnicodeTags <- function(charVect) {
     cat("convertUnicodeTags: start replacing unicode tags...\n")
     singleQuotePatter <- "([A-Za-z]{1})(<U[+][A-Fa-f0-9]{4}>)(s|d|ve|t|ll|re)"
     unicodePattern <- "<U[+][A-Fa-f0-9]{4}>"
     imFixPattern <- "([Ii])(<U[+][A-Fa-f0-9]{4}>)([mM])"
-    for(i in names(infiles)) {
-        charVect <- read_lines(infiles[i])
-        charVectContractions <- str_replace_all(charVect, singleQuotePatter,
-                                                "\\1'\\3")
-        charVectImFix <- str_replace_all(charVectContractions, imFixPattern,
-                                         "\\1'\\3")
-        # Replace remaining unicode tags with spaces because extra spaces
-        # will get cleaned up in a later pre-processing step.
-        charVectNoTags <- str_replace_all(charVectImFix, unicodePattern, ' ')
-        writeLines(charVectNoTags, outfiles[i])
-    }
+    charVectContractions <- str_replace_all(charVect, singleQuotePatter,
+                                            "\\1'\\3")
+    charVectImFix <- str_replace_all(charVectContractions, imFixPattern,
+                                     "\\1'\\3")
+    # Replace remaining unicode tags with spaces because extra spaces
+    # will get cleaned up in a later pre-processing step.
+    charVectNoTags <- str_replace_all(charVectImFix, unicodePattern, ' ')
     cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
+    return(charVectNoTags)
 }
 
 ## Removes anything not a word character or character needed to create
@@ -274,7 +236,11 @@ runPreProfFilter <- function(dataDir=ddir,
         as.character(Sys.time()), "\n")
 }
 
+## Removes most URL's that start with either http, https, or www. from the
+## character vector charVect and returns the resulting character vector.
+## This function is intended to be passed to the runFilterAndWrite function.
 removeUrls <- function(charVect) {
+    cat("removeUrls: start removing urls...\n")
     # Build regex to remove URLs. No shorthand character classes in R,
     # so need to create by hand
     wordChars <- "A-Za-z0-9_\\-"
@@ -283,33 +249,33 @@ removeUrls <- function(charVect) {
     urlRegex2 <- sprintf("%s%s%s", "(\\.[", wordChars, "]+)+")
     urlRegex2 <- sprintf("%s%s%s%s", urlRegex2, "[", wordChars, ".,@?^=%&:/~\\+#]*")
     urlRegex <- sprintf("%s%s", urlRegex1, urlRegex2)
-    # urlRegex <- sprintf("%s%s%s%s", urlRegex, "(.[", wordChars, "]+)+")
-    # urlRegex <- sprintf("%s%s%s%s", urlRegex, "[", wordChars, ".,@?^=%&:/~\\+#]*")
     charVect <- gsub(urlRegex, "", charVect, perl=TRUE)
-    
     # clean up www.<something> instances that don't start with http(s)
     urlRegexWww <- sprintf("%s%s%s%s", "( www\\.)[", wordChars, "]+", urlRegex2)
     charVect <- gsub(urlRegexWww, "", charVect, perl=TRUE)
-    
+    cat("removeUrls: FINISHED removing urls.\n")
     return(charVect)
 }
 
-runFilterAndWrite <- function(FUN=removeUrls, dataDir=ddir,
-                              inFilePostfix='.4notags.txt',
-                              outFilePostfix='.5nourls.txt') {
-    infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                         inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                         inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                         inFilePostfix))
+## Consolidates the tasks of reading data in and writing data out as part of
+## filtering or cleaning the data.
+## FUN - function to run against the input data
+## dataDir - directory where the input is read and the output is written
+## inFilePostfix - suffix of input data files that are read in and passed to FUN
+## outFilePostfix - suffix of output data files that are written after FUN has
+##                  has processed the input.
+## filePrefixes - prefixes of the files to be read in and written out
+runFilterAndWrite <- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
+                              filePrefixes=c('en_US.blogs.train',
+                                             'en_US.news.train',
+                                             'en_US.twitter.train')) {
+    infiles <- c(sprintf('%s%s%s', dataDir, filePrefixes[1], inFilePostfix),
+                 sprintf('%s%s%s', dataDir, filePrefixes[2], inFilePostfix),
+                 sprintf('%s%s%s', dataDir, filePrefixes[3], inFilePostfix))
     names(infiles) <- c('blogs', 'news', 'twitter')
-    outfiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                          outFilePostfix))
+    outfiles <- c(sprintf('%s%s%s', dataDir, filePrefixes[1], outFilePostfix),
+                  sprintf('%s%s%s', dataDir, filePrefixes[2], outFilePostfix),
+                  sprintf('%s%s%s', dataDir, filePrefixes[3], outFilePostfix))
     names(outfiles) <- names(infiles)
     
     cat("runFilterAndWrite: start running filter...\n")
@@ -320,20 +286,12 @@ runFilterAndWrite <- function(FUN=removeUrls, dataDir=ddir,
         writeLines(charVectFiltered, outfiles[i])
     }
     cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
-    
 }
 
 ## Removes URLs and anything not a word, space, or basic punctuation character
 ## such as ?.!,:'- in a somewhat intelligent manner.
 postProfClean <- function(samp, is.news=TRUE) {
-    # Build regex to remove URLs. No shorthand character classes in R,
-    # so need to create by hand
-    wordChars <- "A-Za-z0-9_\\-"
-    urlRegex <- sprintf("%s%s%s", "(http|https)(://)?[", wordChars, "]+")
-    urlRegex <- sprintf("%s%s%s%s", urlRegex, "(.[", wordChars, "]+)+")
-    urlRegex <- sprintf("%s%s%s%s", urlRegex, "[", wordChars, ".,@?^=%&:/~\\+#]*")
-    # urlRegex <- "(http|https)://[\w\-_]+(\.[\w\-_]+)+[\w\-.,@?^=%&:/~\\+#]*"
-    samp <- gsub(urlRegex, "", samp, perl=TRUE)
+    
     if(!is.news) { samp <- nonNewsPostProfClean(samp) }
     # remove anything that's not an alpha, digit basic punctuation char
     # will replace digits with NUM later

@@ -24,13 +24,13 @@ This document describes the details around how the data was partitioned, how it 
 The data was initially split into an 80% training set and a 20% test set.  All cleaning, EDA and parameter optimization work was performed on the training set.
 
 ### Objective #3 - Parameter Optimization
-[As described here](http://rpubs.com/mszczepaniak/prednextkbo), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here](http://rpubs.com/mszczepaniak/kbotparamcv).
+[As described here](http://rpubs.com/mszczepaniak/prednextkbo), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here (NOT ACTIVE YET: REMOVE WHEN ACTIVE!)](http://rpubs.com/mszczepaniak/kbotparamcv).
 
 ### Objective #4 - Make the Work Reproducible
 This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files were provided.  All pre-processing code (Objective #2) is provided in the **Appendix** section of this R Markdown document.
 
 ### Objective #5 - Deploy the App on shinyapps.io
-The results of meeting this objective can be found by visiting:
+The results of meeting this objective can be found by visiting (NOT ACTIVE YET: REMOVE WHEN ACTIVE!):
 [https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/)
 
 ## Acquiring and Partitioning the Data
@@ -42,8 +42,9 @@ With the data residing locally, the **writeTrainTestFiles** function was used to
 After the data was read and partitioned into training and test sets, the training files were cleaned using the following steps:
 
 1. Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element.  One artifact of this step was that things like "St." which are used as a contraction for "Saint" were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.
-2. Pre-Profanity Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.
-3. Profanity Removal - This step removed the profanity from the text.
+2. Non-ASCII Character Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.
+3. Unicode Tags Converstions and Removals -
+4. URL Removals -
 4. Post-Profanity Filtering - This step removed urls and other non-essential characters.
 
 The profanity removal step required required first building a profanity list.  This was done by taking the union of three lists from the following sources: [google](http://fffff.at/googles-official-list-of-bad-words/), [Luis von Ahn of Carnegie Mellon University ](http://www.cs.cmu.edu/~biglou/resources/bad-words.txt), and [a github project of Duncan Robertson from London, UK](https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt). These lists were downloaded and merged together using the **mergeTermLists** function and profanity was removed using the **removeProfanity** function. Both of these functions are listed in the **Appendix**.
@@ -125,7 +126,8 @@ options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 # set parameters
 ddir <- "../data/en_US/" # assumes exec from dir at same level as data
 fnames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
-fullpaths <- sprintf("%s%s", ddir, fnames)
+fnames.train <- c("en_US.blogs.train.txt", "en_US.news.train.txt",
+                  "en_US.twitter.train.txt")
 
 ## Reads the text corpus data file and returns a character array where every
 ## element is a line from the file.
@@ -185,11 +187,13 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
 ##        (> 90% based on a manual analysis of the 1st 150k lines of the news
 ##        file) of these errors.
 ##
-## NOTE2: This function over 22 hrs to run on my quad-core Xeon with 16Gb RAM
-##        RAM on the twitter 80% training set.
+## NOTE2: This function took over 22 hrs to run on my quad-core Xeon with
+##        16Gb RAM on the twitter 80% training set.
 ##
 ## charVect - character vector where every element may contain 1 or more
-## sentences of text.
+##            sentences of text
+## check.status - the number of lines to process before writing a status
+##                message to the console
 ## Preconditions: This function requires the quanteda package.
 breakOutSentences <- function(charVect, check.status=10000) {
     sentenceTokens <- tokenize(charVect, what="sentence")
@@ -294,34 +298,15 @@ parseSentsToFile <- function(inFileType,
 ```
 
 ```{r eval=FALSE}
-## Removes all the non-ASCII characters from the sentence parse files and then
-## rewrites them back out with a .3ascii.txt extension
-convertToAscii <- function(dataDir=ddir,
-                           inFilePostfix='.2sents.txt',
-                           outFilePostfix='.3ascii.txt') {
-    
-    infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                             inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                             inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                             inFilePostfix))
-    names(infiles) <- c('blogs', 'news', 'twitter')
-    outfiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                          outFilePostfix))
-    names(outfiles) <- names(infiles)
+## Removes all the non-ASCII characters from charVect and then returns a
+## character vector that contains only ASCII characters.  This function is
+## intended to be passed to the runFilterAndWrite function.
+convertToAscii <- function(charVect) {
     cat("convertToAscii: start UTF-8 to ASCII conversion...\n")
-    for(i in names(infiles)) {
-        charVect <- read_lines(infiles[i])
-        charVectAscii <- iconv(charVect, from="UTF-8", to="ASCII")
-        charVectAscii <- charVect[-which(is.na(charVectAscii))]
-        writeLines(charVectAscii, outfiles[i])
-    }
+    charVectAscii <- iconv(charVect, from="UTF-8", to="ASCII")
+    charVectAscii <- charVect[-which(is.na(charVectAscii))]
     cat("convertToAscii: finished converting UTF-8 to ASCII.\n")
+    return(charVectAscii)
 }
 
 ## Builds and writes out frquency tables on the unicode tags in the 3ascii.txt
@@ -340,69 +325,78 @@ writeUnicodeTagFreqTables <-
                   sprintf('%s%s', names(infiles[index]), '.utags.csv'), row.names=FALSE)
     }
 
-## Reads all the data files with the .3ascii.txt suffix, replaces the unicode
-## tag delimiting contractions and plural possesive forms with a single quote.
-## After replacing these tags with single quotes, the remaining tags are
-## replace with spaces before being written back out with a .4notags.txt suffix.
-convertUnicodeTags <- function(dataDir=ddir,
-                               inFilePostfix='.3ascii.txt',
-                               outFilePostfix='.4notags.txt') {
-    
-    infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                         inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                         inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                         inFilePostfix))
-    names(infiles) <- c('blogs', 'news', 'twitter')
-    outfiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                          outFilePostfix))
-    names(outfiles) <- names(infiles)
+## Replaces the unicode tag delimiting contractions and plural possesive forms
+## with a ASCII single quote character in the character vector charVect, 
+## replaces all other unicode tags with spaces, and then returns the updated
+## character vector.  This function is intended to be passed to the
+## runFilterAndWrite function.
+convertUnicodeTags <- function(charVect) {
     cat("convertUnicodeTags: start replacing unicode tags...\n")
     singleQuotePatter <- "([A-Za-z]{1})(<U[+][A-Fa-f0-9]{4}>)(s|d|ve|t|ll|re)"
     unicodePattern <- "<U[+][A-Fa-f0-9]{4}>"
     imFixPattern <- "([Ii])(<U[+][A-Fa-f0-9]{4}>)([mM])"
+    charVectContractions <- str_replace_all(charVect, singleQuotePatter,
+                                            "\\1'\\3")
+    charVectImFix <- str_replace_all(charVectContractions, imFixPattern,
+                                     "\\1'\\3")
+    # Replace remaining unicode tags with spaces because extra spaces
+    # will get cleaned up in a later pre-processing step.
+    charVectNoTags <- str_replace_all(charVectImFix, unicodePattern, ' ')
+    cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
+    return(charVectNoTags)
+}
+
+## Removes most URL's that start with either http, https, or www. from the
+## character vector charVect and returns the resulting character vector.
+## This function is intended to be passed to the runFilterAndWrite function.
+removeUrls <- function(charVect) {
+    # Build regex to remove URLs. No shorthand character classes in R,
+    # so need to create by hand
+    wordChars <- "A-Za-z0-9_\\-"
+    # urlRegex <- "(http|https)://[\w\-_]+(\.[\w\-_]+)+[\w\-.,@?^=%&:/~\\+#]*"
+    urlRegex1 <- sprintf("%s%s%s", "(http|https)(://)[", wordChars, "]+")
+    urlRegex2 <- sprintf("%s%s%s", "(\\.[", wordChars, "]+)+")
+    urlRegex2 <- sprintf("%s%s%s%s", urlRegex2, "[", wordChars, ".,@?^=%&:/~\\+#]*")
+    urlRegex <- sprintf("%s%s", urlRegex1, urlRegex2)
+    charVect <- gsub(urlRegex, "", charVect, perl=TRUE)
+    # clean up www.<something> instances that don't start with http(s)
+    urlRegexWww <- sprintf("%s%s%s%s", "( www\\.)[", wordChars, "]+", urlRegex2)
+    charVect <- gsub(urlRegexWww, "", charVect, perl=TRUE)
+    
+    return(charVect)
+}
+
+## Consolidates the tasks of reading data in and writing data out as part of
+## filtering or cleaning the data.
+## FUN - function to run against the input data
+## dataDir - directory where the input is read and the output is written
+## inFilePostfix - suffix of input data files that are read in and passed to FUN
+## outFilePostfix - suffix of output data files that are written after FUN has
+##                  has processed the input.
+## filePrefixes - prefixes of the files to be read in and written out
+runFilterAndWrite <- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
+                              filePrefixes=c('en_US.blogs.train',
+                                             'en_US.news.train',
+                                             'en_US.twitter.train')) {
+    infiles <- c(sprintf('%s%s%s', dataDir, filePrefixes[1], inFilePostfix),
+                 sprintf('%s%s%s', dataDir, filePrefixes[2], inFilePostfix),
+                 sprintf('%s%s%s', dataDir, filePrefixes[3], inFilePostfix))
+    names(infiles) <- c('blogs', 'news', 'twitter')
+    outfiles <- c(sprintf('%s%s%s', dataDir, filePrefixes[1], outFilePostfix),
+                  sprintf('%s%s%s', dataDir, filePrefixes[2], outFilePostfix),
+                  sprintf('%s%s%s', dataDir, filePrefixes[3], outFilePostfix))
+    names(outfiles) <- names(infiles)
+    
+    cat("runFilterAndWrite: start running filter...\n")
+    
     for(i in names(infiles)) {
         charVect <- read_lines(infiles[i])
-        charVectContractions <- str_replace_all(charVect, singleQuotePatter,
-                                                "\\1'\\3")
-        charVectImFix <- str_replace_all(charVectContractions, imFixPattern,
-                                         "\\1'\\3")
-        # Replace remaining unicode tags with spaces because extra spaces
-        # will get cleaned up in a later pre-processing step.
-        charVectNoTags <- str_replace_all(charVectImFix, unicodePattern, ' ')
-        writeLines(charVectNoTags, outfiles[i])
+        charVectFiltered <- FUN(charVect)
+        writeLines(charVectFiltered, outfiles[i])
     }
     cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
 }
 
-## Removes anything not a word character or character needed to create
-## one of the profanity words/phrases in the profanity list.
-preProfFilter <- function(samp, is.news=FALSE, perl.flag=TRUE) {
-    # Remove chars that can't be used to create profanity
-    samp <- gsub("[^ A-Za-z0-9.!'_*+<>&@#()$\\^\\[\\]\\-]", "", samp, perl=perl.flag)
-    return(samp)
-}
-
-## Runs the pre-profanity filter on dataDir/inFileName and outputs results to
-## the same directory using outFilePostfix as the postfix in output file name.
-runPreProfFilter <- function(dataDir=ddir,
-                             inFileName='en_US.blogs.train.2sents.txt',
-                             outFilePostfix='.3preprof.txt') {
-    cat("START pre-profanity filtering", as.character(Sys.time()), "\n")
-    inPath <- sprintf("%s%s", dataDir, inFileName)
-    outFileName <- str_replace(inFileName, '.2sents.txt', outFilePostfix)
-    
-    outPath <- sprintf("%s%s", dataDir, outFileName)
-    fileLines <- read_lines(inPath)
-    preProfFiltered <- preProfFilter(samp=fileLines, is.news=is.news)
-    writeLines(preProfFiltered, outPath)
-    cat("FINISH pre-profanity filtering", as.character(Sys.time()), "\n")
-}
 ```
 
 

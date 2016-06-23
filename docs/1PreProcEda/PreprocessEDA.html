@@ -138,7 +138,7 @@ $(document).ready(function () {
 </div>
 <div id="objective-3---parameter-optimization" class="section level3">
 <h3>Objective #3 - Parameter Optimization</h3>
-<p><a href="http://rpubs.com/mszczepaniak/prednextkbo">As described here</a>, the KBO Trigram has two parameters: the bigram discount rate (<span class="math inline">\(\gamma_2\)</span>) and the trigram discount rate (<span class="math inline">\(\gamma_3\)</span>). The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation. Better performing values for these parameters and the process by which they were obtained is <a href="http://rpubs.com/mszczepaniak/kbotparamcv">described here</a>.</p>
+<p><a href="http://rpubs.com/mszczepaniak/prednextkbo">As described here</a>, the KBO Trigram has two parameters: the bigram discount rate (<span class="math inline">\(\gamma_2\)</span>) and the trigram discount rate (<span class="math inline">\(\gamma_3\)</span>). The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation. Better performing values for these parameters and the process by which they were obtained is <a href="http://rpubs.com/mszczepaniak/kbotparamcv">described here (NOT ACTIVE YET: REMOVE WHEN ACTIVE!)</a>.</p>
 </div>
 <div id="objective-4---make-the-work-reproducible" class="section level3">
 <h3>Objective #4 - Make the Work Reproducible</h3>
@@ -146,7 +146,7 @@ $(document).ready(function () {
 </div>
 <div id="objective-5---deploy-the-app-on-shinyapps.io" class="section level3">
 <h3>Objective #5 - Deploy the App on shinyapps.io</h3>
-<p>The results of meeting this objective can be found by visiting: <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a></p>
+<p>The results of meeting this objective can be found by visiting (NOT ACTIVE YET: REMOVE WHEN ACTIVE!): <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a></p>
 </div>
 </div>
 <div id="acquiring-and-partitioning-the-data" class="section level2">
@@ -158,8 +158,9 @@ $(document).ready(function () {
 <p>After the data was read and partitioned into training and test sets, the training files were cleaned using the following steps:</p>
 <ol style="list-style-type: decimal">
 <li>Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element. One artifact of this step was that things like “St.” which are used as a contraction for “Saint” were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.</li>
-<li>Pre-Profanity Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.</li>
-<li>Profanity Removal - This step removed the profanity from the text.</li>
+<li>Non-ASCII Character Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.</li>
+<li>Unicode Tags Converstions and Removals -</li>
+<li>URL Removals -</li>
 <li>Post-Profanity Filtering - This step removed urls and other non-essential characters.</li>
 </ol>
 <p>The profanity removal step required required first building a profanity list. This was done by taking the union of three lists from the following sources: <a href="http://fffff.at/googles-official-list-of-bad-words/">google</a>, <a href="http://www.cs.cmu.edu/~biglou/resources/bad-words.txt">Luis von Ahn of Carnegie Mellon University</a>, and <a href="https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt">a github project of Duncan Robertson from London, UK</a>. These lists were downloaded and merged together using the <strong>mergeTermLists</strong> function and profanity was removed using the <strong>removeProfanity</strong> function. Both of these functions are listed in the <strong>Appendix</strong>.</p>
@@ -240,7 +241,8 @@ options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 # set parameters
 ddir &lt;- &quot;../data/en_US/&quot; # assumes exec from dir at same level as data
 fnames &lt;- c(&quot;en_US.blogs.txt&quot;, &quot;en_US.news.txt&quot;, &quot;en_US.twitter.txt&quot;)
-fullpaths &lt;- sprintf(&quot;%s%s&quot;, ddir, fnames)
+fnames.train &lt;- c(&quot;en_US.blogs.train.txt&quot;, &quot;en_US.news.train.txt&quot;,
+                  &quot;en_US.twitter.train.txt&quot;)
 
 ## Reads the text corpus data file and returns a character array where every
 ## element is a line from the file.
@@ -300,11 +302,13 @@ writeTrainTestFiles &lt;- function(fileType, train.fraction=0.8,
 ##        (&gt; 90% based on a manual analysis of the 1st 150k lines of the news
 ##        file) of these errors.
 ##
-## NOTE2: This function over 22 hrs to run on my quad-core Xeon with 16Gb RAM
-##        RAM on the twitter 80% training set.
+## NOTE2: This function took over 22 hrs to run on my quad-core Xeon with
+##        16Gb RAM on the twitter 80% training set.
 ##
 ## charVect - character vector where every element may contain 1 or more
-## sentences of text.
+##            sentences of text
+## check.status - the number of lines to process before writing a status
+##                message to the console
 ## Preconditions: This function requires the quanteda package.
 breakOutSentences &lt;- function(charVect, check.status=10000) {
     sentenceTokens &lt;- tokenize(charVect, what=&quot;sentence&quot;)
@@ -406,34 +410,15 @@ parseSentsToFile &lt;- function(inFileType,
     cat(&quot;St. annealed file written to:&quot;, outFilePath2, &quot;\n&quot;)
     cat(&quot;finish parseSentsToFile:&quot;, as.character(Sys.time()), &quot;\n&quot;)
 }</code></pre>
-<pre class="r"><code>## Removes all the non-ASCII characters from the sentence parse files and then
-## rewrites them back out with a .3ascii.txt extension
-convertToAscii &lt;- function(dataDir=ddir,
-                           inFilePostfix='.2sents.txt',
-                           outFilePostfix='.3ascii.txt') {
-    
-    infiles &lt;- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                             inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                             inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                             inFilePostfix))
-    names(infiles) &lt;- c('blogs', 'news', 'twitter')
-    outfiles &lt;- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                          outFilePostfix))
-    names(outfiles) &lt;- names(infiles)
+<pre class="r"><code>## Removes all the non-ASCII characters from charVect and then returns a
+## character vector that contains only ASCII characters.  This function is
+## intended to be passed to the runFilterAndWrite function.
+convertToAscii &lt;- function(charVect) {
     cat(&quot;convertToAscii: start UTF-8 to ASCII conversion...\n&quot;)
-    for(i in names(infiles)) {
-        charVect &lt;- read_lines(infiles[i])
-        charVectAscii &lt;- iconv(charVect, from=&quot;UTF-8&quot;, to=&quot;ASCII&quot;)
-        charVectAscii &lt;- charVect[-which(is.na(charVectAscii))]
-        writeLines(charVectAscii, outfiles[i])
-    }
+    charVectAscii &lt;- iconv(charVect, from=&quot;UTF-8&quot;, to=&quot;ASCII&quot;)
+    charVectAscii &lt;- charVect[-which(is.na(charVectAscii))]
     cat(&quot;convertToAscii: finished converting UTF-8 to ASCII.\n&quot;)
+    return(charVectAscii)
 }
 
 ## Builds and writes out frquency tables on the unicode tags in the 3ascii.txt
@@ -452,68 +437,76 @@ writeUnicodeTagFreqTables &lt;-
                   sprintf('%s%s', names(infiles[index]), '.utags.csv'), row.names=FALSE)
     }
 
-## Reads all the data files with the .3ascii.txt suffix, replaces the unicode
-## tag delimiting contractions and plural possesive forms with a single quote.
-## After replacing these tags with single quotes, the remaining tags are
-## removed before they are written back out with a .4notags.txt suffix.
-convertUnicodeTags &lt;- function(dataDir=ddir,
-                               inFilePostfix='.3ascii.txt',
-                               outFilePostfix='.4notags.txt') {
-    
-    infiles &lt;- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                         inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                         inFilePostfix),
-                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                         inFilePostfix))
-    names(infiles) &lt;- c('blogs', 'news', 'twitter')
-    outfiles &lt;- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
-                          outFilePostfix),
-                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
-                          outFilePostfix))
-    names(outfiles) &lt;- names(infiles)
+## Replaces the unicode tag delimiting contractions and plural possesive forms
+## with a ASCII single quote character in the character vector charVect, 
+## replaces all other unicode tags with spaces, and then returns the updated
+## character vector.  This function is intended to be passed to the
+## runFilterAndWrite function.
+convertUnicodeTags &lt;- function(charVect) {
     cat(&quot;convertUnicodeTags: start replacing unicode tags...\n&quot;)
     singleQuotePatter &lt;- &quot;([A-Za-z]{1})(&lt;U[+][A-Fa-f0-9]{4}&gt;)(s|d|ve|t|ll|re)&quot;
     unicodePattern &lt;- &quot;&lt;U[+][A-Fa-f0-9]{4}&gt;&quot;
     imFixPattern &lt;- &quot;([Ii])(&lt;U[+][A-Fa-f0-9]{4}&gt;)([mM])&quot;
+    charVectContractions &lt;- str_replace_all(charVect, singleQuotePatter,
+                                            &quot;\\1'\\3&quot;)
+    charVectImFix &lt;- str_replace_all(charVectContractions, imFixPattern,
+                                     &quot;\\1'\\3&quot;)
+    # Replace remaining unicode tags with spaces because extra spaces
+    # will get cleaned up in a later pre-processing step.
+    charVectNoTags &lt;- str_replace_all(charVectImFix, unicodePattern, ' ')
+    cat(&quot;convertUnicodeTags: FINISHED replacing unicode tags.\n&quot;)
+    return(charVectNoTags)
+}
+
+## Removes most URL's that start with either http, https, or www. from the
+## character vector charVect and returns the resulting character vector.
+## This function is intended to be passed to the runFilterAndWrite function.
+removeUrls &lt;- function(charVect) {
+    # Build regex to remove URLs. No shorthand character classes in R,
+    # so need to create by hand
+    wordChars &lt;- &quot;A-Za-z0-9_\\-&quot;
+    # urlRegex &lt;- &quot;(http|https)://[\w\-_]+(\.[\w\-_]+)+[\w\-.,@?^=%&amp;:/~\\+#]*&quot;
+    urlRegex1 &lt;- sprintf(&quot;%s%s%s&quot;, &quot;(http|https)(://)[&quot;, wordChars, &quot;]+&quot;)
+    urlRegex2 &lt;- sprintf(&quot;%s%s%s&quot;, &quot;(\\.[&quot;, wordChars, &quot;]+)+&quot;)
+    urlRegex2 &lt;- sprintf(&quot;%s%s%s%s&quot;, urlRegex2, &quot;[&quot;, wordChars, &quot;.,@?^=%&amp;:/~\\+#]*&quot;)
+    urlRegex &lt;- sprintf(&quot;%s%s&quot;, urlRegex1, urlRegex2)
+    charVect &lt;- gsub(urlRegex, &quot;&quot;, charVect, perl=TRUE)
+    # clean up www.&lt;something&gt; instances that don't start with http(s)
+    urlRegexWww &lt;- sprintf(&quot;%s%s%s%s&quot;, &quot;( www\\.)[&quot;, wordChars, &quot;]+&quot;, urlRegex2)
+    charVect &lt;- gsub(urlRegexWww, &quot;&quot;, charVect, perl=TRUE)
+    
+    return(charVect)
+}
+
+## Consolidates the tasks of reading data in and writing data out as part of
+## filtering or cleaning the data.
+## FUN - function to run against the input data
+## dataDir - directory where the input is read and the output is written
+## inFilePostfix - suffix of input data files that are read in and passed to FUN
+## outFilePostfix - suffix of output data files that are written after FUN has
+##                  has processed the input.
+## filePrefixes - prefixes of the files to be read in and written out
+runFilterAndWrite &lt;- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
+                              filePrefixes=c('en_US.blogs.train',
+                                             'en_US.news.train',
+                                             'en_US.twitter.train')) {
+    infiles &lt;- c(sprintf('%s%s%s', dataDir, filePrefixes[1], inFilePostfix),
+                 sprintf('%s%s%s', dataDir, filePrefixes[2], inFilePostfix),
+                 sprintf('%s%s%s', dataDir, filePrefixes[3], inFilePostfix))
+    names(infiles) &lt;- c('blogs', 'news', 'twitter')
+    outfiles &lt;- c(sprintf('%s%s%s', dataDir, filePrefixes[1], outFilePostfix),
+                  sprintf('%s%s%s', dataDir, filePrefixes[2], outFilePostfix),
+                  sprintf('%s%s%s', dataDir, filePrefixes[3], outFilePostfix))
+    names(outfiles) &lt;- names(infiles)
+    
+    cat(&quot;runFilterAndWrite: start running filter...\n&quot;)
+    
     for(i in names(infiles)) {
         charVect &lt;- read_lines(infiles[i])
-        charVectContractions &lt;- str_replace_all(charVect, singleQuotePatter,
-                                                &quot;\\1'\\3&quot;)
-        charVectImFix &lt;- str_replace_all(charVectContractions, imFixPattern,
-                                         &quot;\\1'\\3&quot;)
-        # Replace remaining unicode tags with space because extra spaces
-        # will get cleaned up later in the overall pre-processing steps.
-        charVectNoTags &lt;- str_replace_all(charVectImFix, unicodePattern, ' ')
-        writeLines(charVectNoTags, outfiles[i])
+        charVectFiltered &lt;- FUN(charVect)
+        writeLines(charVectFiltered, outfiles[i])
     }
     cat(&quot;convertUnicodeTags: FINISHED replacing unicode tags.\n&quot;)
-}
-
-## Removes anything not a word character or character needed to create
-## one of the profanity words/phrases in the profanity list.
-preProfFilter &lt;- function(samp, is.news=FALSE, perl.flag=TRUE) {
-    # Remove chars that can't be used to create profanity
-    samp &lt;- gsub(&quot;[^ A-Za-z0-9.!'_*+&lt;&gt;&amp;@#()$\\^\\[\\]\\-]&quot;, &quot;&quot;, samp, perl=perl.flag)
-    return(samp)
-}
-
-## Runs the pre-profanity filter on dataDir/inFileName and outputs results to
-## the same directory using outFilePostfix as the postfix in output file name.
-runPreProfFilter &lt;- function(dataDir=ddir,
-                             inFileName='en_US.blogs.train.2sents.txt',
-                             outFilePostfix='.3preprof.txt') {
-    cat(&quot;START pre-profanity filtering&quot;, as.character(Sys.time()), &quot;\n&quot;)
-    inPath &lt;- sprintf(&quot;%s%s&quot;, dataDir, inFileName)
-    outFileName &lt;- str_replace(inFileName, '.2sents.txt', outFilePostfix)
-    
-    outPath &lt;- sprintf(&quot;%s%s&quot;, dataDir, outFileName)
-    fileLines &lt;- read_lines(inPath)
-    preProfFiltered &lt;- preProfFilter(samp=fileLines, is.news=is.news)
-    writeLines(preProfFiltered, outPath)
-    cat(&quot;FINISH pre-profanity filtering&quot;, as.character(Sys.time()), &quot;\n&quot;)
 }</code></pre>
 <pre class="r"><code>## Returns a dataframe of profanity words built as a superset of two sources
 ## src1 and src2.

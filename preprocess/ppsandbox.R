@@ -1,46 +1,56 @@
-charVect <- readLines(paste0(ddir, '../tests/sentenceAnnealTest.txt'))
+# Install required packages only if they are needed.
+list.of.packages <- c('dplyr', 'readr', 'stringr', 'quanteda')
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages) > 0) install.packages(new.packages)
+# load libraries
+lapply(list.of.packages, require, character.only=TRUE)  # load libs
 
-twtpath <- 'C:/data/Dropbox/sw_dev/projects/PredictNextKBO/twitter_timings.csv'
+ddir <- "C:/data/dev/PredictNextKBO/data/en_US/"
+infiles <- c(sprintf('%s%s', dataDir, 'en_US.blogs.train..txt'),
+             sprintf('%s%s', dataDir, 'en_US.news.train.3ascii.txt'),
+             sprintf('%s%s', dataDir, 'en_US.twitter.train.3ascii.txt'))
+names(infiles) <- c('blogs', 'news', 'twitter')
+outfiles <- c(sprintf('%s%s', dataDir, 'en_US.blogs.train.4ascii.txt'),
+              sprintf('%s%s', dataDir, 'en_US.news.train.4ascii.txt'),
+              sprintf('%s%s', dataDir, 'en_US.twitter.train.4ascii.txt'))
+names(outfiles) <- names(infiles)
 
-twtdata <- read.csv(twtpath, colClasses=c('numeric', 'POSIXct'))
+# find all contractions
+unicodePatter <- "[A-Za-z]{1}<U[+][A-Za-z0-9]{4}>(s|d|ve|t|ll|re)"
+i <- 3
+data <- read_lines(infiles[i])
+ucodes <- unlist(str_extract_all(data, unicodePatter))
+ucodesTable <- sort(table(ucodes), decreasing = TRUE)
+write.csv(data.frame(tag=names(ucodesTable), freq=ucodesTable),
+          sprintf('%s%s', names(infiles[i]), '.contractions.csv'), row.names=FALSE)
 
-cum.time <- append(0, cumsum(as.numeric(diff(twtdata$time), units='mins')))
-twtdata$cumTime <- cum.time
 
-logLinearRegion <- 24:109
-ln.cum.time <- log(cum.time[logLinearRegion])
-ln.per.comp <- log(twtdata$percent.complete[logLinearRegion])
-plot(ln.per.comp, ln.cum.time)
-
-twitModel <- lm(ln.cum.time ~ ln.per.comp)
-names(twitModel$coefficients) <- c('intercept', 'slope')
-
-getDeltaMins <- function(twitMod=twitModel, twitPer) {
-    twitTime <- exp(twitMod$coefficients['intercept'] +
-                    (twitMod$coefficients['slope'] * log(twitPer)))
-    return(twitTime)
+## Builds and writes out frquency tables on the unicode tags in the 3ascii.txt
+## files
+writeUnicodeTagFreqTables <-
+    function(index, dataDir="C:/data/dev/PredictNextKBO/data/en_US/") {
+        infiles <- c(sprintf('%s%s', dataDir, 'en_US.blogs.train.3ascii.txt'),
+                     sprintf('%s%s', dataDir, 'en_US.news.train.3ascii.txt'),
+                     sprintf('%s%s', dataDir, 'en_US.twitter.train.3ascii.txt'))
+        names(infiles) <- c('blogs', 'news', 'twitter')
+        unicodePatter <- "<U[+][A-F0-9]{4}>"
+        data <- read_lines(infiles[index])
+        ucodes <- unlist(str_extract_all(data, unicodePatter))
+        ucodesTable <- sort(table(ucodes), decreasing = TRUE)
+        write.csv(data.frame(tag=names(ucodesTable), freq=ucodesTable),
+                  sprintf('%s%s', names(infiles[index]), '.utags.csv'), row.names=FALSE)
 }
 
-getPredTime <- function(twitMod=twitModel, twitPer,
-                        startTime='2016-06-16 04:29:55',
-                        startPerComp=12.71107) {
-    require(lubridate)
-    deltaMins <- getDeltaMins(twitModel, twitPer)
-    deltaMinsBeyondBase <- deltaMins - startPerComp
-    ref.time <- as.POSIXct(startTime)
-    return(ref.time + minutes(ceiling(deltaMinsBeyondBase)))
-}
+inpre <- '.2sents.txt'
+outpre <- '.3ascii.txt'
+# function: convertToAscii
 
-# test prediction
-getPredTime(twitMod=TwitModel, twitPer=64.61461)
+inpre <- '.3ascii.txt'
+outpre <- '.4notags.txt'
+# function: convertUnicodeTags
 
-# Need to pretend data starts at the 24th point on
-modStartTime <- as.POSIXct('2016-06-16 04:29:55')
-modStartPerc <- 12.7110700
+inpre <- '.4notags.txt'
+outpre <- '.5nourls.txt'
+# function: removeUrls
 
-# min.time <- as.POSIXct('2016-06-16 04:00:00')
-# max.time <- as.POSIXct('2016-06-16 23:00:00')
-# plot(twtdata$percent.complete, twtdata$time, xlim=c(0, 100), ylim=c(min.time, max.time))
-
-plot(twtdata$percent.complete, twtdata$cumTime, xlim=c(0, 100), ylim=c(0, 1500))
-
+runFilterAndWrite(removeUrls, ddir, inpre, outpre)
