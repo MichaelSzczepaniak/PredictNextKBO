@@ -252,7 +252,7 @@ convertUnicodeTags <- function(dataDir=ddir,
 ## Removes anything not a word character or character needed to create
 ## one of the profanity words/phrases in the profanity list.
 preProfFilter <- function(samp, is.news=FALSE, perl.flag=TRUE) {
-    # Remove chars that can't be used to create profanity
+    # The regex below gets no hits in the updated pre-processing scheme
     samp <- gsub("[^ A-Za-z0-9.!'_*+<>&@#()$\\^\\[\\]\\-]", "", samp, perl=perl.flag)
     return(samp)
 }
@@ -278,11 +278,49 @@ removeUrls <- function(charVect) {
     # Build regex to remove URLs. No shorthand character classes in R,
     # so need to create by hand
     wordChars <- "A-Za-z0-9_\\-"
-    urlRegex <- sprintf("%s%s%s", "(http|https)(://)?[", wordChars, "]+")
-    urlRegex <- sprintf("%s%s%s%s", urlRegex, "(.[", wordChars, "]+)+")
-    urlRegex <- sprintf("%s%s%s%s", urlRegex, "[", wordChars, ".,@?^=%&:/~\\+#]*")
     # urlRegex <- "(http|https)://[\w\-_]+(\.[\w\-_]+)+[\w\-.,@?^=%&:/~\\+#]*"
-    samp <- gsub(urlRegex, "", samp, perl=TRUE)
+    urlRegex1 <- sprintf("%s%s%s", "(http|https)(://)[", wordChars, "]+")
+    urlRegex2 <- sprintf("%s%s%s", "(\\.[", wordChars, "]+)+")
+    urlRegex2 <- sprintf("%s%s%s%s", urlRegex2, "[", wordChars, ".,@?^=%&:/~\\+#]*")
+    urlRegex <- sprintf("%s%s", urlRegex1, urlRegex2)
+    # urlRegex <- sprintf("%s%s%s%s", urlRegex, "(.[", wordChars, "]+)+")
+    # urlRegex <- sprintf("%s%s%s%s", urlRegex, "[", wordChars, ".,@?^=%&:/~\\+#]*")
+    charVect <- gsub(urlRegex, "", charVect, perl=TRUE)
+    
+    # clean up www.<something> instances that don't start with http(s)
+    urlRegexWww <- sprintf("%s%s%s%s", "( www\\.)[", wordChars, "]+", urlRegex2)
+    charVect <- gsub(urlRegexWww, "", charVect, perl=TRUE)
+    
+    return(charVect)
+}
+
+runFilterAndWrite <- function(FUN=removeUrls, dataDir=ddir,
+                              inFilePostfix='.4notags.txt',
+                              outFilePostfix='.5nourls.txt') {
+    infiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                         inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                         inFilePostfix),
+                 sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                         inFilePostfix))
+    names(infiles) <- c('blogs', 'news', 'twitter')
+    outfiles <- c(sprintf('%s%s%s', dataDir, 'en_US.blogs.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.news.train',
+                          outFilePostfix),
+                  sprintf('%s%s%s', dataDir, 'en_US.twitter.train',
+                          outFilePostfix))
+    names(outfiles) <- names(infiles)
+    
+    cat("runFilterAndWrite: start running filter...\n")
+    
+    for(i in names(infiles)) {
+        charVect <- read_lines(infiles[i])
+        charVectFiltered <- FUN(charVect)
+        writeLines(charVectFiltered, outfiles[i])
+    }
+    cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
+    
 }
 
 ## Removes URLs and anything not a word, space, or basic punctuation character
