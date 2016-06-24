@@ -62,7 +62,7 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
 ## Returns a character vector where every element is a sentence of text.
 ##
 ## NOTE1: This function will improperly parse "St. Something" into 2 sentences.
-##        It makes other mistakes which one could spend a crazy amount of time
+##        It makes other mistakes (e.g. Ph.D.) which one could spend a crazy amount of time
 ##        fixing, but these others errors are ignored in the interest of time.
 ##
 ##        To fix the "Saint" issue, the char vector returned by this function
@@ -288,37 +288,49 @@ runFilterAndWrite <- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
     cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
 }
 
-## Removes URLs and anything not a word, space, or basic punctuation character
+## Removes non-essential chars but keep spaces and basic punctuation characters
 ## such as ?.!,:'- in a somewhat intelligent manner.
-postProfClean <- function(samp, is.news=TRUE) {
+preEosClean <- function(charVect, is.news=TRUE) {
+    cat("preEosClean: start pre-EOS marker cleaning at",
+        as.character(Sys.time()),"...\n")
+    # Remove anything that's not an alpha, digit (will replace digits with NUM
+    # later), or basic punctuation char. Removes "$%,)(][ characters
+    charVect <- gsub("[^A-Za-z0-9?.!?' \\-]", " ", charVect, perl=TRUE)
     
-    if(!is.news) { samp <- nonNewsPostProfClean(samp) }
-    # remove anything that's not an alpha, digit basic punctuation char
-    # will replace digits with NUM later
-    samp <- gsub("[^A-Za-z0-9?.!,:'\\-]", " ", samp, perl=TRUE)
-    samp <- gsub("( ){2,}", " ", samp, perl=TRUE)  # replace >=2 spaces w/single space
-    samp <- gsub("^( . )", " ", samp, perl=TRUE)
-    samp <- gsub("^( ){1,}", "", samp, perl=TRUE)  # remove leading spaces
-    samp <- gsub("[ ]{1,}$", "", samp, perl=TRUE)  # remove trailing spaces
+    charVect <- gsub("^( ){1,}", "", charVect, perl=TRUE)  # remove leading spaces
+    charVect <- gsub("[ ]{1,}$", "", charVect, perl=TRUE)  # remove trailing spaces
     # remove non-alpha char's that start sentences
-    samp <- gsub("^[^A-Za-z]+", "", samp)
+    charVect <- gsub("^[^A-Za-z]+", "", charVect)
     # make lines that don't end in . ! or ? empty so they'll be removed later
-    samp <- gsub("^.*[^.!?]$", "", samp)
+    charVect <- gsub("^.*[^.!?]$", "", charVect)
     # replace non-word-period by just period
-    samp <- gsub("([^A-Za-z0-9]+.)$", ".", samp)
+    charVect <- gsub("([^A-Za-z0-9]+.)$", ".", charVect)
     # remove lines that don't have any alpha characters
-    samp <- gsub("^[^A-Za-z]+$", "", samp, perl=TRUE)
+    charVect <- gsub("^[^A-Za-z]+$", "", charVect, perl=TRUE)
+    
+    # remove periods that start lines
+    charVect <- gsub("^[.]+", "", charVect, ignore.case=TRUE, perl=TRUE)
+    # remove embedded periods
+    charVect <- gsub("([a-z]+)([.]+)([a-z]+)", "\\1 \\3", charVect,
+                     ignore.case=TRUE, perl=TRUE)
+    # replace space-period-space with just space
+    charVect <- gsub(" [.] ", " ", charVect, ignore.case=TRUE, perl=TRUE)
+    # remove periods assoc'd w/ morning and evening time abbrev's
+    charVect <- gsub("(a m.)", "am", charVect, ignore.case=TRUE, perl=TRUE)
+    charVect <- gsub("(p m.)", "pm", charVect, ignore.case=TRUE, perl=TRUE)
+    
     # remove empty lines
-    samp <- samp[which(samp  != "")]
+    charVect <- charVect[which(charVect  != "")]
     # replace 2 or more spaces with a single space
-    samp <- gsub("[ ]{2,}", " ", samp, perl=TRUE)
+    charVect <- gsub("[ ]{2,}", " ", charVect, perl=TRUE)
     # normalize text to lower case
-    samp <- tolower(samp)
+    charVect <- tolower(charVect)
     # replace sequences of digits by NUM token: after lower case to keep
     # this special token UPPER CASE in the processed file
-    samp <- gsub("[0-9]+", "NUM", samp)
-    
-    return(samp)
+    charVect <- gsub("[0-9]+", "NUM", charVect)
+    cat("preEosClean: FINISHED pre-EOS marker cleaning at",
+        as.character(Sys.time()),"...\n")
+    return(charVect)
 }
 
 ## Merges two contigency tables firstTab and secondTab and returns the merged table
