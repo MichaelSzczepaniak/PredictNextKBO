@@ -41,6 +41,9 @@ writeUnicodeTagFreqTables <-
                   sprintf('%s%s', names(infiles[index]), '.utags.csv'), row.names=FALSE)
 }
 
+rm(list = ls())
+source('PreEda.R')
+
 inpre <- '.2sents.txt'
 outpre <- '.3ascii.txt'
 # function: convertToAscii
@@ -53,4 +56,10 @@ inpre <- '.4notags.txt'
 outpre <- '.5nourls.txt'
 # function: removeUrls
 
-runFilterAndWrite(removeUrls, ddir, inpre, outpre)
+inpre <- '.5nourls.txt'
+outpre <- '.6preeos.txt'
+# function: preEosClean
+
+runFilterAndWrite(preEosClean, ddir, inpre, outpre)
+
+
