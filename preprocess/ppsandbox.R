@@ -60,6 +60,10 @@ inpre <- '.5nourls.txt'
 outpre <- '.6preeos.txt'
 # function: preEosClean
 
-runFilterAndWrite(preEosClean, ddir, inpre, outpre)
+inpre <- '.6preeos.txt'
+outpre <- '.7eos.txt'
+# function: addEosMarkers
+
+runFilterAndWrite(addEosMarkers, ddir, inpre, outpre)
 
 
