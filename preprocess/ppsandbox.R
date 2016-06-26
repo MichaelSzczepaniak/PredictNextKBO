@@ -65,5 +65,13 @@ outpre <- '.7eos.txt'
 # function: addEosMarkers
 
 runFilterAndWrite(addEosMarkers, ddir, inpre, outpre)
+##################
+rm(list = ls())
+source('Ngrams.R')
+loadLibs()
+infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.7eos.txt'),
+             sprintf('%s%s', ddir, 'en_US.news.train.7eos.txt'),
+             sprintf('%s%s', ddir, 'en_US.twitter.train.7eos.txt'))
 
-
+charvect <- read_lines(infiles[1])
+trigrams.blogs <- getNgramTables(3, charvect)

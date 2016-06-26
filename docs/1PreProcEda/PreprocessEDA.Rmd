@@ -38,14 +38,16 @@ The data was originally downloaded from [this link](https://d396qusza40orc.cloud
 
 With the data residing locally, the **writeTrainTestFiles** function was used to read each of the three data files, partition each them into 80% training and 20% hold-out test sets, and then write these two partitioned files locally.  The training set was used to train the model to determine values for the two model parameters: bigram discount rate and trigram discount rate.  [Descriptions of what these parameters are can be found here.](http://rpubs.com/mszczepaniak/prednextkbo)
 
-### Cleaning the Data
+### Cleaning and Preparing the Data
 After the data was read and partitioned into training and test sets, the training files were cleaned using the following steps:
 
 1. Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element.  One artifact of this step was that things like "St." which are used as a contraction for "Saint" were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.
 2. Non-ASCII Character Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.
 3. Unicode Tags Converstions and Removals -
 4. URL Removals -
-4. Post-Profanity Filtering - This step removed urls and other non-essential characters.
+5. Pre-EOS marker Filtering - 
+6. Add EOS markers -
+
 
 The profanity removal step required required first building a profanity list.  This was done by taking the union of three lists from the following sources: [google](http://fffff.at/googles-official-list-of-bad-words/), [Luis von Ahn of Carnegie Mellon University ](http://www.cs.cmu.edu/~biglou/resources/bad-words.txt), and [a github project of Duncan Robertson from London, UK](https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt). These lists were downloaded and merged together using the **mergeTermLists** function and profanity was removed using the **removeProfanity** function. Both of these functions are listed in the **Appendix**.
 
@@ -80,7 +82,7 @@ Because the **annealSaintErrors** function didn't fix all the *St. SomeSaintsNam
 
 If future versions of NP++ do not behave the same as described for v6.9.2, [this version can be downloaded here](https://www.dropbox.com/s/t7l03782ngh84dg/npp.6.9.2.Installer.exe?dl=1)
 
-#### Pre-Profanity Filtering
+#### Additional Filtering
 After completion of sentence parsing, the resulting files were UTF-8 encoded but still contained some unusual characters.  To clean out these characters, each file was ran through the function **convertToAscii** which passed the contents through an ASCII encoder and then rewrote out the contents with a **.3ascii.txt** extension.  Links to these files are provided below:
 
 + [en_US.blogs.train.3ascii.txt](https://www.dropbox.com/s/9u1q35cp2jjgldz/en_US.blogs.train.3ascii.txt?dl=1)
@@ -179,7 +181,7 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
 ## Returns a character vector where every element is a sentence of text.
 ##
 ## NOTE1: This function will improperly parse "St. Something" into 2 sentences.
-##        It makes other mistakes which one could spend a crazy amount of time
+##        It makes other mistakes (e.g. Ph.D.) which one could spend a crazy amount of time
 ##        fixing, but these others errors are ignored in the interest of time.
 ##
 ##        To fix the "Saint" issue, the char vector returned by this function
