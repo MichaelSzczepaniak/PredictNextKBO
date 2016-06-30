@@ -42,36 +42,102 @@ writeUnicodeTagFreqTables <-
 }
 
 rm(list = ls())
+setwd('../preprocess')
 source('PreEda.R')
 
-inpre <- '.2sents.txt'
-outpre <- '.3ascii.txt'
+inpost <- '.2sents.txt'
+outpost <- '.3ascii.txt'
 # function: convertToAscii
 
-inpre <- '.3ascii.txt'
-outpre <- '.4notags.txt'
+inpost <- '.3ascii.txt'
+outpost <- '.4notags.txt'
 # function: convertUnicodeTags
 
-inpre <- '.4notags.txt'
-outpre <- '.5nourls.txt'
+inpost <- '.4notags.txt'
+outpost <- '.5nourls.txt'
 # function: removeUrls
+
+inpost <- '.5.txt'
+outpost <- '.6.txt'
+filePres <- 'blogs.test'
+
+inFilePostfix <- inpost
+outFilePostfix <- outpost
+filePrefixes <- filePres
+
+inpost <- '.5nourls.txt'
+outpost <- '.6preeos.txt'
+runFilterAndWrite(preEosClean, ddir, inpost, outpost)
+
+inpost <- '.6preeos.txt'
+outpost <- '.7eos.txt'
+runFilterAndWrite(addEosMarkers, ddir, inpost, outpost)
+
+rm(list = ls())
+setwd('../preprocess')
+source('PreEda.R')
+inpost <- '.7eos.txt'
+outpost <- '.8posteos.txt'
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.blogs.train')
+runFilterAndWrite(postEosClean, ddir, inpost, outpost)
+
+###########################################################
+rm(list = ls())
+setwd('../preprocess')
+source('PreEda.R')
 
 inpre <- '.5nourls.txt'
 outpre <- '.6preeos.txt'
-# function: preEosClean
+# filePrefxs=c('en_US.blogs.train')
+runFilterAndWrite(preEosClean, ddir, inpre, outpre)
 
 inpre <- '.6preeos.txt'
 outpre <- '.7eos.txt'
-# function: addEosMarkers
-
 runFilterAndWrite(addEosMarkers, ddir, inpre, outpre)
-##################
+
 rm(list = ls())
+setwd('../modeldev')
 source('Ngrams.R')
 loadLibs()
+prefixes <- c('en_US.blogs.train.', 'en_US.news.train.', 'en_US.twitter.train.')
+infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.7eos.txt'))
+
+charvect <- read_lines(infiles[1])
+unigrams.blogs.raw <- getNgramTables(1, charvect)
+write.csv(unigrams.blogs.raw, 
+          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.blogs.raw.DEV.csv',
+          row.names = FALSE)
+
+# blogs7 <- 'C:/data/dev/PredictNextKBO/data/en_US/en_US.blogs.train.7eos.txt'
+# chvect <- read_lines(blogs7)
+# blogs8 <- fixSpecial(chvect)
+# b8filename <- 'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/en_US.blogs.train.8eos.txt'
+# writeLines(blogs8, b8filename)
+##################
+rm(list = ls())
+setwd('../modeldev')
+source('Ngrams.R')
+loadLibs()
+prefixes <- c('en_US.blogs.train.', 'en_US.news.train.', 'en_US.twitter.train.')
 infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.7eos.txt'),
              sprintf('%s%s', ddir, 'en_US.news.train.7eos.txt'),
              sprintf('%s%s', ddir, 'en_US.twitter.train.7eos.txt'))
 
 charvect <- read_lines(infiles[1])
-trigrams.blogs <- getNgramTables(3, charvect)
+unigrams.blogs.raw <- getNgramTables(1, charvect)
+write.csv(unigrams.blogs.raw, 
+          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.blogs.raw.02.csv',
+          row.names = FALSE)
+
+charvect <- read_lines(infiles[2])
+unigrams.news.raw <- getNgramTables(1, charvect)
+write.csv(unigrams.news.raw,
+          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.news.raw.csv',
+          row.names = FALSE)
+
+charvect <- read_lines(infiles[3])
+unigrams.twitter.raw <- getNgramTables(1, charvect)
+write.csv(unigrams.twitter.raw,
+          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.twitter.raw.csv',
+          row.names = FALSE)
+

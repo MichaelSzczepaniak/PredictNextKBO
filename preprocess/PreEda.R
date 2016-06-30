@@ -269,35 +269,97 @@ runFilterAndWrite <- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
                               filePrefixes=c('en_US.blogs.train',
                                              'en_US.news.train',
                                              'en_US.twitter.train')) {
-    infiles <- c(sprintf('%s%s%s', dataDir, filePrefixes[1], inFilePostfix),
-                 sprintf('%s%s%s', dataDir, filePrefixes[2], inFilePostfix),
-                 sprintf('%s%s%s', dataDir, filePrefixes[3], inFilePostfix))
-    names(infiles) <- c('blogs', 'news', 'twitter')
-    outfiles <- c(sprintf('%s%s%s', dataDir, filePrefixes[1], outFilePostfix),
-                  sprintf('%s%s%s', dataDir, filePrefixes[2], outFilePostfix),
-                  sprintf('%s%s%s', dataDir, filePrefixes[3], outFilePostfix))
-    names(outfiles) <- names(infiles)
+    infiles <- vector(mode = 'character', length = length(filePrefixes))
+    outfiles <- vector(mode = 'character', length = length(filePrefixes))
+    for(i in 1:length(filePrefixes)) {
+        ifname <- sprintf('%s%s%s', dataDir, filePrefixes[i], inFilePostfix)
+        infiles[i] <- ifname
+    }
+    for(i in 1:length(filePrefixes)) {
+        ofname <- sprintf('%s%s%s', dataDir, filePrefixes[i], outFilePostfix)
+        outfiles[i] <- ofname
+    }
     
     cat("runFilterAndWrite: start running filter...\n")
-    
-    for(i in names(infiles)) {
+    for(i in 1:length(filePrefixes)) {
         charVect <- read_lines(infiles[i])
         charVectFiltered <- FUN(charVect)
         writeLines(charVectFiltered, outfiles[i])
+        cat("File written to", outfiles[i])
     }
-    cat("convertUnicodeTags: FINISHED replacing unicode tags.\n")
+    cat("runFilterAndWrite: FINISHED filtering and writing files.\n")
+}
+
+cleanDashes <- function(charVect) {
+    # remove suspended dash
+    charVect <- gsub("[ ]+[\\-]+[ ]+", " ", charVect, perl=TRUE)
+    # remove leading dash
+    charVect <- gsub("[ ]+[\\-]+", " ", charVect, perl=TRUE)
+    # remove trailing dash
+    charVect <- gsub("[\\-]+[ ]+", " ", charVect, perl=TRUE)
+    
+    return(charVect)
+}
+
+cleanSingleQuotes <- function(charVect) {
+    # remove 1 or more suspended single quotes
+    charVect <- gsub("[ ]+[']+[ ]+", " ", charVect, perl=TRUE)
+    # replace trailing single quote space with space
+    charVect <- gsub("[']+[ ]+", " ", charVect, perl=TRUE)
+    # replace leading single quote space with space
+    charVect <- gsub("[ ]+[']+", " ", charVect, perl=TRUE)
+    
+    return(charVect)
+}
+
+## Fixes varous issues with common acronyms such as tv, us (United States), uk
+## (United Kingdom), dc (District of Columbia), ie, eg
+## Precondition - This function should be called AFTER all text has been
+##                converted to lower case (u s to US conversion)
+## Note: Examples like line 1673063 in en_US.blogs.train.8posteos.txt show how
+##       even carefully crafted regexs are going to convert some segments
+##       incorrectly
+postEosClean <- function(charVect) {
+    # tv
+    charVect <- gsub("([a-zNUM]+)( t v )([a-zNUMEOS']+)", "\\1 tv \\3",
+                     charVect, perl=TRUE)
+    # us - A vast majority of instances of ' u s ' should be interpretted as US.
+    # A vast majority of instances of  'us' should be the word us (not an acro)
+    charVect <- gsub("( u s -)([a-zEOSNUM]+) ", " US-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( u s )([a-zNUMEOS']+)", "\\1 US \\3",
+                     charVect, perl=TRUE)
+    charVect <- gsub("the us", "the US", charVect, perl=TRUE)
+    # uk
+    charVect <- gsub("([a-zNUM]+)( u k )([a-zNUMEOS']+)", "\\1 uk \\3",
+                     charVect, perl=TRUE)
+    # dc
+    charVect <- gsub("( d c -)([a-zEOSNUM]+) ", " DC-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( d c )([a-zNUMEOS']+)", "\\1 DC \\3",
+                     charVect, perl=TRUE)
+    # ie, eg
+    charVect <- gsub("([a-zNUM]+)( i e )([a-zNUMEOS]+)", "\\1 ie \\3",
+                     charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( e g )([a-zNUMEOS]+)", "\\1 eg \\3",
+                     charVect, perl=TRUE)
+    # cd - things like 'vitamin c d' will not get processed correctly, dealing
+    # with every possible contingency in the corpus is unrealstic, so some
+    # mis-processing is going to have to be tolerated
+    charVect <- gsub("([a-zNUM]+)( c d )([a-zNUMEOS']+)", "\\1 cd \\3",
+                     charVect, perl=TRUE)
+    
+    return(charVect)
 }
 
 ## Removes non-essential chars but keep spaces and basic punctuation characters
 ## such as ?.!,:'- in a somewhat intelligent manner.
-preEosClean <- function(charVect, is.news=TRUE) {
+preEosClean <- function(charVect) {
     cat("preEosClean: start pre-EOS marker cleaning at",
         as.character(Sys.time()),"...\n")
     # Remove anything that's not an alpha, digit (will replace digits with NUM
     # later), or basic punctuation char. Removes "$%,)(][ characters
     charVect <- gsub("[^A-Za-z0-9?.!?' \\-]", " ", charVect, perl=TRUE)
-    
-    charVect <- gsub("^( ){1,}", "", charVect, perl=TRUE)  # remove leading spaces
+     
+    charVect <- gsub("^[ ]{1,}", "", charVect, perl=TRUE)  # remove leading spaces
     charVect <- gsub("[ ]{1,}$", "", charVect, perl=TRUE)  # remove trailing spaces
     # remove non-alpha char's that start sentences
     charVect <- gsub("^[^A-Za-z]+", "", charVect)
@@ -307,6 +369,9 @@ preEosClean <- function(charVect, is.news=TRUE) {
     charVect <- gsub("([^A-Za-z0-9]+.)$", ".", charVect)
     # remove lines that don't have any alpha characters
     charVect <- gsub("^[^A-Za-z]+$", "", charVect, perl=TRUE)
+    
+    charVect <- cleanDashes(charVect)
+    charVect <- cleanSingleQuotes(charVect)
     
     # remove periods that start lines
     charVect <- gsub("^[.]+", "", charVect, ignore.case=TRUE, perl=TRUE)
@@ -318,7 +383,7 @@ preEosClean <- function(charVect, is.news=TRUE) {
     # remove periods assoc'd w/ morning and evening time abbrev's
     charVect <- gsub("(a m.)", "am", charVect, ignore.case=TRUE, perl=TRUE)
     charVect <- gsub("(p m.)", "pm", charVect, ignore.case=TRUE, perl=TRUE)
-    
+
     # remove empty lines
     charVect <- charVect[which(charVect  != "")]
     # replace 2 or more spaces with a single space
@@ -340,6 +405,12 @@ preEosClean <- function(charVect, is.news=TRUE) {
     # extra spaces generated by the prior gsub calls
     charVect <- gsub("[ ]{2,}", " ", charVect, perl=TRUE)
     
+    # repeat to handle some embeddedness
+    charVect <- cleanDashes(charVect)
+    charVect <- cleanSingleQuotes(charVect)
+    # remove remaining non-alpha fragments
+    charVect <- gsub("[-']{2,}", " ", charVect, perl=TRUE)
+    
     cat("preEosClean: FINISHED pre-EOS marker cleaning at",
         as.character(Sys.time()),".\n")
     return(charVect)
@@ -355,6 +426,7 @@ addEosMarkers <- function(charVect) {
     # remove all remaining periods, question marks, exclamation points:
     charVect <- gsub("[.?!]", " ", charVect, perl=TRUE)
     charVect <- gsub("[ ]{2,}", " ", charVect)  # remove extra spaces
+    
     cat("addEosMarkers: FINISH adding EOS markers at",
         as.character(Sys.time()),".\n")
     return(charVect)
