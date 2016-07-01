@@ -132,7 +132,7 @@ annealSaintErrors <- function(charVect, status.check=10000) {
 }
 
 ## Returns the file name of the training set data given fileId which can be
-## on of the 3 values: 'blogs', 'news', or 'twitter'. Returns an empty string
+## one of the 3 values: 'blogs', 'news', or 'twitter'. Returns an empty string
 ## (char vector), if fileId is not one of the 3 expected string values.
 getInputDataFileName <- function(fileId) {
     isBlogs <- length(grep(fileId, 'blogs')) > 0
@@ -254,6 +254,7 @@ removeUrls <- function(charVect) {
     urlRegexWww <- sprintf("%s%s%s%s", "( www\\.)[", wordChars, "]+", urlRegex2)
     charVect <- gsub(urlRegexWww, "", charVect, perl=TRUE)
     cat("removeUrls: FINISHED removing urls.\n")
+    
     return(charVect)
 }
 
@@ -290,62 +291,41 @@ runFilterAndWrite <- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
     cat("runFilterAndWrite: FINISHED filtering and writing files.\n")
 }
 
-cleanDashes <- function(charVect) {
-    # remove suspended dash
-    charVect <- gsub("[ ]+[\\-]+[ ]+", " ", charVect, perl=TRUE)
-    # remove leading dash
-    charVect <- gsub("[ ]+[\\-]+", " ", charVect, perl=TRUE)
-    # remove trailing dash
-    charVect <- gsub("[\\-]+[ ]+", " ", charVect, perl=TRUE)
+cleanDashes <- function(charVect,
+                        dash.patterns=c('suspended',
+                                        'leading',
+                                        'trailing')) {
+    if(length(grep("suspended", dash.patterns)) > 0) {
+        # remove suspended dash
+        charVect <- gsub("[ ]+[\\-]+[ ]+", " ", charVect, perl=TRUE)
+    } else if(length(grep("leading", dash.patterns)) > 0) {
+        # remove leading dash
+        charVect <- gsub("[ ]+[\\-]+", " ", charVect, perl=TRUE)
+    } else if(length(grep("trailing", dash.patterns)) > 0) {
+        # remove trailing dash
+        charVect <- gsub("[\\-]+[ ]+", " ", charVect, perl=TRUE)
+    }
     
     return(charVect)
 }
 
-cleanSingleQuotes <- function(charVect) {
-    # remove 1 or more suspended single quotes
-    charVect <- gsub("[ ]+[']+[ ]+", " ", charVect, perl=TRUE)
-    # replace trailing single quote space with space
-    charVect <- gsub("[']+[ ]+", " ", charVect, perl=TRUE)
-    # replace leading single quote space with space
-    charVect <- gsub("[ ]+[']+", " ", charVect, perl=TRUE)
+cleanSingleQuotes <- function(charVect,
+                              quote.patterns=c('suspended',
+                                               'leading',
+                                               'trailing')) {
+    if(length(grep("suspended", quote.patterns)) > 0) {
+        # remove 1 or more suspended single quotes
+        charVect <- gsub("[ ]+[']+[ ]+", " ", charVect, perl=TRUE)
+    }
+    else if(length(grep("leading", quote.patterns)) > 0) {
+        # replace leading single quote space with space
+        charVect <- gsub("[ ]+[']+", " ", charVect, perl=TRUE)
+    }
+    else if(length(grep("trailing", quote.patterns)) > 0) {
+        # replace trailing single quote space with space
+        charVect <- gsub("[']+[ ]+", " ", charVect, perl=TRUE)
+    }
     
-    return(charVect)
-}
-
-## Fixes varous issues with common acronyms such as tv, us (United States), uk
-## (United Kingdom), dc (District of Columbia), ie, eg
-## Precondition - This function should be called AFTER all text has been
-##                converted to lower case (u s to US conversion)
-## Note: Examples like line 1673063 in en_US.blogs.train.8posteos.txt show how
-##       even carefully crafted regexs are going to convert some segments
-##       incorrectly
-postEosClean <- function(charVect) {
-    # tv
-    charVect <- gsub("([a-zNUM]+)( t v )([a-zNUMEOS']+)", "\\1 tv \\3",
-                     charVect, perl=TRUE)
-    # us - A vast majority of instances of ' u s ' should be interpretted as US.
-    # A vast majority of instances of  'us' should be the word us (not an acro)
-    charVect <- gsub("( u s -)([a-zEOSNUM]+) ", " US-\\2 ", charVect, perl=TRUE)
-    charVect <- gsub("([a-zNUM]+)( u s )([a-zNUMEOS']+)", "\\1 US \\3",
-                     charVect, perl=TRUE)
-    charVect <- gsub("the us", "the US", charVect, perl=TRUE)
-    # uk
-    charVect <- gsub("([a-zNUM]+)( u k )([a-zNUMEOS']+)", "\\1 uk \\3",
-                     charVect, perl=TRUE)
-    # dc
-    charVect <- gsub("( d c -)([a-zEOSNUM]+) ", " DC-\\2 ", charVect, perl=TRUE)
-    charVect <- gsub("([a-zNUM]+)( d c )([a-zNUMEOS']+)", "\\1 DC \\3",
-                     charVect, perl=TRUE)
-    # ie, eg
-    charVect <- gsub("([a-zNUM]+)( i e )([a-zNUMEOS]+)", "\\1 ie \\3",
-                     charVect, perl=TRUE)
-    charVect <- gsub("([a-zNUM]+)( e g )([a-zNUMEOS]+)", "\\1 eg \\3",
-                     charVect, perl=TRUE)
-    # cd - things like 'vitamin c d' will not get processed correctly, dealing
-    # with every possible contingency in the corpus is unrealstic, so some
-    # mis-processing is going to have to be tolerated
-    charVect <- gsub("([a-zNUM]+)( c d )([a-zNUMEOS']+)", "\\1 cd \\3",
-                     charVect, perl=TRUE)
     
     return(charVect)
 }
@@ -429,6 +409,63 @@ addEosMarkers <- function(charVect) {
     
     cat("addEosMarkers: FINISH adding EOS markers at",
         as.character(Sys.time()),".\n")
+    return(charVect)
+}
+
+## Fixes varous issues with common acronyms such as tv, us (United States), uk
+## (United Kingdom), dc (District of Columbia), ie, eg
+## Precondition - This function should be called AFTER all text has been
+##                converted to lower case (u s to US conversion)
+## Note: Examples like line 1673063 in en_US.blogs.train.8posteos.txt show how
+##       even carefully crafted regexs are going to convert some segments
+##       incorrectly. Other misclassifications also exist.
+postEosClean <- function(charVect) {
+    # tv
+    charVect <- gsub("([a-zNUM]+)( t v )([a-zNUMEOS']+)", "\\1 tv \\3",
+                     charVect, perl=TRUE)
+    # us - A vast majority of instances of ' u s ' should be interpretted as US.
+    # A vast majority of instances of  'us' should be the word us (not an acro)
+    charVect <- gsub("( u s -)([a-zEOSNUM']+) ", " US-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( u s )([a-zNUMEOS']+)", "\\1 US \\3",
+                     charVect, perl=TRUE)
+    charVect <- gsub("the us", "the US", charVect, perl=TRUE)
+    # uk
+    charVect <- gsub("( u k -)([a-zEOSNUM]+) ", " uk-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( u k )([a-zNUMEOS']+)", "\\1 uk \\3",
+                     charVect, perl=TRUE)
+    # la
+    charVect <- gsub("( l a -)([a-zEOSNUM]+) ", " la-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( l a )([a-zNUMEOS']+)", "\\1 la \\3",
+                     charVect, perl=TRUE)
+    # dc
+    charVect <- gsub("( d c -)([a-zEOSNUM]+) ", " DC-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( d c )([a-zNUMEOS']+)", "\\1 DC \\3",
+                     charVect, perl=TRUE)
+    # <something> -based
+    charVect <- gsub(" ([a-z]{2,}) -([a-zEOSNUM]+) ", " \\1-\\2 ", charVect, perl=TRUE)
+    # ie, eg
+    charVect <- gsub("([a-zNUM]+)( i e )([a-zNUMEOS]+)", "\\1 ie \\3",
+                     charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( e g )([a-zNUMEOS]+)", "\\1 eg \\3",
+                     charVect, perl=TRUE)
+    # cd - things like 'vitamin c d' will not get processed correctly, dealing
+    # with every possible contingency in the corpus is unrealstic, so some
+    # mis-processing is going to have to be tolerated
+    charVect <- gsub("([a-zNUM]+)( c d )([a-zNUMEOS']+)", "\\1 cd \\3",
+                     charVect, perl=TRUE)
+    # concatenate single letters together - assume they should be
+    charVect <- gsub(" ([a-z]) ([a-z]) ", " \\1\\2 ", charVect, perl=TRUE)
+    # push together <something> 's
+    charVect <- gsub("([a-zA-Z']) ('s) ", " \\1\\2 ", charVect, perl=TRUE)
+    # -<somthing> clean up
+    # charVect <- str_replace_all(charVect, " -([a-zNUMEOS'-]+) ", " \\1 ")
+    charVect <- str_replace_all(charVect, " -([a-zNUMEOS'-]+)", " \\1")
+    # '<something> clean up
+    charVect <- gsub(" '([a-zA-z]+)", " \\1", charVect, perl=TRUE)
+    # clean up misc fragments generated from prior op's
+    charVect <- cleanDashes(charVect, 'suspended')
+    charVect <- cleanSingleQuotes(charVect, 'suspended')
+    
     return(charVect)
 }
 

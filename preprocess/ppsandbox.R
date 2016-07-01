@@ -65,6 +65,11 @@ inFilePostfix <- inpost
 outFilePostfix <- outpost
 filePrefixes <- filePres
 
+
+rm(list = ls())
+setwd('../preprocess')
+source('PreEda.R')
+
 inpost <- '.5nourls.txt'
 outpost <- '.6preeos.txt'
 runFilterAndWrite(preEosClean, ddir, inpost, outpost)
@@ -73,40 +78,52 @@ inpost <- '.6preeos.txt'
 outpost <- '.7eos.txt'
 runFilterAndWrite(addEosMarkers, ddir, inpost, outpost)
 
-rm(list = ls())
-setwd('../preprocess')
-source('PreEda.R')
-inpost <- '.7eos.txt'
-outpost <- '.8posteos.txt'
+# inpost <- '.7eos.txt'
+# outpost <- '.8posteos.txt'
 # runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.blogs.train')
-runFilterAndWrite(postEosClean, ddir, inpost, outpost)
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost)
 
 ###########################################################
 rm(list = ls())
 setwd('../preprocess')
 source('PreEda.R')
 
-inpre <- '.5nourls.txt'
-outpre <- '.6preeos.txt'
-# filePrefxs=c('en_US.blogs.train')
-runFilterAndWrite(preEosClean, ddir, inpre, outpre)
-
-inpre <- '.6preeos.txt'
-outpre <- '.7eos.txt'
-runFilterAndWrite(addEosMarkers, ddir, inpre, outpre)
+inpost <- '.7eos.txt'
+outpost <- '.8posteos.txt'
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.blogs.train')
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.news.train')
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.twitter.train')
+runFilterAndWrite(postEosClean, ddir, inpost, outpost)
 
 rm(list = ls())
+outpost <- '.8posteos.txt'
 setwd('../modeldev')
 source('Ngrams.R')
 loadLibs()
-prefixes <- c('en_US.blogs.train.', 'en_US.news.train.', 'en_US.twitter.train.')
-infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.7eos.txt'))
+prefixes <- c('en_US.blogs.train', 'en_US.news.train', 'en_US.twitter.train')
+# infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.8posteos.txt'))
+infiles <- c(sprintf('%s%s%s', ddir, prefixes[1], outpost),
+             sprintf('%s%s%s', ddir, prefixes[2], outpost),
+             sprintf('%s%s%s', ddir, prefixes[3], outpost))
 
 charvect <- read_lines(infiles[1])
 unigrams.blogs.raw <- getNgramTables(1, charvect)
-write.csv(unigrams.blogs.raw, 
-          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.blogs.raw.DEV.csv',
+write.csv(unigrams.blogs.raw,
+         'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.blogs.raw.csv',
+         row.names = FALSE)
+
+charvect <- read_lines(infiles[2])
+unigrams.news.raw <- getNgramTables(1, charvect)
+write.csv(unigrams.news.raw,
+         'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.news.raw.csv',
+         row.names = FALSE)
+
+charvect <- read_lines(infiles[3])
+unigrams.twitter.raw <- getNgramTables(1, charvect)
+write.csv(unigrams.twitter.raw,
+          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.twitter.raw.csv',
           row.names = FALSE)
+
 
 # blogs7 <- 'C:/data/dev/PredictNextKBO/data/en_US/en_US.blogs.train.7eos.txt'
 # chvect <- read_lines(blogs7)
@@ -119,14 +136,14 @@ setwd('../modeldev')
 source('Ngrams.R')
 loadLibs()
 prefixes <- c('en_US.blogs.train.', 'en_US.news.train.', 'en_US.twitter.train.')
-infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.7eos.txt'),
-             sprintf('%s%s', ddir, 'en_US.news.train.7eos.txt'),
-             sprintf('%s%s', ddir, 'en_US.twitter.train.7eos.txt'))
+infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.8posteos.txt'),
+             sprintf('%s%s', ddir, 'en_US.news.train.8posteos.txt'),
+             sprintf('%s%s', ddir, 'en_US.twitter.train.8posteos.txt'))
 
 charvect <- read_lines(infiles[1])
 unigrams.blogs.raw <- getNgramTables(1, charvect)
 write.csv(unigrams.blogs.raw, 
-          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.blogs.raw.02.csv',
+          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.blogs.raw.csv',
           row.names = FALSE)
 
 charvect <- read_lines(infiles[2])
@@ -140,4 +157,15 @@ unigrams.twitter.raw <- getNgramTables(1, charvect)
 write.csv(unigrams.twitter.raw,
           'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.twitter.raw.csv',
           row.names = FALSE)
+
+s3 <- "this is the -first this is the -second and this is the -third end"
+s4 <- str_replace_all(s3, " -([a-z]+)", " \\1")
+s3
+s4
+
+s1 <- "maher-how could amn degrade a young woman -what is it with your gutterpolitics-i dont'understand -youthinkitsfunny -man you'relow EOS"
+# s2 <- str_replace_all(s1, " -([a-z]+) ", " \\1 ")
+s2 <- str_replace_all(s1, " -([a-z]+)", " \\1")
+s2
+
 
