@@ -6,7 +6,7 @@ if(length(new.packages) > 0) install.packages(new.packages)
 lapply(list.of.packages, require, character.only=TRUE)  # load libs
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 # set parameters
-ddir <- "../data/en_US/" # assumes exec from dir at same level as data
+ddir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/"
 fnames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
 fnames.train <- c("en_US.blogs.train.txt", "en_US.news.train.txt",
                   "en_US.twitter.train.txt")
@@ -309,10 +309,25 @@ cleanDashes <- function(charVect,
     return(charVect)
 }
 
+tokenizeIsHis <- function(charVect) {
+    charVect <- gsub("( 's )", "s", charVect, perl=TRUE)
+    return(charVect)
+}
+
 cleanSingleQuotes <- function(charVect,
                               quote.patterns=c('suspended',
                                                'leading',
                                                'trailing')) {
+    all.patterns <- (length(grep("suspended", quote.patterns) > 0)) &&
+                    (length(grep("leading", quote.patterns) > 0)) &&
+                    (length(grep("trailing", quote.patterns) > 0))
+    
+    if(all.patterns) {
+        # deal with case of <something>' '<something else> which occurs in
+        # twitter files
+        charVect <- gsub("([a-zNUM]+)([']+[ ]+[']+)([a-zNUM]+)", "\\1 \\3", charVect, perl=TRUE)
+    }
+    
     if(length(grep("suspended", quote.patterns)) > 0) {
         # remove 1 or more suspended single quotes
         charVect <- gsub("[ ]+[']+[ ]+", " ", charVect, perl=TRUE)
@@ -351,6 +366,7 @@ preEosClean <- function(charVect) {
     charVect <- gsub("^[^A-Za-z]+$", "", charVect, perl=TRUE)
     
     charVect <- cleanDashes(charVect)
+    charVect <- tokenizeIsHis(charVect) # 's to s
     charVect <- cleanSingleQuotes(charVect)
     
     # remove periods that start lines
@@ -465,6 +481,7 @@ postEosClean <- function(charVect) {
     # clean up misc fragments generated from prior op's
     charVect <- cleanDashes(charVect, 'suspended')
     charVect <- cleanSingleQuotes(charVect, 'suspended')
+    charVect <- cleanDashes(charVect, 'suspended')
     
     return(charVect)
 }
