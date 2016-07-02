@@ -5,7 +5,7 @@ if(length(new.packages) > 0) install.packages(new.packages)
 # load libraries
 lapply(list.of.packages, require, character.only=TRUE)  # load libs
 
-ddir <- "C:/data/dev/PredictNextKBO/data/en_US/"
+ddir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US"
 infiles <- c(sprintf('%s%s', dataDir, 'en_US.blogs.train..txt'),
              sprintf('%s%s', dataDir, 'en_US.news.train.3ascii.txt'),
              sprintf('%s%s', dataDir, 'en_US.twitter.train.3ascii.txt'))
@@ -78,33 +78,33 @@ inpost <- '.6preeos.txt'
 outpost <- '.7eos.txt'
 runFilterAndWrite(addEosMarkers, ddir, inpost, outpost)
 
-# inpost <- '.7eos.txt'
-# outpost <- '.8posteos.txt'
-# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.blogs.train')
-# runFilterAndWrite(postEosClean, ddir, inpost, outpost)
-
-###########################################################
-rm(list = ls())
-setwd('../preprocess')
-source('PreEda.R')
-
 inpost <- '.7eos.txt'
 outpost <- '.8posteos.txt'
 # runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.blogs.train')
-# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.news.train')
-# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.twitter.train')
 runFilterAndWrite(postEosClean, ddir, inpost, outpost)
 
+###########################################################
+# rm(list = ls())
+# setwd('../preprocess')
+# source('PreEda.R')
+# 
+# inpost <- '.7eos.txt'
+# outpost <- '.8posteos.txt'
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.blogs.train')
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.news.train')
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.twitter.train')
+# runFilterAndWrite(postEosClean, ddir, inpost, outpost)
+
 rm(list = ls())
-outpost <- '.8posteos.txt'
+postfix <- '.8posteos.txt'
 setwd('../modeldev')
 source('Ngrams.R')
 loadLibs()
 prefixes <- c('en_US.blogs.train', 'en_US.news.train', 'en_US.twitter.train')
-# infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.8posteos.txt'))
-infiles <- c(sprintf('%s%s%s', ddir, prefixes[1], outpost),
-             sprintf('%s%s%s', ddir, prefixes[2], outpost),
-             sprintf('%s%s%s', ddir, prefixes[3], outpost))
+# infiles <- c(sprintf('%s%s', ddir, 'en_US.twitter.train.8posteos.txt'))
+infiles <- c(sprintf('%s%s%s', ddir, prefixes[1], postfix),
+             sprintf('%s%s%s', ddir, prefixes[2], postfix),
+             sprintf('%s%s%s', ddir, prefixes[3], postfix))
 
 charvect <- read_lines(infiles[1])
 unigrams.blogs.raw <- getNgramTables(1, charvect)
