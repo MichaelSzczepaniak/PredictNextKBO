@@ -1,5 +1,5 @@
 
-ddir <- "../data/en_US/"
+ddir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/"
 
 loadLibs <- function() {
     libs <- c("dplyr", "readr", "stringr", "dplyr", "quanteda",
@@ -67,4 +67,47 @@ getNgramTables <- function(n, linesCorpus, prefixFilter=NULL) {
     }
     cat("FINISH getNgramTables:", as.character(Sys.time()), "\n")
     return(ngrams.dt)
+}
+
+## Returns a data frame that is the union of data frames ftab1 and ftab2.
+## Both ftab1 and ftab2 are expected to have 2 columns: ngram and freq.
+## The union is performed by matching on the ngram column and summing the freq
+## column when matching ngrams are found.
+mergeFreqTables <- function(ftab1, ftab2,
+                            checkInterval=100, output.check=FALSE) {
+    cat("start mergeFreqTables:", as.character(Sys.time()), "\n")
+    mergedNgram <- ftab1$ngram
+    mergedFreq <- ftab1$freq
+    checkNgram <- ftab2$ngram
+    checkFreq <- ftab2$freq
+    outerIndex <- length(mergedNgram)
+    counter <- 0
+    for(i in 1:outerIndex) {
+        counter <- counter + 1
+        word.f1 <- mergedNgram[i]
+        otherIndex <- which(word.f1 == checkNgram)
+        if(length(otherIndex) > 0) {
+            mergedFreq[i] <- mergedFreq[i] + checkFreq[otherIndex]
+            checkNgram <- checkNgram[-otherIndex]  # remove found item
+            checkFreq <- checkFreq[-otherIndex]
+        }
+        if(output.check) {
+            if(counter == checkInterval) {
+                cat("completed merging", i, "ngrams from 1st list\n")
+                cat("size of 2nd list =", length(checkNgram), "|",
+                    as.character(Sys.time()), "\n")
+                counter <- 0
+            }
+        }
+    }
+    mergedTable <- data.frame(ngram=mergedNgram, freq=mergedFreq,
+                              stringsAsFactors = FALSE)
+    df.unmatched <- data.frame(ngram=checkNgram, freq=checkFreq,
+                               stringsAsFactors = FALSE)
+    # add rows not matched in ftab2
+    mergedTable <- rbind(mergedTable, df.unmatched)
+    cat("mergeFreqTables sorting merged frequency table:", as.character(Sys.time()), "\n")
+    mergedTable <- arrange(mergedTable, desc(freq))
+    cat("finish mergeFreqTables:", as.character(Sys.time()), "\n")
+    return(mergedTable)
 }
