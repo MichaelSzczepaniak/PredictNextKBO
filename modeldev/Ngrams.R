@@ -1,5 +1,6 @@
 
 ddir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/"
+ddir.ngram <- sprintf("%s%s", ddir, 'ngrams/')
 
 loadLibs <- function() {
     libs <- c("dplyr", "readr", "stringr", "dplyr", "quanteda",
@@ -177,4 +178,26 @@ getBreakingIndices <- function(filePath) {
     names(endOfGroups) <- names(alphaStarts)
     
     return(list(group=letters, startGroup=alphaStarts, endGroup=endOfGroups))
+}
+
+## Creates and writes out a series of singleton partition files named:
+## unigram.singletons[a-z].txt
+## Example of partition file names:
+## unigram.singletons.a = unigram singletons starting with a
+## unigram.singletons.b = unigram singletons starting with b
+## ...
+## unigram.singletons.z = unigram singletons starting with z
+breakWritePartdFiles <- function(usingsDir=ddir.ngram,
+                                 unigramFileName="unigramSingletonsAll.csv") {
+    inFilePath <- sprintf("%s%s", usingsDir, unigramFileName)
+    unigramSingletons <- read.csv(inFilePath, stringsAsFactors=FALSE)$ngram
+    groups <- getBreakingIndices(inFilePath)
+    outFilePrefix <- "unigram.singletons/unigram.singletons."
+    for(i in 1:length(groups[[1]])) {
+        outFilePath <- sprintf("%s%s%s%s", usingsDir, outFilePrefix,
+                               groups[[1]][i], ".txt")
+        # write unigrams that begin with a to unigrams.singletons.a.txt
+        # write unigrams that begin with b to unigrams.singletons.b.txt etc...
+        writeLines(unigramSingletons[groups[[2]][i]:groups[[3]][i]], outFilePath)
+    }
 }
