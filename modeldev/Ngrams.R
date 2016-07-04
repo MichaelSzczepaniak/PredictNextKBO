@@ -111,3 +111,24 @@ mergeFreqTables <- function(ftab1, ftab2,
     cat("finish mergeFreqTables:", as.character(Sys.time()), "\n")
     return(mergedTable)
 }
+
+writeMergedUnigramSingletons <- function(unigrams.blogs.raw,
+                                         unigrams.news.raw,
+                                         unigrams.twitter.raw) {
+    # sort unigrams tables by freq primary, ngram secondary
+    unigrams.blogs.raw <- arrange(unigrams.blogs.raw, freq, ngram)
+    unigrams.news.raw <- arrange(unigrams.news.raw, freq, ngram)
+    unigrams.twitter.raw <- arrange(unigrams.twitter.raw, freq, ngram)
+    # merge blogs and new unigrams and write out result
+    merged.unigrams.raw <- mergeFreqTables(unigrams.blogs.raw, unigrams.news.raw, 1000, TRUE)
+    merged.unigrams.raw <- arrange(merged.unigrams.raw, frequency, ngram)
+    write.csv(merged.unigrams.raw, sprintf("%s%s", ddir, "ngrams/merged.blogs.news.csv"), row.names=FALSE)
+    # merge blogs, news and twitter unigrams and write out result
+    merged2.unigrams.raw <- mergeFreqTables(merged.unigrams.raw, unigrams.twitter.raw, 10000, TRUE)
+    merged2.unigrams.raw <- arrange(merged2.unigrams.raw, freq, ngram)
+    write.csv(merged2.unigrams.raw, sprintf("%s%s", ddir, "ngrams/merged.all.raw.csv"), row.names=FALSE)
+    
+    # get unigram singletons and write them out
+    unigSingles.all <- merged2.unigrams.raw[merged2.unigrams.raw$freq==1,]
+    write.csv(unigSingles.all, sprintf("%s%s", ddir, "ngrams/unigramSingletonsAll.csv"), row.names=FALSE)
+}

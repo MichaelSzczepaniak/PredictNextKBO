@@ -19,4 +19,5 @@ merged2.unigrams.raw <- arrange(merged2.unigrams.raw, freq, ngram)
 write.csv(merged2.unigrams.raw, sprintf("%s%s", ddir, "ngrams/merged.all.raw.csv"), row.names=FALSE)
 
 # get unigram singletons
-unigSingles.blogs <- unigrams.blogs.raw[unigrams.blogs.raw$freq==1,]
+unigSingles.all <- merged2.unigrams.raw[merged2.unigrams.raw$freq==1,]
+write.csv(unigSingles.all, sprintf("%s%s", ddir, "ngrams/unigramSingletonsAll.csv"), row.names=FALSE)
