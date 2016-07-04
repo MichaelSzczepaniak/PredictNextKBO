@@ -201,3 +201,22 @@ breakWritePartdFiles <- function(usingsDir=ddir.ngram,
         writeLines(unigramSingletons[groups[[2]][i]:groups[[3]][i]], outFilePath)
     }
 }
+
+## Loads the partitioned unigram singleton files into a list for easy retrieval
+## by functions further down the pipline
+loadIgnoreParts <- function(usingsDir=ddir.ngram,
+                            unigramFileName="unigramSingletonsAll.csv") {
+    inFilePath <- sprintf("%s%s", usingsDir, unigramFileName)
+    groups <- getBreakingIndices(inFilePath)
+    singletons <- list()
+    inFilePrefix <- "unigram.singletons/unigram.singletons."
+    for(i in 1:length(groups[[1]])) {
+        groupName <- groups[[1]][i]
+        inFilePath <- sprintf("%s%s%s%s", usingsDir, inFilePrefix,
+                              groups[[1]][i], ".txt")
+        singletons[[groupName]] <- readLines(inFilePath)
+    }
+    
+    return(singletons)
+}
+
