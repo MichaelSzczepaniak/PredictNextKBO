@@ -112,23 +112,69 @@ mergeFreqTables <- function(ftab1, ftab2,
     return(mergedTable)
 }
 
-writeMergedUnigramSingletons <- function(unigrams.blogs.raw,
-                                         unigrams.news.raw,
-                                         unigrams.twitter.raw) {
-    # sort unigrams tables by freq primary, ngram secondary
-    unigrams.blogs.raw <- arrange(unigrams.blogs.raw, freq, ngram)
-    unigrams.news.raw <- arrange(unigrams.news.raw, freq, ngram)
-    unigrams.twitter.raw <- arrange(unigrams.twitter.raw, freq, ngram)
+## Merges 3 ngram/frequency tables together.  Each table is expected to have
+## at least 2 fields: ngram and freq.  The merged table is written to:
+## ddir/ngrams/unigramSingletonsAll.csv
+writeMergedUnigramSingletons <- function(ngram.freq1, ngram.freq2, ngram.freq3,
+                                         ddir=ddir) {
+    # sort tables by freq primary, ngram secondary
+    ngram.freq1 <- arrange(ngram.freq1, freq, ngram)
+    ngram.freq2 <- arrange(ngram.freq2, freq, ngram)
+    ngram.freq3 <- arrange(ngram.freq3, freq, ngram)
     # merge blogs and new unigrams and write out result
-    merged.unigrams.raw <- mergeFreqTables(unigrams.blogs.raw, unigrams.news.raw, 1000, TRUE)
-    merged.unigrams.raw <- arrange(merged.unigrams.raw, frequency, ngram)
-    write.csv(merged.unigrams.raw, sprintf("%s%s", ddir, "ngrams/merged.blogs.news.csv"), row.names=FALSE)
+    merged.1.2 <- mergeFreqTables(ngram.freq1, ngram.freq2, 1000, TRUE)
+    merged.1.2 <- arrange(merged.unigrams.raw, frequency, ngram)
+    write.csv(merged.1.2,
+              sprintf("%s%s", ddir, "ngrams/merged.blogs.news.csv"),
+              row.names=FALSE)
     # merge blogs, news and twitter unigrams and write out result
-    merged2.unigrams.raw <- mergeFreqTables(merged.unigrams.raw, unigrams.twitter.raw, 10000, TRUE)
-    merged2.unigrams.raw <- arrange(merged2.unigrams.raw, freq, ngram)
-    write.csv(merged2.unigrams.raw, sprintf("%s%s", ddir, "ngrams/merged.all.raw.csv"), row.names=FALSE)
-    
+    merged.1.2.3 <- mergeFreqTables(merged.1.2, ngram.freq3, 10000, TRUE)
+    merged.1.2.3 <- arrange(merged.1.2.3, freq, ngram)
+    write.csv(merged.1.2.3,
+              sprintf("%s%s", ddir, "ngrams/merged.all.raw.csv"),
+              row.names=FALSE)
     # get unigram singletons and write them out
-    unigSingles.all <- merged2.unigrams.raw[merged2.unigrams.raw$freq==1,]
-    write.csv(unigSingles.all, sprintf("%s%s", ddir, "ngrams/unigramSingletonsAll.csv"), row.names=FALSE)
+    unigSingles.all <- merged.1.2.3[merged.1.2.3$freq==1,]
+    write.csv(unigSingles.all,
+              sprintf("%s%s", ddir, "ngrams/unigramSingletonsAll.csv"),
+              row.names=FALSE)
+}
+
+##### This section of code replaces unigram singletons with common token #####
+
+## Returns the index in the alphabetizedSingletons character vector where words
+## start with each of the the letters a-z
+getStartByLetterIndex <- function(alphabetizedSingletons) {
+    letterStarts <- vector(mode="integer")
+    for(let in letters) {
+        regexpr <- sprintf("%s%s", "^", let)
+        startOfLetIndex <- grep(regexpr, alphabetizedSingletons)[1]
+        letterStarts <- append(letterStarts, startOfLetIndex)
+    }
+    names(letterStarts) <- letters
+    return(letterStarts)
+}
+
+## Returns a list of three vectors. The first vector stores the names
+## corresponding to the groups that the file was broken into (a, b,..., z).
+##
+## The second vector stores the line numbers of the first instance of words
+## that start with a non-alpha char or a given letter a-z.
+##
+## The third vector stores line numbers of the last instance of the word
+## that started with a given letter
+##
+## filePath - path to unigram singleton ungram/frequency file. This file is
+##            expected to have ngram and freq columns.
+##
+## Precondition - the ignore files are named: news.ignore.words.txt and
+##                twitter.ignore.words.txt respectively
+getBreakingIndices <- function(filePath) {
+    singletonWords <- readLines(filePath)
+    alphaStarts <- getStartByLetterIndex(fileType=fileType, singletonWords)
+    startOfGroups <- c(1, alphaStarts)
+    endOfGroups <- alphaStarts - 1
+    endOfGroups <- c(endOfGroups, length(singletonWords))
+    
+    return(list(group=letters, startGroup=startOfGroups, endGroup=endOfGroups))
 }
