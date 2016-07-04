@@ -164,17 +164,17 @@ getStartByLetterIndex <- function(alphabetizedSingletons) {
 ## The third vector stores line numbers of the last instance of the word
 ## that started with a given letter
 ##
-## filePath - path to unigram singleton ungram/frequency file. This file is
+## filePath - path to unigram singleton unigram/frequency file. This file is
 ##            expected to have ngram and freq columns.
 ##
 ## Precondition - the ignore files are named: news.ignore.words.txt and
 ##                twitter.ignore.words.txt respectively
 getBreakingIndices <- function(filePath) {
-    singletonWords <- readLines(filePath)
-    alphaStarts <- getStartByLetterIndex(fileType=fileType, singletonWords)
-    startOfGroups <- c(1, alphaStarts)
-    endOfGroups <- alphaStarts - 1
+    singletonWords <- read.csv(filePath)$ngram
+    alphaStarts <- getStartByLetterIndex(singletonWords)
+    endOfGroups <- alphaStarts[2:length(alphaStarts)] - 1
     endOfGroups <- c(endOfGroups, length(singletonWords))
+    names(endOfGroups) <- names(alphaStarts)
     
-    return(list(group=letters, startGroup=startOfGroups, endGroup=endOfGroups))
+    return(list(group=letters, startGroup=alphaStarts, endGroup=endOfGroups))
 }

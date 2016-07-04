@@ -21,3 +21,9 @@ write.csv(merged2.unigrams.raw, sprintf("%s%s", ddir, "ngrams/merged.all.raw.csv
 # get unigram singletons
 unigSingles.all <- merged2.unigrams.raw[merged2.unigrams.raw$freq==1,]
 write.csv(unigSingles.all, sprintf("%s%s", ddir, "ngrams/unigramSingletonsAll.csv"), row.names=FALSE)
+
+rm(list = ls())
+source('Ngrams.R')
+filePath <- sprintf("%s%s", ddir, 'ngrams/unigramSingletonsAll.csv')
+usings <- read.csv(filePath)
+breaking.indices <- getBreakingIndices(filePath)
