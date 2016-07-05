@@ -221,7 +221,7 @@ loadSingletonParts <- function(usingsDir=ddir.ngram,
 }
 
 ## Replaces all the unigram singletons with the a special token specified by
-## the usingleton.token: default value = USIN
+## the usingleton.token: default value = USIN (Unigram SINgleton)
 tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
                                       inFilePostfix=".train.8posteos.txt",
                                       data.dir=ddir, outdir=ddir.ngram,
@@ -232,7 +232,8 @@ tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
     # replace all the ngrams that don't start w/alpha char's w/special token
     inpath <- sprintf("%s%s", data.dir, infile)
     inlines <- readLines(inpath)
-    cat("start replaceIgnoreWords operation on", inpath, "at", as.character(Sys.time()), "\n")
+    cat("start tokenizeUnigramSingletons operation on", inpath, "at",
+        as.character(Sys.time()), "\n")
     cat("processing", length(inlines), "lines...\n")
     singletons <- loadSingletonParts()
     counter <- 0
@@ -246,7 +247,7 @@ tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
             # if(grepl("[^a-z]", line.token)) { sublistIndex <- "0" }  # non-alpha start char
             if(line.token %in% singletons[[sublistIndex]]) {
                 line.tokens[j] <- "usingleton.token"
-                # cat(line.token, "replaced with IGWD at line", i, "\n")
+                # cat(line.token, "replaced with USIN at line", i, "\n")
             }
         }
         inlines.edit <- append(inlines.edit, paste(line.tokens, collapse = " "))
@@ -262,7 +263,7 @@ tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
     outfile <- sprintf("%s%s%s", filePrefix, fileType, outFilePostfix)
     outpath <- sprintf("%s%s", outdir, outfile)
     writeLines(inlines.edit, outpath)
-    cat("finish replaceIgnoreWords at", as.character(Sys.time()), "\n")
+    cat("finish tokenizeUnigramSingletons at", as.character(Sys.time()), "\n")
     
     return(inlines.edit)
 }
