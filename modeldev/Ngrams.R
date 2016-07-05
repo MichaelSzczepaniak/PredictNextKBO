@@ -221,13 +221,13 @@ loadSingletonParts <- function(usingsDir=ddir.ngram,
 }
 
 ## Replaces all the unigram singletons with the a special token specified by
-## the usingleton.token: default value = #USIN#
+## the usingleton.token: default value = USIN
 tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
                                       inFilePostfix=".train.8posteos.txt",
                                       data.dir=ddir, outdir=ddir.ngram,
                                       outFilePostfix=".train.9ustokens.txt",
                                       status.check=10000,
-                                      usingleton.token="#USIN#") {
+                                      usingleton.token="USIN") {
     infile <- sprintf("%s%s%s", filePrefix, fileType, inFilePostfix)
     # replace all the ngrams that don't start w/alpha char's w/special token
     inpath <- sprintf("%s%s", data.dir, infile)
