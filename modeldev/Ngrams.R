@@ -224,7 +224,7 @@ loadSingletonParts <- function(usingsDir=ddir.ngram,
 ## the usingleton.token: default value = USIN (Unigram SINgleton)
 tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
                                       inFilePostfix=".train.8posteos.txt",
-                                      data.dir=ddir, outdir=ddir.ngram,
+                                      data.dir=ddir, outdir=ddir,
                                       outFilePostfix=".train.9ustokens.txt",
                                       status.check=10000,
                                       usingleton.token="USIN") {
