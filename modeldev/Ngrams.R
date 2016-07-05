@@ -204,8 +204,8 @@ breakWritePartdFiles <- function(usingsDir=ddir.ngram,
 
 ## Loads the partitioned unigram singleton files into a list for easy retrieval
 ## by functions further down the pipline
-loadIgnoreParts <- function(usingsDir=ddir.ngram,
-                            unigramFileName="unigramSingletonsAll.csv") {
+loadSingletonParts <- function(usingsDir=ddir.ngram,
+                               unigramFileName="unigramSingletonsAll.csv") {
     inFilePath <- sprintf("%s%s", usingsDir, unigramFileName)
     groups <- getBreakingIndices(inFilePath)
     singletons <- list()
@@ -220,3 +220,49 @@ loadIgnoreParts <- function(usingsDir=ddir.ngram,
     return(singletons)
 }
 
+## Replaces all the unigram singletons with the a special token specified by
+## the usingleton.token: default value = #USIN#
+tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
+                                      inFilePostfix=".train.8posteos.txt",
+                                      data.dir=ddir, outdir=ddir.ngram,
+                                      outFilePostfix=".train.9ustokens.txt",
+                                      status.check=10000,
+                                      usingleton.token="#USIN#") {
+    infile <- sprintf("%s%s%s", filePrefix, fileType, inFilePostfix)
+    # replace all the ngrams that don't start w/alpha char's w/special token
+    inpath <- sprintf("%s%s", data.dir, infile)
+    inlines <- readLines(inpath)
+    cat("start replaceIgnoreWords operation on", inpath, "at", as.character(Sys.time()), "\n")
+    cat("processing", length(inlines), "lines...\n")
+    singletons <- loadSingletonParts()
+    counter <- 0
+    inlines.edit <- vector(mode="character")
+    for(i in 1:length(inlines)) {
+        counter <- counter + 1
+        line.tokens <- str_split(inlines[i], " ")[[1]] # split line into words
+        for(j in 1:length(line.tokens)) {    # iterate through line words checking if
+            line.token <- line.tokens[j]     # they are in the ignore.words list
+            sublistIndex <- substr(line.token, 1, 1)  # get first char of word for quick check
+            # if(grepl("[^a-z]", line.token)) { sublistIndex <- "0" }  # non-alpha start char
+            if(line.token %in% singletons[[sublistIndex]]) {
+                line.tokens[j] <- "usingleton.token"
+                # cat(line.token, "replaced with IGWD at line", i, "\n")
+            }
+        }
+        inlines.edit <- append(inlines.edit, paste(line.tokens, collapse = " "))
+        # cat("i =", i, "line = \n", inlines.edit, "\n")
+        if(counter == status.check) {
+            cat("    completed processing", i, "lines out of", length(inlines),
+                "at", as.character(Sys.time()), "\n")
+            percentComplete <- (i / length(inlines)) * 100
+            cat(percentComplete, "% complete...\n")
+            counter <- 0
+        }
+    }
+    outfile <- sprintf("%s%s%s", filePrefix, fileType, outFilePostfix)
+    outpath <- sprintf("%s%s", outdir, outfile)
+    writeLines(inlines.edit, outpath)
+    cat("finish replaceIgnoreWords at", as.character(Sys.time()), "\n")
+    
+    return(inlines.edit)
+}
