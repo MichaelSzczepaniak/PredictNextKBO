@@ -221,7 +221,7 @@ loadSingletonParts <- function(usingsDir=ddir.ngram,
 }
 
 ## Replaces all the unigram singletons with the a special token specified by
-## the usingleton.token: default value = USIN (Unigram SINgleton)
+## the usingleton.token: default value = 'USIN' (Unigram SINgleton)
 tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
                                       inFilePostfix=".train.8posteos.txt",
                                       data.dir=ddir, outdir=ddir,
@@ -246,7 +246,7 @@ tokenizeUnigramSingletons <- function(filePrefix="en_US", fileType=".news",
             sublistIndex <- substr(line.token, 1, 1)  # get first char of word for quick check
             # if(grepl("[^a-z]", line.token)) { sublistIndex <- "0" }  # non-alpha start char
             if(line.token %in% singletons[[sublistIndex]]) {
-                line.tokens[j] <- "usingleton.token"
+                line.tokens[j] <- usingleton.token
                 # cat(line.token, "replaced with USIN at line", i, "\n")
             }
         }
