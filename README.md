@@ -1,4 +1,4 @@
-## Predicting the next word from a series of prior words using the a Katz Backoff Trigram language model
+## Predicting the next word from a series of prior words using a Katz Backoff Trigram language model
 This goal of this project was to build a data product which uses a Katz Backoff Trigram language model to the predict the next word from a series of prior words.  This is being implemented as a Shiny R web application which will be accessible from the following link:
 
 <a href=https://michael-szczepaniak.shinyapps.io/predictnextword/>https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>
