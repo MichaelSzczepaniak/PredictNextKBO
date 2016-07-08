@@ -110,7 +110,7 @@ $(document).ready(function () {
 
 <h1 class="title">Predicting Next Word Using Katz Back-Off: Objectives, Preprocessing &amp; EDA</h1>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>June 2016</em></h4>
+<h4 class="date"><em>July 2016</em></h4>
 
 </div>
 
@@ -153,15 +153,17 @@ $(document).ready(function () {
 <h2>Acquiring and Partitioning the Data</h2>
 <p>The data was originally downloaded from <a href="https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip">this link</a> and stored locally. If this link is no longer available, the data can obtained from <a href="https://www.dropbox.com/s/uk7d4gp1c7bgmxc/Coursera-SwiftKey.zip?raw=1">my dropbox</a>. The zip file was download to a directory called <strong>data</strong> in a local project and unzipped there. The the unzipped data contained four subdirectories: <strong>de_DE</strong> (German), <strong>en_US</strong> (US english), <strong>fi_FI</strong> (Finnish), and <strong>ru_RU</strong> (Russian). This project focuses on the English corpora residing in the <strong>en_US</strong> folder. This folder contains three files named <strong>en_US.blogs.txt</strong>, <strong>en_US.news.txt</strong>, and <strong>en_US.twitter.txt</strong>.</p>
 <p>With the data residing locally, the <strong>writeTrainTestFiles</strong> function was used to read each of the three data files, partition each them into 80% training and 20% hold-out test sets, and then write these two partitioned files locally. The training set was used to train the model to determine values for the two model parameters: bigram discount rate and trigram discount rate. <a href="http://rpubs.com/mszczepaniak/prednextkbo">Descriptions of what these parameters are can be found here.</a></p>
-<div id="cleaning-the-data" class="section level3">
-<h3>Cleaning the Data</h3>
+<div id="cleaning-and-preparing-the-data" class="section level3">
+<h3>Cleaning and Preparing the Data</h3>
 <p>After the data was read and partitioned into training and test sets, the training files were cleaned using the following steps:</p>
 <ol style="list-style-type: decimal">
 <li>Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element. One artifact of this step was that things like “St.” which are used as a contraction for “Saint” were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.</li>
 <li>Non-ASCII Character Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.</li>
-<li>Unicode Tags Converstions and Removals -</li>
-<li>URL Removals -</li>
-<li>Post-Profanity Filtering - This step removed urls and other non-essential characters.</li>
+<li>Unicode Tag Conversions and Filtering -</li>
+<li>URL Filtering -</li>
+<li>Pre-EOS Marker Filtering -</li>
+<li>Add EOS Markers -</li>
+<li>Post-EOS Marker Filtering -</li>
 </ol>
 <p>The profanity removal step required required first building a profanity list. This was done by taking the union of three lists from the following sources: <a href="http://fffff.at/googles-official-list-of-bad-words/">google</a>, <a href="http://www.cs.cmu.edu/~biglou/resources/bad-words.txt">Luis von Ahn of Carnegie Mellon University</a>, and <a href="https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt">a github project of Duncan Robertson from London, UK</a>. These lists were downloaded and merged together using the <strong>mergeTermLists</strong> function and profanity was removed using the <strong>removeProfanity</strong> function. Both of these functions are listed in the <strong>Appendix</strong>.</p>
 <p>The above steps were executed off-line (not in this R Markdown file) because they were time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.</p>
@@ -194,14 +196,20 @@ $(document).ready(function () {
 </ol>
 <p>If future versions of NP++ do not behave the same as described for v6.9.2, <a href="https://www.dropbox.com/s/t7l03782ngh84dg/npp.6.9.2.Installer.exe?dl=1">this version can be downloaded here</a></p>
 </div>
-<div id="pre-profanity-filtering" class="section level4">
-<h4>Pre-Profanity Filtering</h4>
-<p>After completion of sentence parsing, the resulting files were UTF-8 encoded but still contained some unusual characters. To clean out these characters, each file was ran through the function <strong>convertToAscii</strong> which passed the contents through an ASCII encoder and then rewrote out the contents with a <strong>.3ascii.txt</strong> extension. Links to these files are provided below:</p>
+<div id="additional-filtering" class="section level4">
+<h4>Additional Filtering</h4>
+<p>Additional filtering was accomplished using a variety of functions which are described below. To make the filtering process more manageable, the <strong>runFilterAndWrite</strong> function was created to take a function as a parameter, run that function against an input file, and then write the results to a file. This reduced duplicate code by consolidating all the code that does file IO to a single function.</p>
+<div id="non-ascii-character-filtering" class="section level5">
+<h5>Non-ASCII Character Filtering</h5>
+<p>After completion of sentence parsing, the resulting files were UTF-8 encoded but still contained some unusual characters. To clean out these characters, each file was ran through the function <strong>convertToAscii</strong> by passing it to <strong>runFilterAndWrite</strong>. The <strong>convertToAscii</strong> function passed the contents through an ASCII encoder and then rewrote out the contents with a <strong>.3ascii.txt</strong> extension. Links to these files are provided below:</p>
 <ul>
 <li><a href="https://www.dropbox.com/s/9u1q35cp2jjgldz/en_US.blogs.train.3ascii.txt?dl=1">en_US.blogs.train.3ascii.txt</a></li>
 <li><a href="https://www.dropbox.com/s/h1b0ma2wdo6vhw8/en_US.news.train.3ascii.txt?dl=1">en_US.news.train.3ascii.txt</a></li>
 <li><a href="https://www.dropbox.com/s/cqljea48343wj2u/en_US.twitter.train.3ascii.txt?dl=1">en_US.twitter.train.3ascii.txt</a></li>
 </ul>
+</div>
+<div id="unicode-tag-conversions-and-filtering" class="section level5">
+<h5>Unicode Tag Conversions and Filtering</h5>
 <p>This step removed all lines that contained unusual characters and resulted in removing 29 lines from the blogs file, 14 lines from the news, file and only 5 lines from the twitter file. However, these files still containted a lot of tags of the form <strong>&lt;U+hhhh&gt;</strong> where h is a hex digit from 0 to F. These were unicode tags that were generated during the data partitioning step when the partitioned files were written back out. As a result, the next challenge was figuring out how to deal with these tags. The following four options were considered:</p>
 <ol style="list-style-type: decimal">
 <li>leave them in the corpus</li>
@@ -209,24 +217,39 @@ $(document).ready(function () {
 <li>remove just the tags and leave the lines intact</li>
 <li>figure out reasonable ASCII character substitutions for each tag and do these substitutions</li>
 </ol>
-<p>Options 1. and 2. were ruled out because there were so many of these tokens: over 600k in the blogs file, over 200k in the news file, and over 100k in the twitter file, and keeping them would have distorted the n-gram tables while removing the lines would have reduced the n-gram counts. Both results would have reduced the quality of n-gram tables used by the model which would degrade its accuracy.</p>
+<p>Options 1. and 2. were ruled out because there were so many of these tokens: over 600k in the blogs file, over 200k in the news file, and over 100k in the twitter file, and keeping them would have distorted the n-gram tables while removing the lines would have reduced the n-gram counts. Both results would have reduced the quality of the n-gram tables used by the model which would degrade its accuracy.</p>
 <p>In evaluating the remaining two options, frequency tables were constructed using the <strong>writeUnicodeTagFreqTables</strong> function. The resulting tables were:</p>
 <ul>
 <li><a href="https://www.dropbox.com/s/ep3e52eutgqdlig/blogs.utags.csv?dl=1">blogs.utags.csv</a></li>
 <li><a href="https://www.dropbox.com/s/wnss8ibfmuqcv9r/news.utags.csv?dl=1">news.utags.csv</a></li>
 <li><a href="https://www.dropbox.com/s/ol68voyjavrx3bm/twitter.utags.csv?dl=1">twitter.utags.csv</a></li>
 </ul>
-<p>A vast majority of these tags were <strong>&lt;U+FFFD&gt;</strong> which is a special code <a href="https://en.wikipedia.org/wiki/Specials_(Unicode_block)">used to replace an unknown or unrepresentable character</a>. Upon manual inpsection, it appeared that the most frequent use of this character which we would want to preserve was as a single quote in a contraction such as <em>isn’t</em> or <em>doesn’t</em> or as as plural possesive from such as <em>Tom’s</em> or <em>Mary’s</em>. The <strong>convertUnicodeTags</strong> function was created and used to replace unicodes tags with either a single quote or a space (which gets cleaned up in a later step). The outputs from this function resulted in the following 3 files:</p>
+<p>A vast majority of these tags were <strong>&lt;U+FFFD&gt;</strong> which is a special code <a href="https://en.wikipedia.org/wiki/Specials_(Unicode_block)">used to replace an unknown or unrepresentable character</a>. Upon manual inspection, it appeared that the most frequent use of this character which we would want to preserve was as a single quote in a contraction such as <em>isn’t</em> or <em>doesn’t</em> or as a plural possesive form such as <em>Tom’s</em> or <em>Mary’s</em>. The <strong>convertUnicodeTags</strong> function was created and passed to <strong>runFilterAndWrite</strong> in order to replace unicodes tags with either a single quote or a space (which gets cleaned up in a later step). The outputs from this function resulted in the following 3 files:</p>
 <ul>
 <li><a href="https://www.dropbox.com/s/bi05a9wh8y921b5/en_US.blogs.train.4notags.txt?dl=1">en_US.blogs.train.4notags.txt</a></li>
 <li><a href="https://www.dropbox.com/s/tukbulgflyd6oer/en_US.news.train.4notags.txt?dl=1">en_US.news.train.4notags.txt</a></li>
 <li><a href="https://www.dropbox.com/s/esychemqwlv926e/en_US.twitter.train.4notags.txt?dl=1">en_US.twitter.train.4notags.txt</a></li>
 </ul>
-<p>MORE TO DO HERE…</p>
 </div>
-<div id="profanity-filtering" class="section level4">
-<h4>Profanity Filtering</h4>
+<div id="url-filtering" class="section level5">
+<h5>URL Filtering</h5>
 </div>
+<div id="pre-end-of-sentence-marker-filtering" class="section level5">
+<h5>Pre-End-of-Sentence Marker Filtering</h5>
+</div>
+</div>
+<div id="add-end-of-sentence-markers" class="section level4">
+<h4>Add End-of-Sentence Markers</h4>
+</div>
+<div id="post-eos-marker-filtering" class="section level4">
+<h4>Post-EOS Marker Filtering</h4>
+</div>
+</div>
+<div id="unigram-singleton-processing" class="section level3">
+<h3>Unigram Singleton Processing</h3>
+</div>
+<div id="n-gram-tables-generation" class="section level3">
+<h3>N-gram Tables Generation</h3>
 </div>
 <div id="appendix" class="section level3">
 <h3>Appendix</h3>
@@ -507,100 +530,6 @@ runFilterAndWrite &lt;- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfi
         writeLines(charVectFiltered, outfiles[i])
     }
     cat(&quot;convertUnicodeTags: FINISHED replacing unicode tags.\n&quot;)
-}</code></pre>
-<pre class="r"><code>## Returns a dataframe of profanity words built as a superset of two sources
-## src1 and src2.
-## The default sources used to build the list are:
-## 1) http://fffff.at/googles-official-list-of-bad-words/
-## 2) http://www.cs.cmu.edu/~biglou/resources/bad-words.txt
-## Note: 1) was converted from the JSON format to newline-delimited text
-mergeTermLists &lt;- function(dataDir=&quot;../data/en_US/&quot;,
-                           src1=sprintf(&quot;%s%s&quot;, dataDir, &quot;profanity.google.txt&quot;),
-                           src2=sprintf(&quot;%s%s&quot;, dataDir, &quot;profanity.biglou.txt&quot;),
-                           skipLines1=1, skipLines2=1) {
-    v1 &lt;- read.csv(src1, sep=&quot;\n&quot;, header=FALSE, skip=skipLines1,
-                   stringsAsFactors=FALSE)
-    v1 &lt;- v1[1:nrow(v1), &quot;V1&quot;]
-    v2 &lt;- read.csv(src2, sep=&quot;\n&quot;, header=FALSE, skip=skipLines2,
-                   stringsAsFactors=FALSE)
-    v2 &lt;- v2[1:nrow(v2), &quot;V1&quot;]
-    
-    merged.list &lt;- data.frame(badwords = union(v1, v2))
-    
-    return(merged.list)
-}
-
-## Removes URLs and anything not a word, space, or basic punctuation character
-## such as ?.!,:'- in a somewhat intelligent manner.
-postProfClean &lt;- function(samp, is.news=TRUE) {
-    # Build regex to remove URLs. No shorthand character classes in R,
-    # so need to create by hand
-    wordChars &lt;- &quot;A-Za-z0-9_\\-&quot;
-    urlRegex &lt;- sprintf(&quot;%s%s%s&quot;, &quot;(http|https)(://)?[&quot;, wordChars, &quot;]+&quot;)
-    urlRegex &lt;- sprintf(&quot;%s%s%s%s&quot;, urlRegex, &quot;(.[&quot;, wordChars, &quot;]+)+&quot;)
-    urlRegex &lt;- sprintf(&quot;%s%s%s%s&quot;, urlRegex, &quot;[&quot;, wordChars, &quot;.,@?^=%&amp;:/~\\+#]*&quot;)
-    # urlRegex &lt;- &quot;(http|https)://[\w\-_]+(\.[\w\-_]+)+[\w\-.,@?^=%&amp;:/~\\+#]*&quot;
-    samp &lt;- gsub(urlRegex, &quot;&quot;, samp, perl=TRUE)
-    if(!is.news) { samp &lt;- nonNewsPostProfClean(samp) }
-    # remove anything that's not an alpha, digit, or basic punctuation char
-    # will replace digits with NUM later
-    samp &lt;- gsub(&quot;[^A-Za-z0-9?.!,:'\\-]&quot;, &quot; &quot;, samp, perl=TRUE)
-    samp &lt;- gsub(&quot;( ){2,}&quot;, &quot; &quot;, samp, perl=TRUE)  # replace &gt;=2 spaces w/single space
-    samp &lt;- gsub(&quot;^( . )&quot;, &quot; &quot;, samp, perl=TRUE)
-    samp &lt;- gsub(&quot;^( ){1,}&quot;, &quot;&quot;, samp, perl=TRUE)  # remove leading spaces
-    samp &lt;- gsub(&quot;[ ]{1,}$&quot;, &quot;&quot;, samp, perl=TRUE)  # remove trailing spaces
-    # remove non-alpha char's that start sentences
-    samp &lt;- gsub(&quot;^[^A-Za-z]+&quot;, &quot;&quot;, samp)
-    # make lines that don't end in . ! or ? empty so they'll be removed later
-    samp &lt;- gsub(&quot;^.*[^.!?]$&quot;, &quot;&quot;, samp)
-    # replace non-word-period by just period
-    samp &lt;- gsub(&quot;([^A-Za-z0-9]+.)$&quot;, &quot;.&quot;, samp)
-    # remove lines that don't have any alpha characters
-    samp &lt;- gsub(&quot;^[^A-Za-z]+$&quot;, &quot;&quot;, samp, perl=TRUE)
-    # remove empty lines
-    samp &lt;- samp[which(samp  != &quot;&quot;)]
-    # replace 2 or more spaces with a single space
-    samp &lt;- gsub(&quot;[ ]{2,}&quot;, &quot; &quot;, samp, perl=TRUE)
-    # normalize text to lower case
-    samp &lt;- tolower(samp)
-    # replace sequences of digits by NUM token: after lower case to keep
-    # this special token UPPER CASE in the processed file
-    samp &lt;- gsub(&quot;[0-9]+&quot;, &quot;NUM&quot;, samp)
-    
-    return(samp)
-}
-
-## Does additional cleaning for twitter and blog files
-nonNewsPostProfClean &lt;- function(flines) {
-    cat(&quot;start nonNewsPostProfClean:&quot;, as.character(Sys.time()), &quot;\n&quot;)
-    # remove all lines that don't contain alpha char's
-    flines.edit &lt;- gsub(&quot;^[^a-z]$&quot;, &quot;&quot;, flines, ignore.case=T, perl=T)
-    flines.edit &lt;- flines.edit[which(flines.edit != &quot;&quot;)]
-    # remove most variants of the all-time favorite profanity word which
-    # weren't caught by profanity filter
-    flines.edit &lt;- gsub(&quot;(f+u+c+k+)&quot;, &quot;&quot;, flines.edit,
-                        ignore.case=TRUE, perl=TRUE)
-    # remove 'omg' and 'wow'
-    flines.edit &lt;- gsub(&quot;(omg|o m g)&quot;, &quot;&quot;, flines.edit, ignore.case=TRUE, perl=TRUE)
-    flines.edit &lt;- gsub(&quot;(wow|w o w)&quot;, &quot;&quot;, flines.edit, ignore.case=TRUE, perl=TRUE)
-    # remove trailing periods
-    flines.edit &lt;- gsub(&quot;^[.]+&quot;, &quot;&quot;, flines.edit, ignore.case=TRUE, perl=TRUE)
-    # remove embedded periods
-    flines.edit &lt;- gsub(&quot;([a-z]+)([.]+)([a-z]+)&quot;, &quot;\\1 \\3&quot;, flines.edit,
-                        ignore.case=TRUE, perl=TRUE)
-    # replace space-period-space with just space
-    flines.edit &lt;- gsub(&quot; [.] &quot;, &quot; &quot;, flines.edit, ignore.case=TRUE, perl=TRUE)
-    # remove periods assoc'd w/ morning and evening time abbrev's
-    flines.edit &lt;- gsub(&quot;(a m.)&quot;, &quot;am&quot;, flines.edit,
-                        ignore.case=TRUE, perl=TRUE)
-    flines.edit &lt;- gsub(&quot;(p m.)&quot;, &quot;pm&quot;, flines.edit,
-                        ignore.case=TRUE, perl=TRUE)
-    # remove remaining www instances
-    flines.edit &lt;- gsub(&quot;[a-z][.][a-z]&quot;, &quot; &quot;, flines.edit,
-                        ignore.case=TRUE, perl=TRUE)
-    cat(&quot;finish nonNewsPostProfClean:&quot;, as.character(Sys.time()), &quot;\n&quot;)
-    
-    return(flines.edit)
 }</code></pre>
 </div>
 </div>

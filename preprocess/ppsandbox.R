@@ -83,6 +83,14 @@ outpost <- '.8posteos.txt'
 # runFilterAndWrite(postEosClean, ddir, inpost, outpost, filePrefixes='en_US.blogs.train')
 runFilterAndWrite(postEosClean, ddir, inpost, outpost)
 
+rm(list = ls())
+setwd('../preprocess')
+source('PreEda.R')
+
+inpost <- '.9ustokens.txt'
+outpost <- '.10fixeos.txt'
+runFilterAndWrite(fixSentWoEos, ddir, inpost, outpost)
+
 ###########################################################
 # rm(list = ls())
 # setwd('../preprocess')
@@ -158,14 +166,6 @@ write.csv(unigrams.twitter.raw,
           'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.twitter.raw.csv',
           row.names = FALSE)
 
-s3 <- "this is the -first this is the -second and this is the -third end"
-s4 <- str_replace_all(s3, " -([a-z]+)", " \\1")
-s3
-s4
-
-s1 <- "maher-how could amn degrade a young woman -what is it with your gutterpolitics-i dont'understand -youthinkitsfunny -man you'relow EOS"
-# s2 <- str_replace_all(s1, " -([a-z]+) ", " \\1 ")
-s2 <- str_replace_all(s1, " -([a-z]+)", " \\1")
-s2
+charVect <- c('this has EOS', 'this is missing eo marker', 'that has EOS')
 
 
