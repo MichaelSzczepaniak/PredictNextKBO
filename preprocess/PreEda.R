@@ -286,7 +286,7 @@ runFilterAndWrite <- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
         charVect <- read_lines(infiles[i])
         charVectFiltered <- FUN(charVect)
         writeLines(charVectFiltered, outfiles[i])
-        cat("File written to", outfiles[i])
+        cat("File written to", outfiles[i], "\n")
     }
     cat("runFilterAndWrite: FINISHED filtering and writing files.\n")
 }
@@ -482,6 +482,21 @@ postEosClean <- function(charVect) {
     charVect <- cleanDashes(charVect, 'suspended')
     charVect <- cleanSingleQuotes(charVect, 'suspended')
     charVect <- cleanDashes(charVect, 'suspended')
+    
+    return(charVect)
+}
+
+## Add an EOS token to the end of lines that are missing them.  A few of these
+## instances resulted from earlier routines failure to insert this token.
+fixSentWoEos <- function(charVect) {
+    for(i in 1:length(charVect)) {
+        if(str_count(charVect[i], "EOS") < 1) {
+            charVect[i] <- sprintf("%s%s", charVect[i], " EOS")
+        }
+        # if(length(grep("\\.*(?<!EOS)$", charVect[i], perl=TRUE)) > 0) {
+        #     charVect[i] <- sprintf("%s%s", charVect[i], " EOS")
+        # }
+    }
     
     return(charVect)
 }
