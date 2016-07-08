@@ -29,3 +29,15 @@ usings <- read.csv(filePath)
 breaking.indices <- getBreakingIndices(filePath)
 breakWritePartdFiles()
 singletons <- loadIgnoreParts()
+
+## fix missing EOS lines
+fixSentWoEos <- function(charVect=inlines.edit) {
+    for(i in 1:length(charVect)) {
+        if(length(grep("", charVect[i])) > 0) {
+            charVect[i] <- sprintf("%s%s", charVect[i], " EOS")
+        }
+    }
+    
+    return(inlines.edit)
+}
+
