@@ -6,7 +6,7 @@ This goal of this project was to build a data product which uses a Katz Backoff 
 ### Project Breakdown
 The project is broken down in to four parts described below.  Each part contains a link to an page on rpubs which goes into further detail:
 <ol style="list-style-type: decimal">
-<li>Part 1 - Overview and Pre-Processing</li>
+<li><a href=http://rpubs.com/mszczepaniak/predictkbo1preproc>Part 1 - Overview and Pre-Processing</a></li>
 This main goal of this part was to convert the raw corpus data into a form which could be easily utilized by the next step in building n-gram tables and perform exploratory data analysis (EDA).
   <ul>
   <li>Background</li>
