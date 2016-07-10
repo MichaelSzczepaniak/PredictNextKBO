@@ -1,9 +1,10 @@
 ---
-title: "Predicting Next Word Using Katz Back-Off: Part 1 - Overview and Preprocessing"
+title: "Predicting Next Word Using Katz Back-Off"
+subtitle: "Part 1 - Overview and Preprocessing"
 author: "Michael Szczepaniak"
 date: "July 2016"
 output: html_document
-url: http://rpubs.com/mszczepaniak/preprockbo
+url: http://rpubs.com/mszczepaniak/predictkbo1preproc
 ---
 ## Background  
 World wide mobile internet usage is projected to continue its rapid growth over the next few years.  According to a [Statista Fact Sheet](http://www.statista.com/statistics/284202/mobile-phone-internet-user-penetration-worldwide/), the percentage of mobile phone users accessing the internet will rise to 63.4% in 2019 up from 48.8% in 2014.  This increased ownship has resulted in more people spending increasing amounts of time on mobile devices for email, social networking, banking and other activities. Because typing on these devices is an awkward and tedious task, smart keyboard applications based on predictive text analytics have emerged to make typing easier.
@@ -149,7 +150,7 @@ The **postEosClean** function was passed to **runFilterAndWrite** to do the filt
 + [en_US.news.train.8posteos.txt](https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1)
 + [en_US.twitter.train.8posteos.txt](https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1)
 
-The next steps in the data analysis pipeline are described in **Predicting Next Word Using Katz Back-Off: Part 2 - N-grams and Exploratory Data Analysis**.
+The next steps in the data analysis pipeline are described in [Predicting Next Word Using Katz Back-Off: Part 2 - N-grams and Exploratory Data Analysis](http://rpubs.com/mszczepaniak/predictkbo2ngeda).
 
 ### Appendix
 

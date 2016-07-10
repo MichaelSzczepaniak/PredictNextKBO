@@ -27,7 +27,7 @@ The main goal of this part was to construct the n-gram tables which will be used
   <li>Unigram Singleton Processing</li>
   <li>Unigram, Bigram, and Trigram Frequency Table Generation</li>
   </ul>
-<li><a href=http://rpubs.com/mszczepaniak/prednextkbo>Part 3 - Understanding and Implementing the Model</a></li>
+<li><a href=http://rpubs.com/mszczepaniak/predictkbo3model>Part 3 - Understanding and Implementing the Model</a></li>
 The main goal of this part was to develop the conceptual framework and the code to implement the Katz Backoff Trigram algorithm as the model used to predict the next word.
   <ul>
   <li>Deriving the Model
