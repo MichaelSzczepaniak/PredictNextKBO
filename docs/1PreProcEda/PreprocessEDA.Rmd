@@ -1,35 +1,38 @@
 ---
-title: "Predicting Next Word Using Katz Back-Off: Objectives, Preprocessing & EDA"
+title: "Predicting Next Word Using Katz Back-Off: Part 1 - Overview and Preprocessing"
 author: "Michael Szczepaniak"
 date: "July 2016"
 output: html_document
 url: http://rpubs.com/mszczepaniak/preprockbo
 ---
 ## Background  
-World wide mobile internet usage is projected to continue its rapid growth over the next few years.  According to a [Statista Fact Sheet](http://www.statista.com/statistics/284202/mobile-phone-internet-user-penetration-worldwide/), the percentage of mobile phone users accessing the internet will rise to 63.4% in 2019 up from 48.8% in 2014.  This increased ownship has resulted in more people spending increasing amounts of time on mobile devices for email, social networking, banking and other activities. Because typing on these devices is an awkward and tedious task, smart keyboard applications based on predictive text analytics have emerged to make typing easier.  
+World wide mobile internet usage is projected to continue its rapid growth over the next few years.  According to a [Statista Fact Sheet](http://www.statista.com/statistics/284202/mobile-phone-internet-user-penetration-worldwide/), the percentage of mobile phone users accessing the internet will rise to 63.4% in 2019 up from 48.8% in 2014.  This increased ownship has resulted in more people spending increasing amounts of time on mobile devices for email, social networking, banking and other activities. Because typing on these devices is an awkward and tedious task, smart keyboard applications based on predictive text analytics have emerged to make typing easier.
 
-## Goal & Objectives
+## Objectives
 The overall goal of this project was to develop a prototype predictive web application that suggests the next word in a message of text based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  This goal was broken down into four objectives:
 
-### Objective #1 - Model Development
+### Objective #1 - Partition and Clean the Data
+This document describes the details around how the data was partitioned and how it was cleaned prior to n-gram table construction and exploratory data analysis (EDA) was done.  This was the most time consuming step which was no surprise given [what some of the literature reports.](https://www.jstatsoft.org/index.php/jss/article/view/v059i10/v59i10.pdf)
+
+The data was initially split into an 80% training set and a 20% test set.  All cleaning, exploratory data analysis (EDA) and parameter optimization work was performed on the training set.  All code used to perform any analysis step is listed in the Appendix and referred to throughout this document.
+
+### Objective #2 - N-grams and Exploratory Data Analysis (EDA)
+Once the data was cleaned, unigram, bigram, and trigram frequency tables were constructed.  These tables are at the heart of the data required by the model to make its predictions.  Some EDA was performed on with these tables to gain insights which would later serve the model development phase.
+
+### Objective #3 - Model Development
 A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm to make these predictions.  A detailed [description of how this algorithm works can be found here](http://rpubs.com/mszczepaniak/prednextkbo).  The KBO Trigram was chosen for three main reasons:
 
 1. **Size -** One of the simpliest LMs considered was the [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf).  This model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  Because this app was deployed on a 1Gb shinyapp.io instance, I didn't think there was enough data to do a decent job with predictions.
 2. **Accuracy on small corpus -** The SBO does not consider or account for unobserved n-grams, but instead backs off to the nearest matched n-gram until it reaches the unigram.  The KBO model incorporates a form of smoothing in order to estimate probabilities of unobserved n-grams which appears to be more accurate when using a limited number of n-grams (trigrams in this case).
 3. **Interesting and challenging - ** Because the SBO is much simplier to implement, I felt the project would be more intersting and challenging to work on if the more complex KBO algorithm was selected for implementation.
 
-### Objective #2 - Partition and Clean the Data and Perform an Initial EDA
-This document describes the details around how the data was partitioned, how it was cleaned, and how the intial exploratory data analysis (EDA) was done.  This was the most time consuming step which is was no surprise given [what some of the literature reports with regard to these kinds of projects.](https://www.jstatsoft.org/index.php/jss/article/view/v059i10/v59i10.pdf)
-
-The data was initially split into an 80% training set and a 20% test set.  All cleaning, EDA and parameter optimization work was performed on the training set.
-
-### Objective #3 - Parameter Optimization
+### Objective #4 - Parameter Optimization
 [As described here](http://rpubs.com/mszczepaniak/prednextkbo), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here (NOT ACTIVE YET: REMOVE WHEN ACTIVE!)](http://rpubs.com/mszczepaniak/kbotparamcv).
 
-### Objective #4 - Make the Work Reproducible
+### Objective #5 - Make the Work Reproducible
 This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files were provided.  All pre-processing code (Objective #2) is provided in the **Appendix** section of this R Markdown document.
 
-### Objective #5 - Deploy the App on shinyapps.io
+### Objective #6 - Deploy the App on shinyapps.io
 The results of meeting this objective can be found by visiting (NOT ACTIVE YET: REMOVE WHEN ACTIVE!):
 [https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/)
 
@@ -43,13 +46,11 @@ After the data was read and partitioned into training and test sets, the trainin
 
 1. Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element.  One artifact of this step was that things like "St." which are used as a contraction for "Saint" were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.
 2. Non-ASCII Character Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.
-3. Unicode Tag Conversions and Filtering -
-4. URL Filtering - 
-5. Pre-EOS Marker Filtering - 
-6. Add EOS Markers - 
-7. Post-EOS Marker Filtering - 
-
-The profanity removal step required required first building a profanity list.  This was done by taking the union of three lists from the following sources: [google](http://fffff.at/googles-official-list-of-bad-words/), [Luis von Ahn of Carnegie Mellon University ](http://www.cs.cmu.edu/~biglou/resources/bad-words.txt), and [a github project of Duncan Robertson from London, UK](https://github.com/whomwah/language-timothy/blob/master/profanity-list.txt). These lists were downloaded and merged together using the **mergeTermLists** function and profanity was removed using the **removeProfanity** function. Both of these functions are listed in the **Appendix**.
+3. Unicode Tag Conversions and Filtering - The initial reading of the data in the partitioning step generated unicode tags which needed to be processed to avoid model accuracy degradation.
+4. URL Filtering - An extensive number of URL's were found in the corpus documents.  These are artifacts that the model was not designed to predict, so they were removed.  Because these URL's took on a number of forms (e.g. http:\\..., www.example.com, etc) the filtering processing focused on removing a majority of these fragments.
+5. Pre-EOS Marker Filtering - End-of-Sentence (EOS) markers were used to make it easier for the model to differentiate phrases that did and did not span sentence boundaries.  This was essentially a clean-up step.
+6. Add EOS Markers - A special EOS token replaced all markes that typically end sentences (e.g. periods, question marks, etc.)
+7. Post-EOS Marker Filtering - The pre-EOS and add-EOS marker steps generated additional fragments that needed to be cleaned up.  This step did this processing.
 
 The above steps were executed off-line (not in this R Markdown file) because they were time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.
 
@@ -118,21 +119,37 @@ A vast majority of these tags were **\<U+FFFD\>** which is a special code [used 
 
 ##### URL Filtering
 
+The **removeUrls** function was passed to **runFilterAndWrite** to remove the URL's.  Several of the most common forms were designed to be captured, and the frequency of ones that were not captured were deemed acceptable low.  The outputs from this function resulted in the following 3 files:
+
++ [en_US.blogs.train.5nourls.txt](https://www.dropbox.com/s/rbai65ov1tntsbw/en_US.blogs.train.5nourls.txt?dl=1)
++ [en_US.news.train.5nourls.txt](https://www.dropbox.com/s/tpo3i69xsmgaeey/en_US.news.train.5nourls.txt?dl=1)
++ [en_US.twitter.train.5nourls.txt](https://www.dropbox.com/s/bkw0cllrrlulryf/en_US.twitter.train.5nourls.txt?dl=1)
 
 ##### Pre-End-of-Sentence Marker Filtering
 
+The **preEosClean** function was passed to **runFilterAndWrite** to do the filtering prior to EOS marker insertion.  This step in the pipeline removed things like unneeded dashes and single quotes.  The outputs from this function resulted in the following 3 files:
+
++ [en_US.blogs.train.6preeos.txt](https://www.dropbox.com/s/5vs77davgreszli/en_US.blogs.train.6preeos.txt?dl=1)
++ [en_US.news.train.6preeos.txt](https://www.dropbox.com/s/5offiarafw8jf2a/en_US.news.train.6preeos.txt?dl=1)
++ [en_US.twitter.train.6preeos.txt](https://www.dropbox.com/s/4xijxo0xtoe98g4/en_US.twitter.train.6preeos.txt?dl=1)
 
 #### Add End-of-Sentence Markers
 
+The **addEosMarkers** function was passed to **runFilterAndWrite** to do the EOS marker insertion.  The outputs from this function resulted in the following 3 files:
+
++ [en_US.blogs.train.7eos.txt](https://www.dropbox.com/s/fcg60j0f47mofqv/en_US.blogs.train.7eos.txt?dl=1)
++ [en_US.news.train.7eos.txt](https://www.dropbox.com/s/lp7dmt64tb1e65z/en_US.news.train.7eos.txt?dl=1)
++ [en_US.twitter.train.7eos.txt](https://www.dropbox.com/s/epqnjdbdxi3oxrz/en_US.twitter.train.7eos.txt?dl=1)
 
 #### Post-EOS Marker Filtering
 
+The **postEosClean** function was passed to **runFilterAndWrite** to do the filtering after to EOS marker insertion.  The outputs from this function resulted in the following 3 files:
 
-### Unigram Singleton Processing
++ [en_US.blogs.train.8posteos.txt](https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1)
++ [en_US.news.train.8posteos.txt](https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1)
++ [en_US.twitter.train.8posteos.txt](https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1)
 
-
-### N-gram Tables Generation
-
+The next steps in the data analysis pipeline are described in **Predicting Next Word Using Katz Back-Off: Part 2 - N-grams and Exploratory Data Analysis**.
 
 ### Appendix
 
@@ -372,6 +389,7 @@ convertUnicodeTags <- function(charVect) {
 ## character vector charVect and returns the resulting character vector.
 ## This function is intended to be passed to the runFilterAndWrite function.
 removeUrls <- function(charVect) {
+    cat("removeUrls: start removing urls...\n")
     # Build regex to remove URLs. No shorthand character classes in R,
     # so need to create by hand
     wordChars <- "A-Za-z0-9_\\-"
@@ -384,6 +402,7 @@ removeUrls <- function(charVect) {
     # clean up www.<something> instances that don't start with http(s)
     urlRegexWww <- sprintf("%s%s%s%s", "( www\\.)[", wordChars, "]+", urlRegex2)
     charVect <- gsub(urlRegexWww, "", charVect, perl=TRUE)
+    cat("removeUrls: FINISHED removing urls.\n")
     
     return(charVect)
 }
@@ -423,6 +442,213 @@ runFilterAndWrite <- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
 
 
 ```{r eval=FALSE}
+## Removes dashes in a variety of forms.
+## charVect - the character vector to have dashes cleaned
+## dash.patterns - character vector that determines the type of dash remove to
+## be done.  There are 3 valid values: 'suspended', 'leading', or 'trailing'
+cleanDashes <- function(charVect,
+                        dash.patterns=c('suspended',
+                                        'leading',
+                                        'trailing')) {
+    if(length(grep("suspended", dash.patterns)) > 0) {
+        # remove suspended dash
+        charVect <- gsub("[ ]+[\\-]+[ ]+", " ", charVect, perl=TRUE)
+    }
+    if(length(grep("leading", dash.patterns)) > 0) {
+        # remove leading dash
+        charVect <- gsub("[ ]+[\\-]+", " ", charVect, perl=TRUE)
+    }
+    if(length(grep("trailing", dash.patterns)) > 0) {
+        # remove trailing dash
+        charVect <- gsub("[\\-]+[ ]+", " ", charVect, perl=TRUE)
+    }
+    
+    return(charVect)
+}
 
+## The 's (prevelant in the twitter file) usually had one of two meanings:
+## as either 'his'or 'is'.  Because making distinction was not easy to codify,
+## this function simple removes the leading single quote.
+tokenizeIsHis <- function(charVect) {
+    charVect <- gsub("( 's )", "s", charVect, perl=TRUE)
+    return(charVect)
+}
+
+## Handles various configuration where single quotes are used.
+## charVect - the character vector to have single quotes cleaned
+## quote.patterns - character vector that determines the type of single quote
+## processing is to be done.  There are 3 valid values: 'suspended', 'leading',
+## or 'trailing'
+cleanSingleQuotes <- function(charVect,
+                              quote.patterns=c('suspended',
+                                               'leading',
+                                               'trailing')) {
+    all.patterns <- (length(grep("suspended", quote.patterns) > 0)) &&
+                    (length(grep("leading", quote.patterns) > 0)) &&
+                    (length(grep("trailing", quote.patterns) > 0))
+    
+    if(all.patterns) {
+        # deal with case of <something>' '<something else> which occurs in
+        # twitter files
+        charVect <- gsub("([a-zNUM]+)([']+[ ]+[']+)([a-zNUM]+)", "\\1 \\3", charVect, perl=TRUE)
+    }
+    
+    if(length(grep("suspended", quote.patterns)) > 0) {
+        # remove 1 or more suspended single quotes
+        charVect <- gsub("[ ]+[']+[ ]+", " ", charVect, perl=TRUE)
+    }
+    if(length(grep("leading", quote.patterns)) > 0) {
+        # replace leading single quote space with space
+        charVect <- gsub("[ ]+[']+", " ", charVect, perl=TRUE)
+    }
+    if(length(grep("trailing", quote.patterns)) > 0) {
+        # replace trailing single quote space with space
+        charVect <- gsub("[']+[ ]+", " ", charVect, perl=TRUE)
+    }
+    
+    
+    return(charVect)
+}
+
+## Removes non-essential chars but keep spaces and basic punctuation characters
+## such as ?.!,:'- in a somewhat intelligent manner.
+preEosClean <- function(charVect) {
+    cat("preEosClean: start pre-EOS marker cleaning at",
+        as.character(Sys.time()),"...\n")
+    # Remove anything that's not an alpha, digit (will replace digits with NUM
+    # later), or basic punctuation char. Removes "$%,)(][ characters
+    charVect <- gsub("[^A-Za-z0-9?.!?' \\-]", " ", charVect, perl=TRUE)
+     
+    charVect <- gsub("^[ ]{1,}", "", charVect, perl=TRUE)  # remove leading spaces
+    charVect <- gsub("[ ]{1,}$", "", charVect, perl=TRUE)  # remove trailing spaces
+    # remove non-alpha char's that start sentences
+    charVect <- gsub("^[^A-Za-z]+", "", charVect)
+    # make lines that don't end in . ! or ? empty so they'll be removed later
+    charVect <- gsub("^.*[^.!?]$", "", charVect)
+    # replace non-word-period by just period
+    charVect <- gsub("([^A-Za-z0-9]+.)$", ".", charVect)
+    # remove lines that don't have any alpha characters
+    charVect <- gsub("^[^A-Za-z]+$", "", charVect, perl=TRUE)
+    
+    charVect <- cleanDashes(charVect)
+    charVect <- tokenizeIsHis(charVect) # 's to s
+    charVect <- cleanSingleQuotes(charVect)
+    
+    # remove periods that start lines
+    charVect <- gsub("^[.]+", "", charVect, ignore.case=TRUE, perl=TRUE)
+    # remove embedded periods
+    charVect <- gsub("([a-z]+)([.]+)([a-z]+)", "\\1 \\3", charVect,
+                     ignore.case=TRUE, perl=TRUE)
+    # replace space-period-space with just space
+    charVect <- gsub(" [.] ", " ", charVect, ignore.case=TRUE, perl=TRUE)
+    # remove periods assoc'd w/ morning and evening time abbrev's
+    charVect <- gsub("(a m.)", "am", charVect, ignore.case=TRUE, perl=TRUE)
+    charVect <- gsub("(p m.)", "pm", charVect, ignore.case=TRUE, perl=TRUE)
+
+    # remove empty lines
+    charVect <- charVect[which(charVect  != "")]
+    # replace 2 or more spaces with a single space
+    charVect <- gsub("[ ]{2,}", " ", charVect, perl=TRUE)
+    # normalize text to lower case
+    charVect <- tolower(charVect)
+    # replace sequences of digits by NUM token: after lower case to keep
+    # this special token UPPER CASE in the processed file
+    charVect <- gsub("[0-9]+", "NUM", charVect)
+    # replace two or more periods in a row with a space
+    charVect <- gsub("[.]{2,}", " ", charVect, perl=TRUE)
+    # replace space followed by 1 or more minus signs followed by space
+    # with just a space
+    charVect <- gsub("[ ]+[-]+[ ]", " ", charVect, perl=TRUE)
+    # replace phrases enclosed in single quotes with just the phrase
+    charVect <- gsub("(?:[^a-zM]+)'([a-zNUM ]+)'(?:[^a-zN])",
+                     " \\1 ", charVect, perl=TRUE)
+    # replace two or more spaces in a row (again) with a space to clean up any
+    # extra spaces generated by the prior gsub calls
+    charVect <- gsub("[ ]{2,}", " ", charVect, perl=TRUE)
+    
+    # repeat to handle some embeddedness
+    charVect <- cleanDashes(charVect)
+    charVect <- cleanSingleQuotes(charVect)
+    # remove remaining non-alpha fragments
+    charVect <- gsub("[-']{2,}", " ", charVect, perl=TRUE)
+    
+    cat("preEosClean: FINISHED pre-EOS marker cleaning at",
+        as.character(Sys.time()),".\n")
+    return(charVect)
+}
+
+## Adds EOS at the end of each line of text and replaces the . ! or ?
+## charVect - character vector containing the file lines to be processed
+addEosMarkers <- function(charVect) {
+    cat("addEosMarkers: start adding EOS markers at",
+        as.character(Sys.time()),"...\n")
+    # add end of sentence markers to lines that ended in non-alpha chars
+    charVect <- gsub("([^a-z]+)$", " EOS", charVect, ignore.case=TRUE, perl=TRUE)
+    # remove all remaining periods, question marks, exclamation points:
+    charVect <- gsub("[.?!]", " ", charVect, perl=TRUE)
+    charVect <- gsub("[ ]{2,}", " ", charVect)  # remove extra spaces
+    
+    cat("addEosMarkers: FINISH adding EOS markers at",
+        as.character(Sys.time()),".\n")
+    return(charVect)
+}
+
+## Fixes varous issues with common acronyms such as tv, us (United States), uk
+## (United Kingdom), dc (District of Columbia), ie, eg
+## Precondition - This function should be called AFTER all text has been
+##                converted to lower case (u s to US conversion)
+## Note: Examples like line 1673063 in en_US.blogs.train.8posteos.txt show how
+##       even carefully crafted regexs are going to convert some segments
+##       incorrectly. Other misclassifications also exist.
+postEosClean <- function(charVect) {
+    # tv
+    charVect <- gsub("([a-zNUM]+)( t v )([a-zNUMEOS']+)", "\\1 tv \\3",
+                     charVect, perl=TRUE)
+    # us - A vast majority of instances of ' u s ' should be interpretted as US.
+    # A vast majority of instances of  'us' should be the word us (not an acro)
+    charVect <- gsub("( u s -)([a-zEOSNUM']+) ", " US-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( u s )([a-zNUMEOS']+)", "\\1 US \\3",
+                     charVect, perl=TRUE)
+    charVect <- gsub("the us", "the US", charVect, perl=TRUE)
+    # uk
+    charVect <- gsub("( u k -)([a-zEOSNUM]+) ", " uk-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( u k )([a-zNUMEOS']+)", "\\1 uk \\3",
+                     charVect, perl=TRUE)
+    # la
+    charVect <- gsub("( l a -)([a-zEOSNUM]+) ", " la-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( l a )([a-zNUMEOS']+)", "\\1 la \\3",
+                     charVect, perl=TRUE)
+    # dc
+    charVect <- gsub("( d c -)([a-zEOSNUM]+) ", " DC-\\2 ", charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( d c )([a-zNUMEOS']+)", "\\1 DC \\3",
+                     charVect, perl=TRUE)
+    # <something> -based
+    charVect <- gsub(" ([a-z]{2,}) -([a-zEOSNUM]+) ", " \\1-\\2 ", charVect, perl=TRUE)
+    # ie, eg
+    charVect <- gsub("([a-zNUM]+)( i e )([a-zNUMEOS]+)", "\\1 ie \\3",
+                     charVect, perl=TRUE)
+    charVect <- gsub("([a-zNUM]+)( e g )([a-zNUMEOS]+)", "\\1 eg \\3",
+                     charVect, perl=TRUE)
+    # cd - things like 'vitamin c d' will not get processed correctly, dealing
+    # with every possible contingency in the corpus is unrealstic, so some
+    # mis-processing is going to have to be tolerated
+    charVect <- gsub("([a-zNUM]+)( c d )([a-zNUMEOS']+)", "\\1 cd \\3",
+                     charVect, perl=TRUE)
+    # concatenate single letters together - assume they should be
+    charVect <- gsub(" ([a-z]) ([a-z]) ", " \\1\\2 ", charVect, perl=TRUE)
+    # push together <something> 's
+    charVect <- gsub("([a-zA-Z']) ('s) ", " \\1\\2 ", charVect, perl=TRUE)
+    # -<somthing> clean up
+    # charVect <- str_replace_all(charVect, " -([a-zNUMEOS'-]+) ", " \\1 ")
+    charVect <- str_replace_all(charVect, " -([a-zNUMEOS'-]+)", " \\1")
+    # '<something> clean up
+    charVect <- gsub(" '([a-zA-z]+)", " \\1", charVect, perl=TRUE)
+    # clean up misc fragments generated from prior op's
+    charVect <- cleanDashes(charVect, 'suspended')
+    charVect <- cleanSingleQuotes(charVect, 'suspended')
+    charVect <- cleanDashes(charVect, 'suspended')
+    
+    return(charVect)
+}
 ```
 

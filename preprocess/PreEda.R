@@ -291,6 +291,10 @@ runFilterAndWrite <- function(FUN, dataDir=ddir, inFilePostfix, outFilePostfix,
     cat("runFilterAndWrite: FINISHED filtering and writing files.\n")
 }
 
+## Removes dashes in a variety of forms.
+## charVect - the character vector to have dashes cleaned
+## dash.patterns - character vector that determines the type of dash remove to
+## be done.  There are 3 valid values: 'suspended', 'leading', or 'trailing'
 cleanDashes <- function(charVect,
                         dash.patterns=c('suspended',
                                         'leading',
@@ -298,10 +302,12 @@ cleanDashes <- function(charVect,
     if(length(grep("suspended", dash.patterns)) > 0) {
         # remove suspended dash
         charVect <- gsub("[ ]+[\\-]+[ ]+", " ", charVect, perl=TRUE)
-    } else if(length(grep("leading", dash.patterns)) > 0) {
+    }
+    if(length(grep("leading", dash.patterns)) > 0) {
         # remove leading dash
         charVect <- gsub("[ ]+[\\-]+", " ", charVect, perl=TRUE)
-    } else if(length(grep("trailing", dash.patterns)) > 0) {
+    }
+    if(length(grep("trailing", dash.patterns)) > 0) {
         # remove trailing dash
         charVect <- gsub("[\\-]+[ ]+", " ", charVect, perl=TRUE)
     }
@@ -309,11 +315,19 @@ cleanDashes <- function(charVect,
     return(charVect)
 }
 
+## The 's (prevelant in the twitter file) usually had one of two meanings:
+## as either 'his'or 'is'.  Because making distinction was not easy to codify,
+## this function simple removes the leading single quote.
 tokenizeIsHis <- function(charVect) {
     charVect <- gsub("( 's )", "s", charVect, perl=TRUE)
     return(charVect)
 }
 
+## Handles various configuration where single quotes are used.
+## charVect - the character vector to have single quotes cleaned
+## quote.patterns - character vector that determines the type of single quote
+## processing is to be done.  There are 3 valid values: 'suspended', 'leading',
+## or 'trailing'
 cleanSingleQuotes <- function(charVect,
                               quote.patterns=c('suspended',
                                                'leading',
@@ -332,11 +346,11 @@ cleanSingleQuotes <- function(charVect,
         # remove 1 or more suspended single quotes
         charVect <- gsub("[ ]+[']+[ ]+", " ", charVect, perl=TRUE)
     }
-    else if(length(grep("leading", quote.patterns)) > 0) {
+    if(length(grep("leading", quote.patterns)) > 0) {
         # replace leading single quote space with space
         charVect <- gsub("[ ]+[']+", " ", charVect, perl=TRUE)
     }
-    else if(length(grep("trailing", quote.patterns)) > 0) {
+    if(length(grep("trailing", quote.patterns)) > 0) {
         # replace trailing single quote space with space
         charVect <- gsub("[']+[ ]+", " ", charVect, perl=TRUE)
     }
