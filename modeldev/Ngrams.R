@@ -52,12 +52,16 @@ getNgramFreqs <- function(ng, dat, igfs=NULL,
 ## (freq) contains the frequency or count of the ngram found in linesCorpus.
 ##
 ## linesCorpus - character vector
+## igfs - Character vector of words (features) to ignore from frequency table
+## sort.by.ngram - If TRUE (default), returned table is sorted by ngram
+## sort.by.freq - If TRUE, returned table is sorted by frequency, default=FALSE
 ## prefixFilter - string/character vector: If not NULL, tells the function
 ##                to return only rows where ngram column starts with prefixFilter.
 ##                If NULL, returns all the ngram and count rows.
-getNgramTables <- function(n, linesCorpus, prefixFilter=NULL) {
+getNgramTables <- function(n, linesCorpus, igfs=NULL, sort.by.ngram=TRUE,
+                           sort.by.freq=FALSE, prefixFilter=NULL) {
     cat("start getNgramTables:", as.character(Sys.time()), "\n")
-    ngrams <- getNgramFreqs(n, linesCorpus)
+    ngrams <- getNgramFreqs(n, linesCorpus, igfs, sort.by.ngram, sort.by.freq)
     ngrams.dt <- data.table(ngram=names(ngrams), freq=ngrams)
     if(length(grep('^SOS', ngrams.dt$ngram)) > 0) {
         ngrams.dt <- ngrams.dt[-grep('^SOS', ngrams.dt$ngram),]
