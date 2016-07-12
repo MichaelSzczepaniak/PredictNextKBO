@@ -21,7 +21,10 @@ We start with the files listed below as described in [Part 1](http://rpubs.com/m
 + [en_US.news.train.8posteos.txt](https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1)
 + [en_US.twitter.train.8posteos.txt](https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1)
 
+From these three files, we create unigram frequency tables using the **makeRawUnigramTables** function. Output files from this function were:
 
-
++ [](?dl=1)
++ [](?dl=1)
++ [](?dl=1)
 
 ## Appendix
