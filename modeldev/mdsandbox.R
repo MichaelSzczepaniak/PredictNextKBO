@@ -45,7 +45,7 @@ bigrams.blogs <- getNgramTables(2, charvect, "USIN") # ignore unigram singletons
 write.csv(bigrams.blogs, output.bigram.paths[1], row.names = FALSE)
 
 charvect <- read_lines(input.paths[2])
-bigrams.news.raw <- getNgramTables(2, charvect, "USIN") # ignore unigram singletons
+bigrams.news <- getNgramTables(2, charvect, "USIN") # ignore unigram singletons
 write.csv(bigrams.news, output.bigram.paths[2], row.names = FALSE)
 
 charvect <- read_lines(input.paths[3])
