@@ -148,23 +148,26 @@ infiles <- c(sprintf('%s%s', ddir, 'en_US.blogs.train.8posteos.txt'),
              sprintf('%s%s', ddir, 'en_US.news.train.8posteos.txt'),
              sprintf('%s%s', ddir, 'en_US.twitter.train.8posteos.txt'))
 
-charvect <- read_lines(infiles[1])
-unigrams.blogs.raw <- getNgramTables(1, charvect)
-write.csv(unigrams.blogs.raw, 
-          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.blogs.raw.csv',
-          row.names = FALSE)
+makeRawUnigrams <- function() {
+    charvect <- read_lines(infiles[1])
+    unigrams.blogs.raw <- getNgramTables(1, charvect)
+    write.csv(unigrams.blogs.raw, 
+              'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.blogs.raw.csv',
+              row.names = FALSE)
+    
+    charvect <- read_lines(infiles[2])
+    unigrams.news.raw <- getNgramTables(1, charvect)
+    write.csv(unigrams.news.raw,
+              'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.news.raw.csv',
+              row.names = FALSE)
+    
+    charvect <- read_lines(infiles[3])
+    unigrams.twitter.raw <- getNgramTables(1, charvect)
+    write.csv(unigrams.twitter.raw,
+              'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.twitter.raw.csv',
+              row.names = FALSE)
+}
 
-charvect <- read_lines(infiles[2])
-unigrams.news.raw <- getNgramTables(1, charvect)
-write.csv(unigrams.news.raw,
-          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.news.raw.csv',
-          row.names = FALSE)
-
-charvect <- read_lines(infiles[3])
-unigrams.twitter.raw <- getNgramTables(1, charvect)
-write.csv(unigrams.twitter.raw,
-          'D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/ngrams/unigrams.twitter.raw.csv',
-          row.names = FALSE)
 
 charVect <- c('this has EOS', 'this is missing eo marker', 'that has EOS')
 
