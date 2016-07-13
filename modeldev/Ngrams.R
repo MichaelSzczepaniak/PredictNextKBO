@@ -117,6 +117,29 @@ mergeFreqTables <- function(ftab1, ftab2,
     return(mergedTable)
 }
 
+## Reads in a unigram frequency csv file and writes two files: 1) a unigram
+## frequency file with the singletons removed and 2) the unigram singletons
+## that were removed from the file.
+removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
+                              inFilePostfix=".train.11unigrams.raw.csv",
+                              out1FilePostfix=".train.12unigrams.nous.csv",
+                              out2FilePostfix=".train.12usingles.txt",
+                              fileTypes=c("blogs", "news", "twitter")) {
+    inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                       inFilePostfix)
+    out1Paths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                         out1FilePostfix)
+    out2Paths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                         out2FilePostfix)
+    for(i in 1:length(inPaths)) {
+        raw.unigrams <- read.csv(inPaths[i])
+        nonsingle.unigrams <- filter(raw.unigrams, freq > 1)
+        unigram.singletons <- filter(raw.unigrams, freq == 1)$ngram
+        write.csv(nonsingle.unigrams, out1Paths[i], row.names = FALSE)
+        writeLines(unigram.singletons, out2Paths[i])
+    }
+}
+
 ## Merges 3 ngram/frequency tables together.  Each table is expected to have
 ## at least 2 fields: ngram and freq.  The merged table is written to:
 ## ddir/ngrams/unigramSingletonsAll.csv
@@ -145,7 +168,7 @@ writeMergedUnigramSingletons <- function(ngram.freq1, ngram.freq2, ngram.freq3,
               row.names=FALSE)
 }
 
-##### This section of code replaces unigram singletons with common token #####
+##### This section of code replaces unigram singletons with a common token #####
 
 ## Returns the index in the alphabetizedSingletons character vector where words
 ## start with each of the the letters a-z
