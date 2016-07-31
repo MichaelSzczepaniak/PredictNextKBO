@@ -13,45 +13,45 @@ World wide mobile internet usage is projected to continue its rapid growth over 
 The overall goal of this project was to develop a prototype predictive web application that suggests the next word in a message of text based on what has been typed in by the user. For example, a user may type *I love Italian* and the the application might suggest: *food*, *shoes*, or *opera*.  This goal was broken down into four objectives:
 
 ### Objective #1 - Partition and Clean the Data
-This document describes the details around how the data was partitioned and how it was cleaned prior to n-gram table construction and exploratory data analysis (EDA) was done.  This was the most time consuming step which was no surprise given [what some of the literature reports.](https://www.jstatsoft.org/index.php/jss/article/view/v059i10/v59i10.pdf)
+In addition to the objective, this document describes the details around how the data was partitioned, how it was cleaned prior to n-gram table construction, and what exploratory data analysis (EDA) was done.  This was the most time objective which was no surprise given [what has been reported in the literature.](https://www.jstatsoft.org/index.php/jss/article/view/v059i10/v59i10.pdf)
 
 The data was initially split into an 80% training set and a 20% test set.  All cleaning, exploratory data analysis (EDA) and parameter optimization work was performed on the training set.  All code used to perform any analysis step is listed in the Appendix and referred to throughout this document.
 
 ### Objective #2 - N-grams and Exploratory Data Analysis (EDA)
-Once the data was cleaned, unigram, bigram, and trigram frequency tables were constructed.  These tables are at the heart of the data required by the model to make its predictions.  Some EDA was performed on with these tables to gain insights which would later serve the model development phase.
+Once the data was cleaned, unigram, bigram, and trigram frequency tables were constructed.  These tables are at the heart of the data required by the model to make its predictions.  Some EDA was performed on these tables to gain insights which would later serve the model development phase.
 
 ### Objective #3 - Model Development
-A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm to make these predictions.  A detailed [description of how this algorithm works can be found here](http://rpubs.com/mszczepaniak/prednextkbo).  The KBO Trigram was chosen for three main reasons:
+A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm to make these predictions.  A detailed [description of how this algorithm works can be found here](http://rpubs.com/mszczepaniak/predictkbo3model).  The KBO Trigram was chosen for three main reasons:
 
-1. **Size -** One of the simpliest LMs considered was the [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf).  This model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  Because this app was deployed on a 1Gb shinyapp.io instance, I didn't think there was enough data to do a decent job with predictions.
+1. **Size -** One of the simpliest LMs considered was the [A Stupid Back-Off (SBO) model](http://www.aclweb.org/anthology/D07-1090.pdf).  This model tends to do well with large web-scale n-gram tables.  The authors of this algorithm built tarabyte-sized language models.  Because this app was deployed on a 1Gb shinyapp.io instance, it seem reasonable to assume that there was enough data to do a decent job with predictions.
 2. **Accuracy on small corpus -** The SBO does not consider or account for unobserved n-grams, but instead backs off to the nearest matched n-gram until it reaches the unigram.  The KBO model incorporates a form of smoothing in order to estimate probabilities of unobserved n-grams which appears to be more accurate when using a limited number of n-grams (trigrams in this case).
 3. **Interesting and challenging - ** Because the SBO is much simplier to implement, I felt the project would be more intersting and challenging to work on if the more complex KBO algorithm was selected for implementation.
 
 ### Objective #4 - Parameter Optimization
-[As described here](http://rpubs.com/mszczepaniak/prednextkbo), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here (NOT ACTIVE YET: REMOVE WHEN ACTIVE!)](http://rpubs.com/mszczepaniak/kbotparamcv).
+[As described here](http://rpubs.com/mszczepaniak/predictkbo3model), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here (NOT ACTIVE YET: REMOVE THIS NOTICE WHEN ACTIVE!)](http://rpubs.com/mszczepaniak/kbotparamcv).
 
 ### Objective #5 - Make the Work Reproducible
-This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files were provided.  All pre-processing code (Objective #2) is provided in the **Appendix** section of this R Markdown document.
+This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files were provided.  All pre-processing code (Objective #1) is provided in the **Appendix** section of this R Markdown document.
 
 ### Objective #6 - Deploy the App on shinyapps.io
 The results of meeting this objective can be found by visiting (NOT ACTIVE YET: REMOVE WHEN ACTIVE!):
 [https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/)
 
 ## Acquiring and Partitioning the Data
-The data was originally downloaded from [this link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) and stored locally. If this link is no longer available, the data can obtained from [my dropbox](https://www.dropbox.com/s/uk7d4gp1c7bgmxc/Coursera-SwiftKey.zip?raw=1). The zip file was download to a directory called **data** in a local project and unzipped there.  The the unzipped data contained four subdirectories: **de_DE** (German), **en_US** (US english), **fi_FI** (Finnish), and **ru_RU** (Russian). This project focuses on the English corpora residing in the **en_US** folder. This folder contains three files named **en_US.blogs.txt**, **en_US.news.txt**, and **en_US.twitter.txt**.
+The data was originally downloaded from [this link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) and stored locally. If this link is no longer available, the data can obtained from [my dropbox](https://www.dropbox.com/s/ti5b9q25nc70edd/Coursera-SwiftKey.zip?dl=1). The zip file was download to a directory called **data** in a local project and unzipped there.  The the unzipped data contained four subdirectories: **de_DE** (German), **en_US** (US english), **fi_FI** (Finnish), and **ru_RU** (Russian). This project focuses on the English corpora residing in the **en_US** folder. This folder contains three files named **en_US.blogs.txt**, **en_US.news.txt**, and **en_US.twitter.txt**.
 
-With the data residing locally, the **writeTrainTestFiles** function was used to read each of the three data files, partition each them into 80% training and 20% hold-out test sets, and then write these two partitioned files locally.  The training set was used to train the model to determine values for the two model parameters: bigram discount rate and trigram discount rate.  [Descriptions of what these parameters are can be found here.](http://rpubs.com/mszczepaniak/prednextkbo)
+With the data residing locally, the **writeTrainTestFiles** function was used to read each of the three data files, partition each them into 80% training and 20% hold-out test sets, and then write these two partitioned files locally.  The training set was used to train the model to determine values for the two model parameters: bigram discount rate and trigram discount rate.  [Descriptions of what these parameters are be found here.](http://rpubs.com/mszczepaniak/predictkbo3model)
 
 ### Cleaning and Preparing the Data
 After the data was read and partitioned into training and test sets, the training files were cleaned using the following steps:
 
-1. Sentence Parsing - This step broke the text into sentences. This changed the character vector read from one of the data files from being one line per element to one sentence per element.  One artifact of this step was that things like "St." which are used as a contraction for "Saint" were mistakenly taken to be the end of sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored in the interest of a timely release.
-2. Non-ASCII Character Filtering - This step removed all special characters, converted converted or removed all the unicode tags that were generated during the initial data partitioning, converted the text to lower case, and then removed anything not a word character or character needed to create one of the profanity words/phrases in the profanity list.
-3. Unicode Tag Conversions and Filtering - The initial reading of the data in the partitioning step generated unicode tags which needed to be processed to avoid model accuracy degradation.
-4. URL Filtering - An extensive number of URL's were found in the corpus documents.  These are artifacts that the model was not designed to predict, so they were removed.  Because these URL's took on a number of forms (e.g. http:\\..., www.example.com, etc) the filtering processing focused on removing a majority of these fragments.
+1. Sentence Parsing - This step broke the text into sentences. This changed the character vectors read from the data files from being one line per element to one sentence per element.  One artifact of this step was that things like "St." which are used as a contraction for "Saint" were mistakenly taken to be the end of a sentence by the parser. There were other sentence parsing errors, but they were intentionally ignored to get the project done sooner.
+2. Non-ASCII Character Filtering - This step removed all special characters and converted the text to lower case.
+3. Unicode Tag Conversions and Filtering - The initial reading of the data in the partitioning step generated unicode tags which needed to be processed to avoid model accuracy degradation. This step converted or removed all the unicode tags that were generated during the initial data partitioning.
+4. URL Filtering - An extensive number of URL's were found in the corpus documents.  These are artifacts that the model was not designed to predict, so they were removed.  Because these URL's took on a number of forms (e.g. http:\\..., www.example.com, etc) this filtering step focused on removing a majority of these fragments.
 5. Pre-EOS Marker Filtering - End-of-Sentence (EOS) markers were used to make it easier for the model to differentiate phrases that did and did not span sentence boundaries.  This was essentially a clean-up step.
-6. Add EOS Markers - A special EOS token replaced all markes that typically end sentences (e.g. periods, question marks, etc.)
-7. Post-EOS Marker Filtering - The pre-EOS and add-EOS marker steps generated additional fragments that needed to be cleaned up.  This step did this processing.
+6. Add EOS Markers - A special EOS token replaced all tokens that typically mark the end of sentences (e.g. periods, question marks, etc.)
+7. Post-EOS Marker Filtering - The pre-EOS and add-EOS marker steps generated additional fragments that were cleaned up in this step.
 
 The above steps were executed off-line (not in this R Markdown file) because they were time intensive. To speed future processing, the three cleaned en_US files were rewritten back to the local file system so they could be read in again later.
 
@@ -89,7 +89,7 @@ Additional filtering was accomplished using a variety of functions which are des
 
 ##### Non-ASCII Character Filtering
 
-After completion of sentence parsing, the resulting files were UTF-8 encoded but still contained some unusual characters.  To clean out these characters, each file was ran through the function **convertToAscii** by passing it to **runFilterAndWrite**.  The **convertToAscii** function passed the contents through an ASCII encoder and then rewrote out the contents with a **.3ascii.txt** extension.  Links to these files are provided below:
+After completion of sentence parsing, the resulting files were UTF-8 encoded but still contained some unusual characters.  To clean out these characters, each file was ran through the function **convertToAscii** by passing it to **runFilterAndWrite**.  The **convertToAscii** function passed the contents through an ASCII encoder and then rewrote out the contents with a **.3ascii.txt** suffix.  Links to these files are provided below:
 
 + [en_US.blogs.train.3ascii.txt](https://www.dropbox.com/s/9u1q35cp2jjgldz/en_US.blogs.train.3ascii.txt?dl=1)
 + [en_US.news.train.3ascii.txt](https://www.dropbox.com/s/h1b0ma2wdo6vhw8/en_US.news.train.3ascii.txt?dl=1)
@@ -136,7 +136,7 @@ The **preEosClean** function was passed to **runFilterAndWrite** to do the filte
 
 #### Add End-of-Sentence Markers
 
-The **addEosMarkers** function was passed to **runFilterAndWrite** to do the EOS marker insertion.  The outputs from this function resulted in the following 3 files:
+The **addEosMarkers** function was passed to **runFilterAndWrite** to do the EOS token insertion.  The outputs from this function resulted in the following 3 files:
 
 + [en_US.blogs.train.7eos.txt](https://www.dropbox.com/s/fcg60j0f47mofqv/en_US.blogs.train.7eos.txt?dl=1)
 + [en_US.news.train.7eos.txt](https://www.dropbox.com/s/lp7dmt64tb1e65z/en_US.news.train.7eos.txt?dl=1)
