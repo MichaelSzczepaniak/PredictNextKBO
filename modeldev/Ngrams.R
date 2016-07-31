@@ -117,6 +117,24 @@ mergeFreqTables <- function(ftab1, ftab2,
     return(mergedTable)
 }
 
+## Creates and writes out the raw unigram frequecy tables for each of the 
+## corpus data files.  These are the initial unigram tables that include the
+## singletons.
+makeRawUnigrams <- function(table.dir=ddir, filePrefix="en_US.",
+                            inFilePostfix=".train.8posteos.txt",
+                            outFilePostfix=".train.9rawunig.csv",
+                            fileTypes=c("blogs", "news", "twitter")) {
+    inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                       inFilePostfix)
+    outPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                        outFilePostfix)
+    for(i in 1:length(inPaths)) {
+        charvect <- read_lines(inPaths[i])
+        unigrams.raw <- getNgramTables(1, charvect)
+        write.csv(unigrams.raw, outPaths[i], row.names = FALSE)
+    }
+}
+
 ## Reads in a unigram frequency csv file and writes two files: 1) a unigram
 ## frequency file with the singletons removed and 2) the unigram singletons
 ## that were removed from the file.
@@ -137,6 +155,30 @@ removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
         unigram.singletons <- filter(raw.unigrams, freq == 1)$ngram
         write.csv(nonsingle.unigrams, out1Paths[i], row.names = FALSE)
         writeLines(unigram.singletons, out2Paths[i])
+    }
+}
+
+## Creates and writes out n-gram frequecy tables for each of the corpus data
+## files for n = 2 or 3.  These tables do NOT include n-grams built from
+## unigram singletons.  To build trigram table use the default:
+## n=3, and outFilePostfix=".train.13trigrams.nous.csv"
+## to build bigram tables, use:
+## n=2, and outFilePostfix=".train.12trigrams.nous.csv"
+makeBiTrigrams <- function(n=3, table.dir=ddir, filePrefix="en_US.",
+                           inFilePostfix=".train.9ustokens.txt",
+                           outFilePostfix=".train.13trigrams.nous.csv",
+                           ignored.features=c("USIN"),
+                           fileTypes=c("blogs", "news", "twitter")) {
+    inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                       inFilePostfix)
+    outPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                        outFilePostfix)
+    for(i in 1:length(inPaths)) {
+        cat("building ", n, "-gram frequency table for:\n")
+        cat(inPaths[i], "\n")
+        charvect <- read_lines(inPaths[i])
+        unigrams.raw <- getNgramTables(n, charvect, ignored.features)
+        write.csv(unigrams.raw, outPaths[i], row.names = FALSE)
     }
 }
 
