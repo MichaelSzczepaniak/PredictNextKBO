@@ -6,6 +6,16 @@ ddir <- file.path("D:", "Dropbox", "sw_dev", "projects", "PredictNextKBO",
 unigrams.blogs.raw <- arrange(unigrams.blogs.raw, freq, ngram)
 unigrams.news.raw <- arrange(unigrams.news.raw, freq, ngram)
 unigrams.twitter.raw <- arrange(unigrams.twitter.raw, freq, ngram)
+
+##
+table.dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/"
+filePrefix="en_US."
+inFilePostfix=".train.11unigrams.raw.csv"
+outFilePostfix=".train.12unigrams.nous.csv"
+fileTypes=c("blogs", "news", "twitter")
+
+
+
 # merge tables
 
 # rm(list = ls())
