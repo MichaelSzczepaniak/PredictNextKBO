@@ -62,8 +62,9 @@ writeTrainTestFiles <- function(fileType, train.fraction=0.8,
 ## Returns a character vector where every element is a sentence of text.
 ##
 ## NOTE1: This function will improperly parse "St. Something" into 2 sentences.
-##        It makes other mistakes (e.g. Ph.D.) which one could spend a crazy amount of time
-##        fixing, but these others errors are ignored in the interest of time.
+##        It makes other mistakes (e.g. Ph.D.) which one could spend a crazy
+##        amount of time fixing, but these others errors are ignored in the
+##        interest of time.
 ##
 ##        To fix the "Saint" issue, the char vector returned by this function
 ##        needs to be passing to the annealSaintErrors function to fix most
