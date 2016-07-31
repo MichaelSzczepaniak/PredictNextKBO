@@ -1,4 +1,5 @@
-source("PredictNextWord.R")
+# source("PredictNextWord.R")
+source('PredictNextWordDevOnly.R')  ## DELETE THIS LINE AND USE ONE ABOVE WHEN READY!!!!
 
 shinyServer(
     function(input, output) {
