@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 2 - N-grams and Exploratory Data Analysis (EDA)"
 author: "Michael Szczepaniak"
-date: "July, 2016"
+date: "August 2016"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo2ngeda
 ---
