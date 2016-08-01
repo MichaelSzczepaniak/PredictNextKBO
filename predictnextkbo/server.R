@@ -3,10 +3,14 @@ source('PredictNextWordDevOnly.R')  ## DELETE THIS LINE AND USE ONE ABOVE WHEN R
 
 shinyServer(
     function(input, output) {
-        output$sPredictedWord <- renderPrint({getPrediction(input$phrase)[1]})
-        output$sAlgoPath <- renderPrint({getPrediction(input$phrase)[2]})
+        output$sPredictionSettings <-
+            renderPrint({getSettings(input$corpusToUSe, input$bigDiscount,
+                                     input$trigDiscount)})
         output$sInputBigram <- renderPrint({getInputBigram(input$phrase)})
-        output$sPredModel <- renderPrint({input$predModel})
-        output$sDiscount <- renderPrint({input$discount})
+        output$sAlgoPath <- renderPrint({getPrediction(input$phrase)[2]})
+        output$sPredictedWord <- renderPrint({getPrediction(input$phrase)[1]})
+        output$pTop3Probs <- renderPlot({
+            getPlot()
+        })
     }
 )
