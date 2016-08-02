@@ -111,14 +111,14 @@ $(document).ready(function () {
 <h1 class="title">Predicting Next Word Using Katz Back-Off</h1>
 <h3 class="subtitle"><em>Part 2 - N-grams and Exploratory Data Analysis (EDA)</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>July, 2016</em></h4>
+<h4 class="date"><em>August 2016</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>In Part 1, we partitioned the corpus data into to training and test sets and performed 8 pre-processing steps in our analysis pipeline that got this data ready to build n-gram tables. The motivation behind building these tables is that they are needed by our language model to make predictions. How these tables are used is described in detail in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model</a>, but in this document, we’ll focus first on getting a basic understanding of the data by doing some exploratory analysis. Following the EDA, we’ll focus on generating the unigram, bigram, and trigram tables.</p>
+<p>In Part 1, we partitioned the corpus data into to training and test sets and performed a number of pre-processing steps in our analysis pipeline that got this data ready to build n-gram tables. The motivation behind building these tables is that they are needed by our language model to make predictions. How these tables are used is described in detail in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model</a>, but in this document, we’ll focus first focus on generating the unigram, bigram, and trigram tables. After this, we’ll get a basic understanding of the data by doing some exploratory data analysis (EDA).</p>
 </div>
 <div id="raw-unigrams" class="section level2">
 <h2>Raw Unigrams</h2>
@@ -128,9 +128,32 @@ $(document).ready(function () {
 <li><a href="https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1">en_US.news.train.8posteos.txt</a></li>
 <li><a href="https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1">en_US.twitter.train.8posteos.txt</a></li>
 </ul>
+<p>From these three files, we create unigram frequency tables using the <strong>makeRawUnigrams</strong> function. Output files from this function were:</p>
+<ul>
+<li>[en_US.blogs.train.9rawunig.csv](<a href="https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv" class="uri">https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv</a></li>
+<li><a href="https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1">en_US.news.train.9rawunig.csv</a></li>
+<li><a href="https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1">en_US.twitter.train.9rawunig.csv</a></li>
+</ul>
 </div>
 <div id="appendix" class="section level2">
 <h2>Appendix</h2>
+<pre class="r"><code>## Creates and writes out the raw unigram frequecy tables for each of the 
+## corpus data files.  These are the initial unigram tables that include the
+## singletons.
+makeRawUnigrams &lt;- function(table.dir=ddir, filePrefix=&quot;en_US.&quot;,
+                            inFilePostfix=&quot;.train.8posteos.txt&quot;,
+                            outFilePostfix=&quot;.train.9rawunig.csv&quot;,
+                            fileTypes=c(&quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;)) {
+    inPaths &lt;- sprintf(&quot;%s%s%s%s&quot;, table.dir, filePrefix, fileTypes,
+                       inFilePostfix)
+    outPaths &lt;- sprintf(&quot;%s%s%s%s&quot;, table.dir, filePrefix, fileTypes,
+                        outFilePostfix)
+    for(i in 1:length(inPaths)) {
+        charvect &lt;- read_lines(inPaths[i])
+        unigrams.raw &lt;- getNgramTables(1, charvect)
+        write.csv(unigrams.raw, outPaths[i], row.names = FALSE)
+    }
+}</code></pre>
 </div>
 
 

@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Introduction
-In Part 1, we partitioned the corpus data into to training and test sets and performed 8 pre-processing steps in our analysis pipeline that got this data ready to build n-gram tables.  The motivation behind building these tables is that they are needed by our language model to make predictions.  How these tables are used is described in detail in [Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model](http://rpubs.com/mszczepaniak/predictkbo3model), but in this document, we'll focus first on getting a basic understanding of the data by doing some exploratory analysis.  Following the EDA, we'll focus on generating the unigram, bigram, and trigram tables. 
+In Part 1, we partitioned the corpus data into to training and test sets and performed a number of pre-processing steps in our analysis pipeline that got this data ready to build n-gram tables.  The motivation behind building these tables is that they are needed by our language model to make predictions.  How these tables are used is described in detail in [Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model](http://rpubs.com/mszczepaniak/predictkbo3model), but in this document, we'll focus first focus on generating the unigram, bigram, and trigram tables.  After this, we'll get a basic understanding of the data by doing some exploratory data analysis (EDA).
 
 ## Raw Unigrams
 We start with the files listed below as described in [Part 1](http://rpubs.com/mszczepaniak/predictkbo1preproc):
@@ -21,10 +21,36 @@ We start with the files listed below as described in [Part 1](http://rpubs.com/m
 + [en_US.news.train.8posteos.txt](https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1)
 + [en_US.twitter.train.8posteos.txt](https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1)
 
-From these three files, we create unigram frequency tables using the **makeRawUnigramTables** function. Output files from this function were:
+From these three files, we create unigram frequency tables using the **makeRawUnigrams** function. Output files from this function were:
 
-+ [](?dl=1)
-+ [](?dl=1)
-+ [](?dl=1)
++ [en_US.blogs.train.9rawunig.csv](https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv
++ [en_US.news.train.9rawunig.csv](https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1)
++ [en_US.twitter.train.9rawunig.csv](https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1)
 
 ## Appendix
+
+```{r eval=FALSE}
+## Creates and writes out the raw unigram frequecy tables for each of the 
+## corpus data files.  These are the initial unigram tables that include the
+## singletons.
+makeRawUnigrams <- function(table.dir=ddir, filePrefix="en_US.",
+                            inFilePostfix=".train.8posteos.txt",
+                            outFilePostfix=".train.9rawunig.csv",
+                            fileTypes=c("blogs", "news", "twitter")) {
+    inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                       inFilePostfix)
+    outPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                        outFilePostfix)
+    for(i in 1:length(inPaths)) {
+        charvect <- read_lines(inPaths[i])
+        unigrams.raw <- getNgramTables(1, charvect)
+        write.csv(unigrams.raw, outPaths[i], row.names = FALSE)
+    }
+}
+
+
+
+
+```
+
+
