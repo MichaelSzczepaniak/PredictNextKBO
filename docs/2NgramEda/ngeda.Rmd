@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Introduction
-In Part 1, we partitioned the corpus data into to training and test sets and performed a number of pre-processing steps in our analysis pipeline that got this data ready to build n-gram tables.  The motivation behind building these tables is that they are needed by our language model to make predictions.  How these tables are used is described in detail in [Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model](http://rpubs.com/mszczepaniak/predictkbo3model), but in this document, we'll focus first focus on generating the unigram, bigram, and trigram tables.  After this, we'll get a basic understanding of the data by doing some exploratory data analysis (EDA).
+In Part 1, we partitioned the corpus data into to training and test sets and performed a number of pre-processing steps in our analysis pipeline that got this data ready to build n-gram tables.  The motivation behind building these tables is that they are needed by our language model to make predictions.  How these tables are used is described in detail in [Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model](http://rpubs.com/mszczepaniak/predictkbo3model), but in this document, we'll focus on generating the unigram, bigram, and trigram tables and doing some exploratory data analysis (EDA) to get a basic understanding of the data along the way.
 
 ## Raw Unigrams
 We start with the files listed below as described in [Part 1](http://rpubs.com/mszczepaniak/predictkbo1preproc):
@@ -21,11 +21,13 @@ We start with the files listed below as described in [Part 1](http://rpubs.com/m
 + [en_US.news.train.8posteos.txt](https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1)
 + [en_US.twitter.train.8posteos.txt](https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1)
 
-From these three files, we create unigram frequency tables using the **makeRawUnigrams** function. Output files from this function were:
+From these three files, unigram frequency tables were created using the **makeRawUnigrams** function. Output files from this function were:
 
 + [en_US.blogs.train.9rawunig.csv](https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1)
 + [en_US.news.train.9rawunig.csv](https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1)
 + [en_US.twitter.train.9rawunig.csv](https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1)
+
+
 
 ## Appendix
 
