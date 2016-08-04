@@ -1,8 +1,7 @@
 "ngram","freq"
-"book",5
-"buy",6
-"EOS",8
-"house",3
-"paint",1
-"sell",1
-"the",8
+"buy_the_book",4
+"buy_the_house",2
+"paint_the_house",1
+"sell_the_book",1
+"the_book_EOS",5
+"the_house_EOS",3
