@@ -1,19 +1,18 @@
 #
 source('Katz.R')
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
+# Use next 3 lines for development
+uniPath <- "./data/unigrams.chars.ltc1.csv"
+bigPath <- "./data/bigrams.chars.ltc1.csv"
+triPath <- "./data/trigrams.chars.ltc1.csv"
+# Use the next 3 lines for live deployement
+# uniPath <- "./data/unigrams.chars.csv"
+# bigPath <- "./data/bigrams.chars.csv"
+# triPath <- "./data/trigrams.chars.csv"
 
-getPlot <- function() {
-    df <- data.frame(unigram=c('wisdom', 'health', 'pleasure'),
-                     probs=c(0.03, 0.02, 0.01))
-    
-    p <- ggplot(df, aes(x=reorder(unigram, probs), weight=probs))
-    p <- p + geom_bar() + coord_flip()
-    p <- p + labs(x = 'word', y = 'probability')
-    
-    return(p)
-}
-
-
+# default parameters for bigram and trigram discount rates
+gamma2 <- 0.5
+gamma3 <- 0.5
 
 getSettings <- function(corpus, bigDisc, trigDisc) {
     corpusLabels <- c("blogs", "news", "twitter")
@@ -25,19 +24,23 @@ getSettings <- function(corpus, bigDisc, trigDisc) {
     return(result)
 }
 
-getPrediction <- function(inputPhrase) {
-    nextWord <- 'wisdom'
-    algoPath <- 'dev1 < dev2'
-    return(c(nextWord, algoPath))
-}
-
 getInputBigram <- function(inputPhrase) {
     inPh <- filterInput(inputPhrase)
     inputTokens <- str_split(inPh, " ")  # 
     lastIndex <- length(inputTokens[[1]])
-    last2tokens <- inputTokens[[1]][(lastIndex-1):lastIndex]
+    w1 <- inputTokens[[1]][(lastIndex-1)]
+    w2 <- inputTokens[[1]][(lastIndex)]
+    bigram_tail <- paste(w1, w2, sep="_")
     
-    return(last2tokens)
+    return(bigram_tail)
+}
+
+getPrediction <- function(inputPhrase) {
+    trigs <- read.csv(triPath)
+    bigTail <- getInputBigram(inputPhrase)
+    obsTrigs <- calc.qBO.trigramsA(bigramPrefix=bigTail, trigrams=trigs)
+    
+    return(obsTrigs$ngram[1])
 }
 
 filterInput <- function(someText) {
@@ -164,7 +167,7 @@ nonNewsPostProfClean <- function(flines) {
 }
 
 getBigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL,
-                                        bigPath="./data/bigrams.chars.csv") {
+                                        bigPath=bigPath) {
     bdata <- read.csv(bigPath, stringsAsFactors=FALSE)
     if(!is.null(wrd1)) {
         bdata <- filter(bdata, w1==wrd1 & w2 != "EOS" &
@@ -179,7 +182,7 @@ getBigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL,
 }
 
 getTrigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL, wrd3=NULL,
-                                         triPath="./data/trigrams.chars.csv") {
+                                         triPath=triPath) {
     tdata <- read.csv(triPath, stringsAsFactors=FALSE)
     if(!is.null(wrd1)) {
         tdata <- filter(tdata, w1==wrd1 & w3 != "EOS" &
@@ -194,4 +197,17 @@ getTrigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL, wrd3=NULL,
     }
     
     return(arrange(tdata, desc(freq)))
+}
+
+## Creates a horizontal bar plot of the words with the three highest
+## probabilities
+getPlot <- function(highest3=c('wisdom', 'health', 'pleasure'),
+                    probabs=c(0.03, 0.02, 0.01)) {
+    df <- data.frame(words=highest3, probs=probabs)
+    
+    p <- ggplot(df, aes(x=reorder(words, probs), weight=probs))
+    p <- p + geom_bar() + coord_flip()
+    p <- p + labs(x = 'word', y = 'probability')
+    
+    return(p)
 }
