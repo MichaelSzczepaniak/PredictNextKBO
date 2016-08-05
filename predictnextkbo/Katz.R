@@ -1,4 +1,4 @@
-# install packages if needed, load libraries
+# COMMENT THE NEXT 4 LINES BEFORE DEPLOYMENT BECAUSE SHINY IMPORTS WHAT IT NEEDS
 libs <- c("dplyr", "readr", "stringr", "quanteda", "data.table")
 new.packages <- libs[!(libs %in% installed.packages()[,"Package"])]
 if(length(new.packages) > 0) install.packages(new.packages)
@@ -80,7 +80,7 @@ getAlphaBigram <- function(discount=0.5, bigrams, unigram) {
 ## and empty data.table is returned.
 getObsTrigs <- function(bigramPrefix, trigrams) {
     regex <- sprintf("%s%s", "^", bigramPrefix)
-    trigs.winA <- trigrams[grep(regex, trigrams$ngram)]
+    trigs.winA <- trigrams[grep(regex, trigrams$ngram),]
     return(trigs.winA)
 }
 
@@ -89,6 +89,9 @@ getObsTrigs <- function(bigramPrefix, trigrams) {
 ## The first column of the datatable are the trigrams corresponding to the
 ## probability estimate that are in the second column.
 ## If no observed trigrams exist, returns NULL.
+##
+## bigramPrefix - single-element char array of the form word1_word2
+##
 calc.qBO.trigramsA <- function(discount=0.5, bigramPrefix, trigrams) {
     obsTrigsA <- getObsTrigs(bigramPrefix, trigrams)
     if(nrow(obsTrigsA) < 1) return(NULL)
