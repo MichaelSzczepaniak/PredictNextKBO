@@ -232,7 +232,7 @@ bigPre <- 'sell_the'
 ## and empty data.table is returned.
 getObsTrigs <- function(bigramPrefix, trigrams) {
     regex <- sprintf("%s%s", "^", bigramPrefix)
-    trigs.winA <- trigrams[grep(regex, trigrams$ngram)]
+    trigs.winA <- trigrams[grep(regex, trigrams$ngram), ]
     return(trigs.winA)
 }
 

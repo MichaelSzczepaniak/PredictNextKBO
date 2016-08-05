@@ -350,7 +350,7 @@ unigs; bigrs; trigs</code></pre>
 ## and empty data.table is returned.
 getObsTrigs &lt;- function(bigramPrefix, trigrams) {
     regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
-    trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram)]
+    trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram), ]
     return(trigs.winA)
 }
 
