@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 3 - Understanding the Katz Back-Off Model"
 author: "Michael Szczepaniak"
-date: "May 2016"
+date: "August 2016 (last revision)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo3model
 ---
@@ -274,7 +274,7 @@ v. Calculate $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ for each $w_i$ from equation 17
 ## If no trigrams start with bigramPrefix an empty character vector is returned.
 getOTTWinA <- function(bigramPrefix, trigrams) {
     regex <- sprintf("%s%s", "^", bigramPrefix)
-    trigs.winA <- trigrams[grep(regex, trigrams$ngram)]
+    trigs.winA <- trigrams[grep(regex, trigrams$ngram), ]
     patToReplace <- sprintf("%s%s", bigramPrefix, "_")
     wInA <- str_replace(trigs.winA$ngram, patToReplace, "")
     return(wInA)
@@ -287,7 +287,7 @@ getUTTWinB <- function(bigramPrefix, trigrams, unigrams) {
     allUnigrams <- unigrams$ngram #getNgramTables(1)$ngram
     wInA <- getOTTWinA(bigramPrefix, trigrams)
     if(length(wInA) < 1) {
-        wInB <- allunigrams
+        wInB <- allUnigrams
     } else {
         wInB <- setdiff(allUnigrams, wInA)
     }
@@ -331,8 +331,9 @@ getAlphaBigram <- function(discount=0.5, bigrams, unigram) {
     return(alphaBi)
 }
 
+
 unig <- str_split(bigPre, '_')[[1]][2]
-unig <- getNgramTables(1, ltcorpus, unig)
+unig <- filter(unigs, ngram == unig)
 alphaBig <- getAlphaBigram(bigrams=bigrs, unigram=unig)
 alphaBig
 
@@ -393,7 +394,7 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
     unobBiProbs <- rep(-1, length(unobBis$ngram))
     # calc discounted prob. mass at bigram level
     unig <- str_split(bigramPrefix, '_')[[1]][2]
-    unigram <- getNgramTables(1, ltcorpus , unig)
+    unigram <- filter(unigrams, ngram == unig)
     alphaBig <- getAlphaBigram(bigDiscount, bigrams, unigram)
     uniSumUnobs <- sum(filter(unobBis, btfreq == 0)$utfreq)
     for(i in 1:length(unobBis$ngram)) {
@@ -406,21 +407,16 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
         }
     }
     dt <- data.table(ngram=unobBis$ngram, prob=unobBiProbs)
+    
     return(dt)
 }
-
-# ut <- getUnobsTrigs(bigramPrefix=bigPre, trigrams=trigs, unigrams=unigs)
-# ut
-# ubt <- getUnobsBigramsTable(bigramPrefix=bigPre, unobsTrigs=ut,
-#                             bigrams=bigrs, unigrams=unigs)
-# ubt
 
 qboBigs <- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix=bigPre,
                              trigrams=trigs, bigrams=bigrs, unigrams=unigs)
 qboBigs
 ```
 
-##### Checking the Birgram Calculations
+##### Checking the Bigram Calculations
 
 Before doing the final calculations for the unobserved trigrams, let's do a simple check on our calculations on the bigram level.  In the previous table, all the bigrams except `the_house` are unobserved which means that if we sum all the unobserved bigram probabilities, we should get the total bigram discount which is $\alpha(w_{i-1})$. As we see below, this looks like it checks out.
 
@@ -455,7 +451,7 @@ getAlphaTrigram <- function(triDiscount=0.5, trigrams, bigram) {
     return(alphaTri)
 }
 
-bigr <- getNgramTables(2, ltcorpus, prefixFilter = bigPre)
+bigr <- filter(bigrs, ngram == bigPre)
 alphaTrig <- getAlphaTrigram(0.5, trigs, bigr)
 alphaTrig
 ```
