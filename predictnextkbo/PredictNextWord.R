@@ -14,6 +14,11 @@ triPath <- "./data/trigrams.chars.ltc1.csv"
 gamma2 <- 0.5
 gamma3 <- 0.5
 
+# read n-gram tables upfront so they can be passed to the Katz.R functions
+unigrams <- read.csv(uniPath)
+bigrams <- read.csv(bigPath)
+trigrams <- read.csv(triPath)
+
 getSettings <- function(corpus, bigDisc, trigDisc) {
     corpusLabels <- c("blogs", "news", "twitter")
     corpus <- as.numeric(corpus)
@@ -25,22 +30,49 @@ getSettings <- function(corpus, bigDisc, trigDisc) {
 }
 
 getInputBigram <- function(inputPhrase) {
+    bigram_tail = ""
     inPh <- filterInput(inputPhrase)
-    inputTokens <- str_split(inPh, " ")  # 
-    lastIndex <- length(inputTokens[[1]])
-    w1 <- inputTokens[[1]][(lastIndex-1)]
-    w2 <- inputTokens[[1]][(lastIndex)]
-    bigram_tail <- paste(w1, w2, sep="_")
+    inputTokens <- str_split(inPh, " ")
+    if(length(inputTokens[1]) > 0) {
+        lastIndex <- length(inputTokens[[1]])
+        w1 <- inputTokens[[1]][(lastIndex-1)]
+        w2 <- inputTokens[[1]][(lastIndex)]
+        bigram_tail <- paste(w1, w2, sep="_")
+    }
+    
     
     return(bigram_tail)
 }
 
-getPrediction <- function(inputPhrase) {
-    trigs <- read.csv(triPath)
-    bigTail <- getInputBigram(inputPhrase)
-    obsTrigs <- calc.qBO.trigramsA(bigramPrefix=bigTail, trigrams=trigs)
+getPrediction <- function(bigTail) {
+    prediction <- "empty"
+    obsTrigs <- calc.qBO.trigramsA(bigramPrefix=bigTail, trigrams=trigrams)
+    # Get unobserved trigrams
+    unobsTrigrams <- getUnobsTrigs(bigramPrefix=bigTail, trigrams=trigrams,
+                                   unigrams=unigrams)
+    # Get total probability mass discounted from all observed bigrams
+    unig <- str_split(bigTail, '_')[[1]][2]
+    unig <- filter(unigrams, ngram == unig)
+    alphaBig <- getAlphaBigram(bigrams=bigrams, unigram=unig)
+    # Calculate qBO for Bigrams
+    qboBigs <- calc.qBO.bigramsB(bigDiscount=gamma2, bigramPrefix=bigTail,
+                                 trigrams=trigrams, bigrams=bigrams,
+                                 unigrams=unigrams)
+    # Calculate trigram discount
+    bigr <- filter(bigrams, ngram == bigTail)
+    alphaTrig <- getAlphaTrigram(gamma3, trigrams, bigr)
+    # Calculate qBO(wi|wi???2,wi???1) for Unobserved Trigrams
+    qBO.trigs.B <- calc.qBO.trigramB(gamma2, bigTail, trigrams, bigrams,
+                                     unigrams, alphaTrig)
+    # Gather all the trigrams and select the one with the highest probability
+    all_trigrams <- rbind(obsTrigs, qBO.trigs.B)
     
-    return(obsTrigs$ngram[1])
+    if(length(all_trigrams$ngram) > 0) {
+        predict_trigram <- all_trigrams[which.max(all_trigrams$prob),]
+        prediction <- str_split(predict_trigram, '_')[[1]][3]
+    }
+    
+    return(prediction)
 }
 
 filterInput <- function(someText) {
@@ -203,6 +235,7 @@ getTrigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL, wrd3=NULL,
 ## probabilities
 getPlot <- function(highest3=c('wisdom', 'health', 'pleasure'),
                     probabs=c(0.03, 0.02, 0.01)) {
+    require(ggplot2)
     df <- data.frame(words=highest3, probs=probabs)
     
     p <- ggplot(df, aes(x=reorder(words, probs), weight=probs))
