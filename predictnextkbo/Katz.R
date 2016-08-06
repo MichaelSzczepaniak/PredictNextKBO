@@ -137,7 +137,7 @@ getUnobsBigramsTable <- function(bigramPrefix, unobsTrigs, bigrams, unigrams) {
 ## If no trigrams start with bigramPrefix an empty character vector is returned.
 getOTTWinA <- function(bigramPrefix, trigrams) {
     regex <- sprintf("%s%s", "^", bigramPrefix)
-    trigs.winA <- trigrams[grep(regex, trigrams$ngram)]
+    trigs.winA <- trigrams[grep(regex, trigrams$ngram), ]
     patToReplace <- sprintf("%s%s", bigramPrefix, "_")
     wInA <- str_replace(trigs.winA$ngram, patToReplace, "")
     return(wInA)
@@ -150,7 +150,7 @@ getUTTWinB <- function(bigramPrefix, trigrams, unigrams) {
     allUnigrams <- unigrams$ngram
     wInA <- getOTTWinA(bigramPrefix, trigrams)
     if(length(wInA) < 1) {
-        wInB <- allunigrams
+        wInB <- allUnigrams
     } else {
         wInB <- setdiff(allUnigrams, wInA)
     }
@@ -187,7 +187,7 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
     unobBiProbs <- rep(-1, length(unobBis$ngram))
     # calc discounted prob. mass at bigram level
     unig <- str_split(bigramPrefix, '_')[[1]][2]
-    unigram <- getNgramTables(1, ltcorpus , unig)
+    unigram <- filter(unigrams, ngram == unig)
     alphaBig <- getAlphaBigram(bigDiscount, bigrams, unigram)
     uniSumUnobs <- sum(filter(unobBis, btfreq == 0)$utfreq)
     for(i in 1:length(unobBis$ngram)) {
@@ -200,6 +200,7 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
         }
     }
     dt <- data.table(ngram=unobBis$ngram, prob=unobBiProbs)
+    
     return(dt)
 }
 
@@ -221,6 +222,7 @@ getAlphaTrigram <- function(triDiscount=0.5, trigrams, bigram) {
     trigsThatStartWithBig <- trigrams[grep(regex, trigrams$ngram),]
     if(nrow(trigsThatStartWithBig) < 1) return(NULL)
     alphaTri <- 1 - (sum(trigsThatStartWithBig$freq - triDiscount) / bigram$freq)
+    
     return(alphaTri)
 }
 
