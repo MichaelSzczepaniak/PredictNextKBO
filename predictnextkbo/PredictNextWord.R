@@ -40,12 +40,14 @@ getInputBigram <- function(inputPhrase) {
         bigram_tail <- paste(w1, w2, sep="_")
     }
     
-    
     return(bigram_tail)
 }
 
-getPrediction <- function(bigTail) {
-    prediction <- "empty"
+## Returns a character vector of the n words that complete the highest
+## probability trigrams.
+## bigTail - last 2 words of user input separated by an _ e.g. sell_the
+## n - number of predictions to return, default is 3
+getTopNPredictions <- function(bigTail, n=3) {
     obsTrigs <- calc.qBO.trigramsA(bigramPrefix=bigTail, trigrams=trigrams)
     # Get unobserved trigrams
     unobsTrigrams <- getUnobsTrigs(bigramPrefix=bigTail, trigrams=trigrams,
@@ -61,14 +63,21 @@ getPrediction <- function(bigTail) {
     # Calculate trigram discount
     bigr <- filter(bigrams, ngram == bigTail)
     alphaTrig <- getAlphaTrigram(gamma3, trigrams, bigr)
-    # Calculate qBO(wi|wi???2,wi???1) for Unobserved Trigrams
+    # Calculate qBO(wi | wi-1, wi-1) for unobserved trigrams
     qBO.trigs.B <- calc.qBO.trigramB(gamma2, bigTail, trigrams, bigrams,
                                      unigrams, alphaTrig)
     # Gather all the trigrams and select the one with the highest probability
-    all_trigrams <- rbind(obsTrigs, qBO.trigs.B)
+    trigramPreds <- rbind(obsTrigs, qBO.trigs.B)
+    preds <- arrange(trigramPreds, desc(prob))[1:n,]
     
-    if(length(all_trigrams$ngram) > 0) {
-        predict_trigram <- all_trigrams[which.max(all_trigrams$prob),]
+    return(preds)
+}
+
+getPrediction <- function(topPreds) {
+    prediction <- ""
+    if(length(topPreds$ngram) > 0) {
+        predict_trigram <- topPreds$ngram[1]
+        # Get trigram tail word
         prediction <- str_split(predict_trigram, '_')[[1]][3]
     }
     
@@ -232,11 +241,20 @@ getTrigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL, wrd3=NULL,
 }
 
 ## Creates a horizontal bar plot of the words with the three highest
-## probabilities
-getPlot <- function(highest3=c('wisdom', 'health', 'pleasure'),
-                    probabs=c(0.03, 0.02, 0.01)) {
-    require(ggplot2)
-    df <- data.frame(words=highest3, probs=probabs)
+## trigram tail word probabilities
+## topNgrams - character vector of trigrams delimited by _
+##             e.g. tom_loves_sushi
+## topProbs - probabilities associated with each of the trigram tail words
+getPlot <- function(topNgrams=c('to_love_wisdom', 'to_cultivate_health',
+                                'enjoy_healthy_pleasure'),
+                    topProbs=c(0.03, 0.02, 0.01)) {
+    words <- vector(mode = 'character')
+    ngramTokens <- str_split(topNgrams, '_')
+    for(i in 1:length(ngramTokens)) {
+        words <- append(words, ngramTokens[[i]][3])
+    }
+    
+    df <- data.frame(words, probs=topProbs)
     
     p <- ggplot(df, aes(x=reorder(words, probs), weight=probs))
     p <- p + geom_bar() + coord_flip()
