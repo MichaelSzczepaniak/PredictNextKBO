@@ -14,7 +14,7 @@ fluidPage(
         sliderInput("trigDiscount",
                     label = h4("Trigram Discount"),
                     min = 0.1, max = 1.9, value = 0.5, step = 0.1),
-        submitButton("Predict next word of phrase")
+        actionButton(inputId = "predictButton", "Predict next word of phrase")
     ),
     mainPanel(
         h4('Prediction Settings:'),
@@ -26,5 +26,6 @@ fluidPage(
         h4('Predicted Word:'),
         verbatimTextOutput("sPredictedWord"),
         plotOutput("pTop3Probs", width = 400, height = 300)
+        # verbatimTextOutput("pTop3Probs")
     )
 )

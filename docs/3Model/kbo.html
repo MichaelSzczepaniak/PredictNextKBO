@@ -285,12 +285,14 @@ getNgramFreqs &lt;- function(ng, dat, igfs=NULL,
 ## unigram (if n=1), the bigram (if n=2), etc.. The second column
 ## (freq) contains the frequency or count of the ngram found in linesCorpus.
 ##
+## ng - Defines the type of n-gram to be extracted: unigram if ng=1,
+##      bigram if ng=2, trigram if n=3, etc.
 ## linesCorpus - character vector
 ## prefixFilter - string/character vector: If not NULL, tells the function
 ##                to return only rows where ngram column starts with prefixFilter.
 ##                If NULL, returns all the ngram and count rows.
-getNgramTables &lt;- function(n, linesCorpus, prefixFilter=NULL) {
-    ngrams &lt;- getNgramFreqs(n, linesCorpus)
+getNgramTables &lt;- function(ng, linesCorpus, prefixFilter=NULL) {
+    ngrams &lt;- getNgramFreqs(ng, linesCorpus)
     ngrams.dt &lt;- data.table(ngram=names(ngrams), freq=ngrams)
     if(length(grep('^SOS', ngrams.dt$ngram)) &gt; 0) {
         ngrams.dt &lt;- ngrams.dt[-grep('^SOS', ngrams.dt$ngram),]
@@ -348,9 +350,13 @@ unigs; bigrs; trigs</code></pre>
 ## bigramPrefix in the first column named ngram and frequencies/counts in the 
 ## second column named freq. If no observed trigrams with bigramPrefix exist,
 ## and empty data.table is returned.
+## bigramPrefix - bigram of the form word1_word2 e.g. sell_the
+## trigrams - 2 col data frame: ngram = observed trigrams delimited with _
+##                                      e.g. sell_the_house,
+##            prob = probability of the observed trigams, values between 0 &amp; 1
 getObsTrigs &lt;- function(bigramPrefix, trigrams) {
     regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
-    trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram), ]
+    trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram),]
     return(trigs.winA)
 }
 
@@ -359,11 +365,17 @@ getObsTrigs &lt;- function(bigramPrefix, trigrams) {
 ## The first column of the datatable are the trigrams corresponding to the
 ## probability estimate that are in the second column.
 ## If no observed trigrams exist, returns NULL.
-calc.qBO.trigramsA &lt;- function(discount=0.5, bigramPrefix, trigrams) {
+##
+## triDiscount - trigram discount rate
+## bigramPrefix - single-element char array of the form word1_word2
+## trigrams - 2 col data frame: ngram = observed trigrams delimited with _
+##                                      e.g. sell_the_house,
+##            prob = probability of the observed trigams, values between 0 &amp; 1
+calc.qBO.trigramsA &lt;- function(triDiscount=0.5, bigramPrefix, trigrams) {
     obsTrigsA &lt;- getObsTrigs(bigramPrefix, trigrams)
     if(nrow(obsTrigsA) &lt; 1) return(NULL)
     obsCount &lt;- sum(obsTrigsA$freq)
-    probs &lt;- (obsTrigsA$freq - discount) / obsCount
+    probs &lt;- (obsTrigsA$freq - triDiscount) / obsCount
     qBO.A &lt;- data.table(ngram=obsTrigsA$ngram, prob=probs)
     return(qBO.A)
 }
@@ -390,6 +402,11 @@ obsTrigrams</code></pre>
 ## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
 ##
 ## If no trigrams start with bigramPrefix an empty character vector is returned.
+##
+## bigramPrefix - single-element char array of the form word1_word2
+## trigrams - 2 col data frame: ngram = observed trigrams delimited with _
+##                                      e.g. sell_the_house,
+##            prob = probability of the observed trigams, values between 0 &amp; 1
 getOTTWinA &lt;- function(bigramPrefix, trigrams) {
     regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
     trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram), ]
@@ -460,8 +477,13 @@ alphaBig</code></pre>
 <p>The code below implements equation 10. to calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> for unobserved bigrams:</p>
 <pre class="r"><code>## Returns a 3 column data.table. First column (ngram) = bigrams that are the
 ## last two words of unobserved trigrams that start with bigramPrefix.
-## Second column (btfreq) = frequency/count of the bigrams, -1 if unobserved
-## Third column (utfreq) = frequency/count of the unigram tail word in bigram
+## Second column (btfreq) = frequency/count of the bigram tail of unobserved
+##                          trigram
+## Third column (utfreq) = frequency/count of the unigram tail word of the
+##                         bigram defined in the 2nd column (btfreq)
+## bigramPrefix - single-element char array of the form word1_word2
+## unobsTrigs - character vector of unobserved trigrams of the form:
+##              word1_word2_word3, e.g. sell_the_buy
 ## bigrams - all the bigrams in the corpus
 ## unigrams - all the unigrams in the corpus
 getUnobsBigramsTable &lt;- function(bigramPrefix, unobsTrigs, bigrams, unigrams) {

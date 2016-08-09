@@ -11,15 +11,15 @@ triPath <- "./data/trigrams.chars.ltc1.csv"
 # triPath <- "./data/trigrams.chars.csv"
 
 # default parameters for bigram and trigram discount rates
-gamma2 <- 0.5
-gamma3 <- 0.5
+# gamma2 <- 0.5
+# gamma3 <- 0.5
 
 # read n-gram tables upfront so they can be passed to the Katz.R functions
 unigrams <- read.csv(uniPath)
 bigrams <- read.csv(bigPath)
 trigrams <- read.csv(triPath)
 
-getSettings <- function(corpus, bigDisc, trigDisc) {
+getSettings <- function(corpus, bigDisc=0.1, trigDisc=0.2) {
     corpusLabels <- c("blogs", "news", "twitter")
     corpus <- as.numeric(corpus)
     result <- sprintf("%s%s%s", "corpus=", corpusLabels[corpus], ", ")
@@ -47,8 +47,10 @@ getInputBigram <- function(inputPhrase) {
 ## probability trigrams.
 ## bigTail - last 2 words of user input separated by an _ e.g. sell_the
 ## n - number of predictions to return, default is 3
-getTopNPredictions <- function(bigTail, n=3) {
-    obsTrigs <- calc.qBO.trigramsA(bigramPrefix=bigTail, trigrams=trigrams)
+## gamma2 - bigram discount rate
+## gamma3 - trigram discount rate
+getTopNPredictions <- function(bigTail, n=3, gamma2=0.5, gamma3=0.5) {
+    obsTrigs <- calc.qBO.trigramsA(gamma3, bigTail, trigrams)
     # Get unobserved trigrams
     unobsTrigrams <- getUnobsTrigs(bigramPrefix=bigTail, trigrams=trigrams,
                                    unigrams=unigrams)
@@ -56,10 +58,6 @@ getTopNPredictions <- function(bigTail, n=3) {
     unig <- str_split(bigTail, '_')[[1]][2]
     unig <- filter(unigrams, ngram == unig)
     alphaBig <- getAlphaBigram(bigrams=bigrams, unigram=unig)
-    # Calculate qBO for Bigrams
-    qboBigs <- calc.qBO.bigramsB(bigDiscount=gamma2, bigramPrefix=bigTail,
-                                 trigrams=trigrams, bigrams=bigrams,
-                                 unigrams=unigrams)
     # Calculate trigram discount
     bigr <- filter(bigrams, ngram == bigTail)
     alphaTrig <- getAlphaTrigram(gamma3, trigrams, bigr)
@@ -71,13 +69,14 @@ getTopNPredictions <- function(bigTail, n=3) {
     preds <- arrange(trigramPreds, desc(prob))[1:n,]
     
     return(preds)
+    # return(trigramPreds)
 }
 
 getPrediction <- function(topPreds) {
     prediction <- ""
     if(length(topPreds$ngram) > 0) {
-        predict_trigram <- topPreds$ngram[1]
-        # Get trigram tail word
+        predict_trigram <- topPreds$ngram[1]  # highest probability trigram
+        # Get tail word of the highest probability trigram
         prediction <- str_split(predict_trigram, '_')[[1]][3]
     }
     
@@ -242,14 +241,15 @@ getTrigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL, wrd3=NULL,
 
 ## Creates a horizontal bar plot of the words with the three highest
 ## trigram tail word probabilities
-## topNgrams - character vector of trigrams delimited by _
+## topTrigrams - character vector of trigrams delimited by _
 ##             e.g. tom_loves_sushi
 ## topProbs - probabilities associated with each of the trigram tail words
-getPlot <- function(topNgrams=c('to_love_wisdom', 'to_cultivate_health',
+getPlot <- function(topTrigrams=c('to_love_wisdom', 'to_cultivate_health',
                                 'enjoy_healthy_pleasure'),
                     topProbs=c(0.03, 0.02, 0.01)) {
+    require(ggplot2)
     words <- vector(mode = 'character')
-    ngramTokens <- str_split(topNgrams, '_')
+    ngramTokens <- str_split(topTrigrams, '_')
     for(i in 1:length(ngramTokens)) {
         words <- append(words, ngramTokens[[i]][3])
     }
@@ -258,7 +258,7 @@ getPlot <- function(topNgrams=c('to_love_wisdom', 'to_cultivate_health',
     
     p <- ggplot(df, aes(x=reorder(words, probs), weight=probs))
     p <- p + geom_bar() + coord_flip()
-    p <- p + labs(x = 'word', y = 'probability')
+    p <- p + labs(x = 'predicted word', y = 'probability')
     
     return(p)
 }
