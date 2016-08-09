@@ -60,27 +60,6 @@ getNgramTables <- function(ng, linesCorpus, prefixFilter=NULL) {
     return(ngrams.dt)
 }
 
-## Returns the total probability mass discounted from all observed BIGRAMS.
-## This is the amount of probability mass which is redistributed to
-## UNOBSERVED bigrams. If no bigrams starting with unigram$ngram[1] exist,
-## NULL is returned.
-##
-## bigDiscount - amount to discount observed bigrams
-## bigrams - 2 column data.frame or data.table. The first column: ngram,
-##           contains all the bigrams in the corpus. The second column:
-##           freq, contains the frequency or count of each bigram.
-## unigram - 2 column, single row frequency table The first column: ngram,
-##           contains a unigrams. The second column: freq, contains the
-##           frequency or count of the unigram.
-getAlphaBigram <- function(bigDiscount=0.5, bigrams, unigram) {
-    # get all bigrams that start with unigram
-    regex <- sprintf("%s%s", "^", unigram$ngram[1])
-    bigsThatStartWithUnig <- bigrams[grep(regex, bigrams$ngram),]
-    if(nrow(bigsThatStartWithUnig) < 1) return(NULL)
-    alphaBi <- 1 - (sum(bigsThatStartWithUnig$freq - bigDiscount) / unigram$freq)
-    return(alphaBi)
-}
-
 ## Returns a two column data.table of observed trigrams that start with
 ## bigramPrefix in the first column named ngram and frequencies/counts in the 
 ## second column named freq. If no observed trigrams with bigramPrefix exist,
@@ -116,45 +95,6 @@ calc.qBO.trigramsA <- function(triDiscount=0.5, bigramPrefix, trigrams) {
     probs <- (obsTrigsA$freq - triDiscount) / obsCount
     qBO.A <- data.table(ngram=obsTrigsA$ngram, prob=probs)
     return(qBO.A)
-}
-
-## Returns a 3 column data.table. First column (ngram) = bigrams that are the
-## last two words of unobserved trigrams that start with bigramPrefix.
-## Second column (btfreq) = frequency/count of the bigram tail of unobserved
-##                          trigram
-## Third column (utfreq) = frequency/count of the unigram tail word of the
-##                         bigram defined in the 2nd column (btfreq)
-##
-## bigramPrefix - single-element char array of the form word1_word2
-## unobsTrigs - character vector of unobserved trigrams of the form:
-##              word1_word2_word3, e.g. sell_the_buy
-## bigrams - 2 column data.frame or data.table. The first column: ngram,
-##           contains all the bigrams in the corpus. The second column:
-##           freq, contains the frequency or count of each bigram.
-## unigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the unigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each unigram.
-getUnobsBigramsTable <- function(bigramPrefix, unobsTrigs, bigrams, unigrams) {
-    bigramTails <- vector(mode='character', length = length(unobsTrigs))
-    bigramTailCounts <- rep(-1, length(unobsTrigs))
-    unigramTailCounts <- rep(-1, length(unobsTrigs))
-    for(i in 1:length(unobsTrigs)) {
-        bigramTail <- str_split(unobsTrigs[i], '_')[[1]]
-        unigramTail <- bigramTail[3]
-        bigramTail <- sprintf('%s%s%s', bigramTail[2], '_', bigramTail[3])
-        bigramTails[i] <- bigramTail
-        bigramIndex <- which(bigrams$ngram == bigramTail)
-        if(length(bigramIndex) > 0) {
-            bigramTailCounts[i] <- bigrams$freq[bigramIndex]
-        } else {
-            bigramTailCounts[i] <- 0
-        }
-        unigramTailIndex <- which(unigrams$ngram == unigramTail)
-        unigramTailCounts[i] <- unigrams$freq[unigramTailIndex]
-    }
-    dt <- data.table(ngram=bigramTails, btfreq=bigramTailCounts,
-                     utfreq=unigramTailCounts)
-    return(dt)
 }
 
 ## Returns a character vector that are the OBSERVED trigram tail words (OTTW)
@@ -219,6 +159,66 @@ getUnobsTrigs <- function(bigramPrefix, trigrams, unigrams) {
     return(unobsTrigs)
 }
 
+## Returns the total probability mass discounted from all observed bigrams.
+## This is the amount of probability mass which is redistributed to
+## UNOBSERVED bigrams. If no bigrams starting with unigram$ngram[1] exist,
+## NULL is returned.
+##
+## bigDiscount - amount to discount observed bigrams
+## bigrams - 2 column data.frame or data.table. The first column: ngram,
+##           contains all the bigrams in the corpus. The second column:
+##           freq, contains the frequency or count of each bigram.
+## unigram - 2 column, single row frequency table The first column: ngram,
+##           contains a unigrams. The second column: freq, contains the
+##           frequency or count of the unigram.
+getAlphaBigram <- function(bigDiscount=0.5, bigrams, unigram) {
+    # get all bigrams that start with unigram
+    regex <- sprintf("%s%s", "^", unigram$ngram[1])
+    bigsThatStartWithUnig <- bigrams[grep(regex, bigrams$ngram),]
+    if(nrow(bigsThatStartWithUnig) < 1) return(NULL)
+    alphaBi <- 1 - (sum(bigsThatStartWithUnig$freq - bigDiscount) / unigram$freq)
+    return(alphaBi)
+}
+
+## Returns a 3 column data.table. First column (ngram) = bigrams that are the
+## last two words of unobserved trigrams that start with bigramPrefix.
+## Second column (btfreq) = frequency/count of the bigram tail of unobserved
+##                          trigram
+## Third column (utfreq) = frequency/count of the unigram tail word of the
+##                         bigram defined in the 2nd column (btfreq)
+##
+## bigramPrefix - single-element char array of the form word1_word2
+## unobsTrigs - character vector of unobserved trigrams of the form:
+##              word1_word2_word3, e.g. sell_the_buy
+## bigrams - 2 column data.frame or data.table. The first column: ngram,
+##           contains all the bigrams in the corpus. The second column:
+##           freq, contains the frequency or count of each bigram.
+## unigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the unigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each unigram.
+getUnobsBigramsTable <- function(bigramPrefix, unobsTrigs, bigrams, unigrams) {
+    bigramTails <- vector(mode='character', length = length(unobsTrigs))
+    bigramTailCounts <- rep(-1, length(unobsTrigs))
+    unigramTailCounts <- rep(-1, length(unobsTrigs))
+    for(i in 1:length(unobsTrigs)) {
+        bigramTail <- str_split(unobsTrigs[i], '_')[[1]]
+        unigramTail <- bigramTail[3]
+        bigramTail <- sprintf('%s%s%s', bigramTail[2], '_', bigramTail[3])
+        bigramTails[i] <- bigramTail
+        bigramIndex <- which(bigrams$ngram == bigramTail)
+        if(length(bigramIndex) > 0) {
+            bigramTailCounts[i] <- bigrams$freq[bigramIndex]
+        } else {
+            bigramTailCounts[i] <- 0
+        }
+        unigramTailIndex <- which(unigrams$ngram == unigramTail)
+        unigramTailCounts[i] <- unigrams$freq[unigramTailIndex]
+    }
+    dt <- data.table(ngram=bigramTails, btfreq=bigramTailCounts,
+                     utfreq=unigramTailCounts)
+    return(dt)
+}
+
 ## Returns a data.table with the first column (ngram) containing the bigram
 ## tails of unobserved trigrams that start with bigramPrefix. The second column
 ## (probs) holds the conditional probability estimate for the last word of the
@@ -262,7 +262,7 @@ calc.qBO.bigramsB <- function(bigDiscount=0.5, bigramPrefix,
     return(dt)
 }
 
-## Returns the total probability mass discounted from all observed TRIGRAMS.
+## Returns the total probability mass discounted from all observed trigrams.
 ## This is the amount of probability mass which is redistributed to
 ## UNOBSERVED trigrams. If no trigrams starting with bigram$ngram[1] exist,
 ## NULL is returned.
@@ -287,9 +287,9 @@ getAlphaTrigram <- function(triDiscount=0.5, trigrams, bigram) {
 }
 
 ## Returns a two column data table with column names ngram and prob.  The first
-## is formatted as w1_w2_w3 meaning that the values in the prob column are
-## probability estimates of q_BO(w3 | w1, w2) for unobserved trigrams that start
-## with bigramPrefix (w1, w2) calculated from equation 17.
+## column are trigrams formatted as w1_w2_w3 meaning that the values in the
+## prob column are probability estimates of q_BO(w3 | w1, w2) for unobserved
+## trigrams that start with bigramPrefix (w1, w2) calculated from equation 17.
 ##
 ## bigDiscount - amount to discount observed bigrams
 ## bigramPrefix - first two words of unobserved trigrams we want to estimate
@@ -314,5 +314,6 @@ calc.qBO.trigramB <- function(bigDiscount=0.5, bigramPrefix, trigrams, bigrams,
     qBoUnobsTrigrams <- paste0(str_split(bigramPrefix, '_')[[1]][1],
                                '_', qBoUnobsBigs$ngram)
     dt <- data.table(ngram=qBoUnobsTrigrams, prob=qBoUnobsTrigProbs)
+    
     return(dt)
 }

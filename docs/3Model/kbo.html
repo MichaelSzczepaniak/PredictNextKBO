@@ -111,14 +111,14 @@ $(document).ready(function () {
 <h1 class="title">Predicting Next Word Using Katz Back-Off</h1>
 <h3 class="subtitle"><em>Part 3 - Understanding the Katz Back-Off Model</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>August 2016 (last revision)</em></h4>
+<h4 class="date"><em>August 9, 2016 (last revision)</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level3">
 <h3>Introduction</h3>
-<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) language model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextKBO"><strong>PredictNextKBO</strong></a> as a web app deployed at <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>.</p>
+<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) language model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextKBO"><strong>PredictNextKBO</strong></a> as a web app deployed at (due out in late Aug 2016.) <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>.</p>
 <p>Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.</p>
 </div>
 <div id="what-is-the-katz-back-off-kbo-model" class="section level3">
@@ -134,7 +134,7 @@ $(document).ready(function () {
 </div>
 <div id="generative-n-gram-language-model" class="section level4">
 <h4>Generative N-gram Language Model</h4>
-<p>A <em>generative</em> grammar or LM, refers to the quality of languages related to the rules governing its structure or syntax <a href="https://en.wikipedia.org/wiki/Generative_grammar">[2]</a>. Because of these rules, not all combinations of words form valid sentences and therefore combinations that don’t conform to these rules should be assigned a low probability. For example, the sentence <em>I red a book</em> should have lower probability than the sentence <em>I read a book</em>.</p>
+<p>A <em>generative</em> grammar or LM, refers to the quality of languages related to the rules governing its structure or syntax <a href="https://en.wikipedia.org/wiki/Generative_grammar">[2]</a>. Because of these rules, not all combinations of words form valid sentences and therefore combinations that don’t conform to these rules should be assigned a low probability. In such a model, we are aware of the rules governing the structure, but this structure is <em>hidden</em> in that is it not explicitly determined but rather inferred from model. For example, the model should assign a lower probability to the sentence <em>I red a book</em> than to the sentence <em>I read a book</em> based on joint probability distributions of various word groupings known as <strong>n-grams</strong>.</p>
 <p>The term <strong>n-gram</strong> refers to the number of consecutive words utilized in a LM. For example, say we see the terms “<em>I want to eat Chinese</em>” 7 times and “<em>I want to eat Italian</em>” 3 times in a body of text (aka <em>corpus</em>), we might want to match the highest probability 5-gram to complete the 4-gram “<em>I want to eat</em>” which in this little example would be <em>Chinese</em>.</p>
 <p>Dan Jurafky describes the motivations and basic ideas behind probablistic n-gram models in <a href="https://www.youtube.com/watch?v=s3kKlUBa3b0">this video [3]</a> and how to estimate these probabilities in <a href="https://www.youtube.com/watch?v=o-CvoOkVrnY">this video [4]</a>.</p>
 </div>
@@ -146,7 +146,7 @@ $(document).ready(function () {
 <div id="accounting-for-probability-mass-of-unseen-n-grams-discounting" class="section level3">
 <h3>Accounting for Probability Mass of Unseen N-grams: Discounting</h3>
 <p>In discounting, some of the probability mass is taken from observed n-grams and distributed to unobserved n-grams in order to allow us to estimate probabilities of these unseen n-grams. In the KBO trigram LM, as will be discussed in more detail later in the article, we select an absolute discount which artificially lowers the counts of observed trigrams and distributes this “stolen” probabilty mass to unobserved trigrams.</p>
-<p>The basic concept of discounting is most easily understood by way of example as shown in <a href="https://class.coursera.org/nlangp-001/lecture/51">this lecture [5]</a> and <a href="https://class.coursera.org/nlangp-001/lecture/53">this lecture [6]</a> given by Michael Collins in his Coursera class on NLP.</p>
+<p>The basic concept of discounting is most easily understood by way of example as shown in the two lectured given by Michael Collins referenced in the <strong>Appendix 1</strong> at the end of this page.</p>
 <p>Discounting is a key concept integral to KBO and other advanced LMs like <a href="https://www.youtube.com/watch?v=XdjCCkFUBKU">Good-Turing [7]</a> and <a href="https://www.youtube.com/watch?v=wtB00EczoCM">Kneser-Ney [8]</a> as described in the lectures by Dan Jurafasky provided in links <a href="https://www.youtube.com/watch?v=XdjCCkFUBKU">[7]</a> and <a href="https://www.youtube.com/watch?v=wtB00EczoCM">[8]</a>.</p>
 </div>
 <div id="using-n-gram-tables-for-prediction---a-little-math" class="section level3">
@@ -239,7 +239,7 @@ P(its\:water\:is\:so\:transparent) = P(its) ×P (water\:|\:its) × P(is\:|\:its\
 </div>
 <div id="example-of-applying-the-algorithm-the-little-corpus-that-could" class="section level3">
 <h3>Example of Applying the Algorithm: The Little Corpus That Could</h3>
-<p>As implied earlier, a corpus is a body of text from which we build and test LMs. To illustrate how the mathematical formulation of the KBO Trigram model works, it’s helpful to look at a simple corpus that is small enough to see n-gram counts, but large enough to illustrate the impact of unobserved n-grams on the calculations. The following sample corpus was extended from an example provided by Michael Collins <a href="https://d396qusza40orc.cloudfront.net/nlangp/quiz_questions/week1.pdf">on page 4 of the week 1 lecture questions</a></p>
+<p>As implied earlier, a corpus is a body of text from which we build and test LMs. To illustrate how the mathematical formulation of the KBO Trigram model works, it’s helpful to look at a simple corpus that is small enough to see n-gram counts, but large enough to illustrate the impact of unobserved n-grams on the calculations. The following sample corpus was extended from an example provided by Michael Collins <a href="https://d396qusza40orc.cloudfront.net/nlangp/quiz_questions/week1.pdf">on page 4 of the week 1 lecture questions.</a> This corpus is listed in <strong>Appendix - 2</strong> at the end of this page.</p>
 <pre class="r"><code>ltcorpus &lt;- readLines(&quot;little_test_corpus1.txt&quot;)
 ltcorpus</code></pre>
 <pre><code>## [1] &quot;SOS buy the book EOS&quot;    &quot;SOS buy the book EOS&quot;   
@@ -281,15 +281,16 @@ getNgramFreqs &lt;- function(ng, dat, igfs=NULL,
     return(ngram.freq)
 }
 
-## Returns a 2 column data.table. The first column (ngram) contains the
-## unigram (if n=1), the bigram (if n=2), etc.. The second column
-## (freq) contains the frequency or count of the ngram found in linesCorpus.
+## Returns a 2 column data.table. The first column: ngram, contains all the
+## unigrams, bigrams, or trigrams in the corpus depending on whether
+## ng = 1, 2, or 3 respectively. The second column: freq, contains the
+## frequency or count of the ngram found in linesCorpus.
 ##
 ## ng - Defines the type of n-gram to be extracted: unigram if ng=1,
 ##      bigram if ng=2, trigram if n=3, etc.
-## linesCorpus - character vector
-## prefixFilter - string/character vector: If not NULL, tells the function
-##                to return only rows where ngram column starts with prefixFilter.
+## linesCorpus - character vector which is a line from a corpus file
+## prefixFilter - character vector: If not NULL, tells the function to return
+##                only rows where the ngram column starts with prefixFilter.
 ##                If NULL, returns all the ngram and count rows.
 getNgramTables &lt;- function(ng, linesCorpus, prefixFilter=NULL) {
     ngrams &lt;- getNgramFreqs(ng, linesCorpus)
@@ -306,8 +307,8 @@ getNgramTables &lt;- function(ng, linesCorpus, prefixFilter=NULL) {
 }
 
 unigs &lt;- getNgramTables(1, ltcorpus)
-bigrs &lt;&lt;- getNgramTables(2, ltcorpus)
-trigs &lt;&lt;- getNgramTables(3, ltcorpus)
+bigrs &lt;- getNgramTables(2, ltcorpus)
+trigs &lt;- getNgramTables(3, ltcorpus)
 unigs; bigrs; trigs</code></pre>
 <pre><code>##    ngram freq
 ## 1:  book    5
@@ -350,10 +351,12 @@ unigs; bigrs; trigs</code></pre>
 ## bigramPrefix in the first column named ngram and frequencies/counts in the 
 ## second column named freq. If no observed trigrams with bigramPrefix exist,
 ## and empty data.table is returned.
-## bigramPrefix - bigram of the form word1_word2 e.g. sell_the
-## trigrams - 2 col data frame: ngram = observed trigrams delimited with _
-##                                      e.g. sell_the_house,
-##            prob = probability of the observed trigams, values between 0 &amp; 1
+##
+## bigramPrefix - single element character vector which is bigram of the form
+##                word1_word2 e.g. sell_the
+## trigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the trigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each trigram.
 getObsTrigs &lt;- function(bigramPrefix, trigrams) {
     regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
     trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram),]
@@ -362,15 +365,16 @@ getObsTrigs &lt;- function(bigramPrefix, trigrams) {
 
 ## Returns the probability estimate for observed trigrams with bigramPrefix
 ## calculated from equation 12.
-## The first column of the datatable are the trigrams corresponding to the
-## probability estimate that are in the second column.
-## If no observed trigrams exist, returns NULL.
 ##
-## triDiscount - trigram discount rate
+## The first column of the datatable are the trigrams corresponding to the
+## probability estimate that are in the second column.  If no observed trigrams
+## exist, returns NULL.
+##
+## triDiscount - amount to discount observed trigrams
 ## bigramPrefix - single-element char array of the form word1_word2
-## trigrams - 2 col data frame: ngram = observed trigrams delimited with _
-##                                      e.g. sell_the_house,
-##            prob = probability of the observed trigams, values between 0 &amp; 1
+## trigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the trigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each trigram.
 calc.qBO.trigramsA &lt;- function(triDiscount=0.5, bigramPrefix, trigrams) {
     obsTrigsA &lt;- getObsTrigs(bigramPrefix, trigrams)
     if(nrow(obsTrigsA) &lt; 1) return(NULL)
@@ -397,16 +401,19 @@ obsTrigrams</code></pre>
 </ol>
 <div id="step-3.-i.-find-unobserved-trigrams" class="section level5">
 <h5>Step 3. i. Find Unobserved Trigrams</h5>
-<pre class="r"><code>## Returns the OBSERVED trigram tail words (OTTW) that start with bigramPrefix.
+<pre class="r"><code>## Returns a character vector that are the OBSERVED trigram tail words (OTTW)
+## that start with bigramPrefix.
+##
 ## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
-## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
+## 1st word of an observered trigram and wi-1 is the 2nd/middle word of the
+## trigram.
 ##
 ## If no trigrams start with bigramPrefix an empty character vector is returned.
 ##
 ## bigramPrefix - single-element char array of the form word1_word2
-## trigrams - 2 col data frame: ngram = observed trigrams delimited with _
-##                                      e.g. sell_the_house,
-##            prob = probability of the observed trigams, values between 0 &amp; 1
+## trigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the trigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each trigram.
 getOTTWinA &lt;- function(bigramPrefix, trigrams) {
     regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
     trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram), ]
@@ -418,8 +425,16 @@ getOTTWinA &lt;- function(bigramPrefix, trigrams) {
 ## Returns the UNOBSERVED trigram tail words (UTTW) that start with bigramPrefix.
 ## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
 ## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
+##
+## bigramPrefix - single-element char array of the form word1_word2
+## trigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the trigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each trigram.
+## unigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the unigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each unigram.
 getUTTWinB &lt;- function(bigramPrefix, trigrams, unigrams) {
-    allUnigrams &lt;- unigrams$ngram #getNgramTables(1)$ngram
+    allUnigrams &lt;- unigrams$ngram
     wInA &lt;- getOTTWinA(bigramPrefix, trigrams)
     if(length(wInA) &lt; 1) {
         wInB &lt;- allUnigrams
@@ -430,6 +445,15 @@ getUTTWinB &lt;- function(bigramPrefix, trigrams, unigrams) {
 }
 
 ## Returns a vector of unobserved trigrams that start with bigramPrefix
+##
+## bigramPrefix - first two words of unobserved trigrams we want to estimate
+##                probabilities of
+## trigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the trigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each trigram.
+## unigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the unigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each unigram.
 getUnobsTrigs &lt;- function(bigramPrefix, trigrams, unigrams) {
     unobsTriTails &lt;- getUTTWinB(bigramPrefix, trigrams, unigrams)
     unobsTrigs &lt;- vector(mode=&quot;character&quot;, length=length(unobsTriTails))
@@ -448,20 +472,24 @@ unobsTrigrams</code></pre>
 <div id="step-3.-ii.-calculate-alphaw_i-1" class="section level5">
 <h5>Step 3. ii. Calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></h5>
 <p>The code below implements equation 14. to calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></p>
-<pre class="r"><code>## Returns the total probability mass discounted from all observed BIGRAMS.
+<pre class="r"><code>## Returns the total probability mass discounted from all observed bigrams.
 ## This is the amount of probability mass which is redistributed to
 ## UNOBSERVED bigrams. If no bigrams starting with unigram$ngram[1] exist,
 ## NULL is returned.
-## bigrams - data.frame or data.table of bigrams (1st column) and
-##           frequencies (2nd column)
-## unigram - single row frequency table with unigram in first col and frequency
-##           in the second.
-getAlphaBigram &lt;- function(discount=0.5, bigrams, unigram) {
+##
+## bigDiscount - amount to discount observed bigrams
+## bigrams - 2 column data.frame or data.table. The first column: ngram,
+##           contains all the bigrams in the corpus. The second column:
+##           freq, contains the frequency or count of each bigram.
+## unigram - 2 column, single row frequency table The first column: ngram,
+##           contains a unigrams. The second column: freq, contains the
+##           frequency or count of the unigram.
+getAlphaBigram &lt;- function(bigDiscount=0.5, bigrams, unigram) {
     # get all bigrams that start with unigram
     regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, unigram$ngram[1])
     bigsThatStartWithUnig &lt;- bigrams[grep(regex, bigrams$ngram),]
     if(nrow(bigsThatStartWithUnig) &lt; 1) return(NULL)
-    alphaBi &lt;- 1 - (sum(bigsThatStartWithUnig$freq - discount) / unigram$freq)
+    alphaBi &lt;- 1 - (sum(bigsThatStartWithUnig$freq - bigDiscount) / unigram$freq)
     return(alphaBi)
 }
 
@@ -481,11 +509,16 @@ alphaBig</code></pre>
 ##                          trigram
 ## Third column (utfreq) = frequency/count of the unigram tail word of the
 ##                         bigram defined in the 2nd column (btfreq)
+##
 ## bigramPrefix - single-element char array of the form word1_word2
 ## unobsTrigs - character vector of unobserved trigrams of the form:
 ##              word1_word2_word3, e.g. sell_the_buy
-## bigrams - all the bigrams in the corpus
-## unigrams - all the unigrams in the corpus
+## bigrams - 2 column data.frame or data.table. The first column: ngram,
+##           contains all the bigrams in the corpus. The second column:
+##           freq, contains the frequency or count of each bigram.
+## unigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the unigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each unigram.
 getUnobsBigramsTable &lt;- function(bigramPrefix, unobsTrigs, bigrams, unigrams) {
     bigramTails &lt;- vector(mode='character', length = length(unobsTrigs))
     bigramTailCounts &lt;- rep(-1, length(unobsTrigs))
@@ -515,12 +548,18 @@ getUnobsBigramsTable &lt;- function(bigramPrefix, unobsTrigs, bigrams, unigrams)
 ## bigram tail given the last word of the bigramPrefix (middle word of the 
 ## unobserved trigram).
 ##
-## bigDiscount - bigram discount
+## bigDiscount - amount to discount observed bigrams
 ## bigramPrefix - first two words of unobserved trigrams we want to estimate
 ##                probabilities of
-## trigrams - data.table of all trigrams in corpus and their counts/frequencies
-## bigrams - data.table of all bigrams in corpus and their counts/frequencies
-## unigrams - data.table of all unigrams in corpus and their counts/frequencies
+## trigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the trigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each trigram.
+## bigrams - 2 column data.frame or data.table. The first column: ngram,
+##           contains all the bigrams in the corpus. The second column:
+##           freq, contains the frequency or count of each bigram.
+## unigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the unigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each unigram.
 calc.qBO.bigramsB &lt;- function(bigDiscount=0.5, bigramPrefix,
                               trigrams, bigrams, unigrams) {
     unobsTrigs &lt;- getUnobsTrigs(bigramPrefix, trigrams=trigrams,
@@ -567,17 +606,19 @@ sum(unobs$prob)</code></pre>
 <div id="step-3.-iv.-calculate-alphaw_i-2w_i-1-discount-for-trigrams" class="section level5">
 <h5>Step 3. iv. Calculate <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> Discount for Trigrams</h5>
 <p>The <strong>getAlphaTrigram</strong> function shown below implements equation 15. above to compute the trigram discount. Here we use it to compute the trigram discount for <span class="math inline">\(q_{BO}(house\:|\:sell,\:the)\)</span>:</p>
-<pre class="r"><code>## Returns the total probability mass discounted from all observed TRIGRAMS.
+<pre class="r"><code>## Returns the total probability mass discounted from all observed trigrams.
 ## This is the amount of probability mass which is redistributed to
 ## UNOBSERVED trigrams. If no trigrams starting with bigram$ngram[1] exist,
 ## NULL is returned.
+##
 ## triDiscount - amount to discount observed trigrams
-## trigrams - data.frame or data.table of all the trigrams in the corpus 
-##            (1st column) and their frequency/count (2nd column)
-## bigram - single row frequency table where the first col (ngram) is the bigram
+## trigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the trigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each trigram.
+## bigram - single row frequency table where the first col: ngram, is the bigram
 ##          which are the first two words of unobserved trigrams we want to
 ##          estimate probabilities of (same as bigramPrefix in previous functions
-##          listed above) delimited with '_'. The second column (freq) is the
+##          listed above) delimited with '_'. The second column: freq, is the
 ##          frequency/count of the bigram listed in the 1st column.
 getAlphaTrigram &lt;- function(triDiscount=0.5, trigrams, bigram) {
     # get all trigrams that start with bigram
@@ -585,6 +626,7 @@ getAlphaTrigram &lt;- function(triDiscount=0.5, trigrams, bigram) {
     trigsThatStartWithBig &lt;- trigrams[grep(regex, trigrams$ngram),]
     if(nrow(trigsThatStartWithBig) &lt; 1) return(NULL)
     alphaTri &lt;- 1 - (sum(trigsThatStartWithBig$freq - triDiscount) / bigram$freq)
+    
     return(alphaTri)
 }
 
@@ -596,19 +638,23 @@ alphaTrig</code></pre>
 <div id="step-3.-v.-calculate-q_bow_iw_i-2w_i-1-for-unobserved-trigrams" class="section level5">
 <h5>Step 3. v. Calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> for Unobserved Trigrams</h5>
 <pre class="r"><code>## Returns a two column data table with column names ngram and prob.  The first
-## col is formatted as w1_w2_w3 meaning that the values in the prob column are
-## probability estimates of q_BO(w3 | w1, w2) for unobserved trigrams that start
-## with bigramPrefix (w1, w2) calculated from equation 17.
+## column are trigrams formatted as w1_w2_w3 meaning that the values in the
+## prob column are probability estimates of q_BO(w3 | w1, w2) for unobserved
+## trigrams that start with bigramPrefix (w1, w2) calculated from equation 17.
 ##
 ## bigDiscount - amount to discount observed bigrams
 ## bigramPrefix - first two words of unobserved trigrams we want to estimate
 ##                probabilities of
-## trigrams - data.frame or data.table of all the trigrams in the corpus 
-##            (1st column) and their frequency/count (2nd column)
-## bigrams - data.frame or data.table of all the bigrams in the corpus 
-##            (1st column) and their frequency/count (2nd column)
-## unigrams - data.frame or data.table of all the unigrams in the corpus 
-##            (1st column) and their frequency/count (2nd column)
+## trigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the trigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each trigram.
+## bigrams - 2 column data.frame or data.table. The first column: ngram,
+##           contains all the bigrams in the corpus. The second column:
+##           freq, contains the frequency or count of each bigram.
+## unigrams - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the unigrams in the corpus. The second column:
+##            freq, contains the frequency or count of each unigram.
+## alphaTrigr - total amount of discounted probability mass at the trigram level
 calc.qBO.trigramB &lt;- function(bigDiscount=0.5, bigramPrefix, trigrams, bigrams,
                               unigrams, alphaTrigr) {
     qBoUnobsBigs &lt;- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix=bigramPrefix,
@@ -619,6 +665,7 @@ calc.qBO.trigramB &lt;- function(bigDiscount=0.5, bigramPrefix, trigrams, bigram
     qBoUnobsTrigrams &lt;- paste0(str_split(bigramPrefix, '_')[[1]][1],
                                '_', qBoUnobsBigs$ngram)
     dt &lt;- data.table(ngram=qBoUnobsTrigrams, prob=qBoUnobsTrigProbs)
+    
     return(dt)
 }
 
@@ -681,7 +728,24 @@ all_trigrams</code></pre>
 predict_trigram</code></pre>
 <pre><code>##             ngram prob
 ## 1: sell_the_house  0.5</code></pre>
-<p>Now we get a different result! So we learned that the discount rates matter. As mentioned earlier, the values we should use for these discount rates should be determined by cross-validation and will be strongly dependent upon the corpus used for the training.</p>
+<p>While changing the discount rate doesn’t always change a prediction, this example shows how it can. As mentioned earlier, the values we should use for these discount rates should be determined by cross-validation and will be strongly dependent upon the corpus used for the training. Determining the parameters for this model is the focus of <a href="http://rpubs.com/mszczepaniak/predictkbo4params">Part 4 of this series (expected release Sep 2016)</a>.</p>
+</div>
+<div id="appendix-1---michael-collins-coursera-lectures" class="section level3">
+<h3>Appendix 1 - Michael Collins Coursera Lectures</h3>
+<p><a href="https://www.coursera.org/instructor/~312">Michael Collins of Columbia</a> had an excellent class on NLP which used to be available on Coursera but was removed sometime during the first half of 2016. At the time of this writing, many of these lectures had been put on youtube and the two referenced on this page could be found at the following links:</p>
+<p><a href="https://www.youtube.com/watch?v=hsHw9F3UuAQ">Discounting methods: Part 1 - Katz Bigram</a></p>
+<p><a href="https://www.youtube.com/watch?v=FedWcgXcp8w">Discounting methods: Part 2 - Katz Trigram</a></p>
+</div>
+<div id="appendix-2---the-little-test-corpus" class="section level3">
+<h3>Appendix 2 - The little test corpus:</h3>
+<p><code>SOS buy the book EOS</code><br />
+<code>SOS buy the book EOS</code><br />
+<code>SOS buy the book EOS</code><br />
+<code>SOS buy the book EOS</code><br />
+<code>SOS sell the book EOS</code><br />
+<code>SOS buy the house EOS</code><br />
+<code>SOS buy the house EOS</code><br />
+<code>SOS paint the house EOS</code></p>
 </div>
 
 
