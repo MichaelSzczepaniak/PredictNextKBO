@@ -39,6 +39,8 @@ blogs.top10 <- blogs.unigrams.raw[2:11,]  # EOS is most frequent, remove
 p1 <- ggplot(blogs.top10, aes(x=reorder(ngram, freq, desc), y=freq))
 p1 <- p1 + geom_bar(stat = "identity")
 p1 <- p1 + xlab("Unigram") + ylab("Unigram Count")
+# See eMPee584 comment under: http://stackoverflow.com/questions/11610377/how-do-i-change-the-formatting-of-numbers-on-an-axis-with-ggplot#comment-47793720
+p1 <- p1 + scale_y_continuous(labels=function(n){format(n, scientific = FALSE)})
 p1 <- p1 + ggtitle("Top 10 Blogs Unigram Counts")
 p1
 
@@ -46,9 +48,10 @@ blog_freqs <- group_by(blogs.unigrams.raw, freq)
 blogs_cofc <- summarise(blog_freqs, count_of_count = n())
 blogs_cofc <- filter(blogs_cofc, freq <= 500)
 p2 <- ggplot(blogs_cofc, aes(x=freq, y=count_of_count))
-p2 <- p2 + geom_point() + scale_y_log10() +
-     ggtitle("Blogs Unigram Count of Each Count vs. Count")
+p2 <- p2 + geom_point()
 p2 <- p2 + xlab("Unigram Count") + ylab("Count of Unigram Count")
+p2 <- p2 + scale_y_log10(labels=function(n){format(n, scientific = FALSE)})
+p2 <- p2 + ggtitle("Blogs Unigram Count of Each Count vs. Count")
 p2
 ```
 
