@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Introduction
-In Part 1, we partitioned the corpus data into to training and test sets and performed a number of pre-processing steps in our analysis pipeline that got this data ready to build n-gram tables.  The motivation behind building these tables is that they are needed by our language model to make predictions.  How these tables are used is described in detail in [Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model](http://rpubs.com/mszczepaniak/predictkbo3model), but in this document, we'll focus on generating the unigram, bigram, and trigram tables and doing some exploratory data analysis (EDA) to get a basic understanding of the data along the way.
+In Part 1, we partitioned the corpus data into to training and test sets and performed a number of pre-processing steps in our analysis pipeline that got this data ready to build n-gram frequency tables.  The motivation behind building these tables is that they are needed by our language model to make predictions.  How these tables are used is described in detail in [Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model](http://rpubs.com/mszczepaniak/predictkbo3model), but in this document, we'll focus on generating the unigram, bigram, and trigram tables and doing some exploratory data analysis (EDA) to get a basic understanding of the data along the way.
 
 Note: All functions used in this analysis are defined in the **Appendix** unless stated otherwise.
 
@@ -83,7 +83,7 @@ File Name | File Size (MB) | Line Count | Word Count (all words) | Word Types (u
 
 ### Unigrams
 
-With over 30M words in each corpus, we'd like to know which ones occur the most frequently.  To figure this out, we first build unigram frequency tables for each of the corpus files using the **makeRawUnigrams** function. The inputs to this function were the last set of files from [Part 1](http://rpubs.com/mszczepaniak/predictkbo1preproc):
+With over 30M words in each corpus, we'd like to know which ones occur the most frequently.  To figure this out, we first build unigram frequency tables for each of the corpus files using the **makeRawNgrams** function using the default settings. The inputs to this function were the last set of files from [Part 1](http://rpubs.com/mszczepaniak/predictkbo1preproc):
 
 + [en_US.blogs.train.8posteos.txt](https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1)
 + [en_US.news.train.8posteos.txt](https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1)
@@ -233,14 +233,62 @@ twitter.singletons
 
 
 ```
-This tells us that roughly half of all words (unigrams) are singletons.  O.k., so what does this mean in terms of our prediction model?  This has several implications.  First, because the probability that a particular unigram singleton accurately completes a phrase is very low (around 1 in 30M+), it means that half the data in our intial **en_US.\*.train.9rawunig.csv** unigram tables have very low predictive power.  Second, it means that all the bigrams and trigrams which contain unigram singletons will also be singletons and have low predictive value.  Third, because unigram singletons can be in either the first or second position in a bigram, the number of bigrams containing unigram singletons is twice as large as the number of unigram singletons themselves.  Fourth, by the same argument, the number of trigrams containing unigram singletons is three times as large as the number of unigram singletons themselves.
+This tells us that roughly half of all words (unigrams) are singletons.  O.k., so what does this mean in terms of our prediction model?  This has several implications.  First, because the probability that a particular unigram singleton accurately completes a phrase is very low (around 1 in 30M+), it means that half the data in our intial **en_US.\*.train.9rawunig.csv** unigram tables have very low predictive power.  Second, it means that all the bigrams and trigrams which contain unigram singletons will also be singletons and have low predictive value.  Third, because unigram singletons can be in either the first or second position in a bigram, the number of bigrams containing unigram singletons is twice as large as the number of unigram singletons themselves.  Fourth, by the same argument, the number of trigrams containing unigram singletons is three times as large as the number of unigram singletons themselves.  So in summary, if we include all the unigram singletons in our model, we'll be carrying around alot of data which doesn't add much to the power of our model.
 
-What this all means is that if we include all the unigram singletons in our model, we'll be carrying around alot of data which doesn't add much to the power of our model.  Fortunately, we can remove these singletons and improve the performance of the model simultanously by utilizing the concept of discounting which is built into the KBO model.
+#### Space Constraints
+Let's compare the size of the n-gram tables which including the singletons with those that have them removed.  We've already generated the unigrams which include the singletons: the **en_US.\*.train.9rawunig.csv** files listed above.  The bigrams and trigrams were created using the same inputs to **makeRawNgrams**, but setting **n = 2** to get the bigrams and **n = 3** for the trigrams and changing the output file name parameters accordingly.  The resulting output files and their sizes are shown below.
 
-As is discussed in more detail in [Part 3 of this series](http://rpubs.com/mszczepaniak/predictkbo3model), the Katz Back-Off model uses discounting in order to estimate probabilities of unseen n-grams.  This technique essentially removes some of the probability mass from observed n-grams and distributes it to unobserved n-grams.  The removed mass is generated by substracting an assigned amount from the counts of each n-gram.  This assigned amount is know as the **discount**.  If we assign a discount of 1, then we are assuming that each singleton encountered would essentially have the same probability of occurace as an unseen n-gram which makes sense intuitively when you think about it.
+```{r echo=FALSE}
+## Returns the file size in Mb
+getFileSize <- function(filename,
+                        ddir="D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/") {
+    inputFilePath <- paste0(ddir, filename)
+    return(file.size(inputFilePath) / (2^20))  # convert to MB
+}
+# unigrams: 1-3, bigrams: 4-6, trigram: 7-9
+fsws <- vector(mode = "numeric", length = 9)  # file size with singletons
+fsns <- vector(mode = "numeric", length = 9)  # file size NO singletons
+diff <- vector(mode = "numeric", length = 9)  # fsws - fwns  REMOVE AFTER CALC COMPLETE!!!
+fsws[1] <- getFileSize("en_US.blogs.train.9rawunig.csv")
+fsws[2] <- getFileSize("en_US.news.train.9rawunig.csv")
+fsws[3] <- getFileSize("en_US.twitter.train.9rawunig.csv")
 
-#### Tokenizing Unigram Singletons
-To handle the unigram singletons, we'll first replace each instance with a special token: **USIN**
+fsns[1] <- getFileSize("en_US.blogs.train.12unigrams.nosins.csv")
+fsns[2] <- getFileSize("en_US.news.train.12unigrams.nosins.csv")
+fsns[3] <- getFileSize("en_US.twitter.train.12unigrams.nosins.csv")
+
+diff <- fsws - fsns
+
+```
+
+
+<!--note colon trick to right & left align text in table -->
+
+File Name | File Size (MB) | File Name | File Size (MB) | Difference (MB)
+---------|:---------------:|-----------|:----------:|----------:|
+[en_US.blogs.train.9rawunig.csv](https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1) | `r round(fsws[1], 2)` | [en_US.blogs.train.12unigrams.nosins.csv](https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1) | `r round(fsns[1], 2)` | `r round(diff[1], 2)`
+[en_US.news.train.9rawunig.csv](https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1)  | `r round(fsws[2], 2)` | [en_US.news.train.12unigrams.nosins.csv](https://www.dropbox.com/s/uo971onngv468t1/en_US.news.train.12unigrams.nosins.csv?dl=0) | `r round(fsns[2], 2)` | `r round(diff[2], 2)`
+[en_US.twitter.train.9rawunig.csv](https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1)   | `r round(fsws[3], 2)` | [en_US.twitter.train.12unigrams.nosins.csv](https://www.dropbox.com/s/41yzwgwdviv8i5k/en_US.twitter.train.12unigrams.nosins.csv?dl=1) | `r round(fsns[3], 2)` | `r round(diff[3], 2)`
+tbd   | `r round(fsws[4], 2)` | tbd | `r round(fsns[4], 2)` | `r diff[4]`
+tbd   | `r round(fsws[5], 2)` | tbd | `r round(fsns[5], 2)` | `r diff[5]`
+tbd   | `r round(fsws[6], 2)` | tbd | `r round(fsns[6], 2)` | `r diff[6]`
+tbd   | `r round(fsws[7], 2)` | tbd | `r round(fsns[7], 2)` | `r diff[7]`
+tbd   | `r round(fsws[8], 2)` | tbd | `r round(fsns[8], 2)` | `r diff[8]`
+tbd   | `r round(fsws[9], 2)` | tbd | `r round(fsns[9], 2)` | `r diff[9]`
+Totals | `r round(sum(fsws), 2)`|   | `r round(sum(fsns), 2)`| `r round(sum(diff), 2)`
+
+
+The current free plan on [shinyapps.io](http://www.shinyapps.io/) limits deployments to [1 Gb of memory for a large instance](http://shiny.rstudio.com/articles/shinyapps.html) which quite generous.  However, as the table below shows, our n-gram tables are too large if we include singletons.
+
+
+
+The lessons around the importance of dealing with singletons came from discovering that trying to build just a portion of a bigram frequency tables took an extraordinary amount of time (multiple days even on a quad-core i7 with 16 Gb of RAM) to complete.  One way to speed up this computationally expensive processing was to replace each unigram singleton with a special token before trying to build the bigram or trigram frequency tables.
+
+The workflow went as follows:
+
+1. Create lists of unigram singletons from each of the three **en_US.\*.train.9rawunig.csv** files (links provided above).  The **removeSingletons** function was used to generate the [en_US.blogs.train.10singles.txt](https://www.dropbox.com/s/ttbxocp0u7kw5u9/en_US.blogs.train.10usingles.txt?dl=1), [en_US.news.train.10singles.txt](https://www.dropbox.com/s/fyuxceuv8m318rd/en_US.news.train.10usingles.txt?dl=1) and [en_US.twitter.train.10singles.txt](https://www.dropbox.com/s/gcu4lw15zsx482q/en_US.twitter.train.10usingles.txt?dl=0) files.
+2. Create revised (singletons removed) unigram frequency tables.  The **removeSingletons** function was used to generate the [en_US.blogs.train.11unigrams.nosins.csv](https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.11unigrams.nosins.csv?dl=0), [en_US.news.train.11unigrams.nosins.csv](https://www.dropbox.com/s/uo971onngv468t1/en_US.news.train.11unigrams.nosins.csv?dl=0) and [en_US.twitter.train.11unigrams.nosins.csv](https://www.dropbox.com/s/41yzwgwdviv8i5k/en_US.twitter.train.11unigrams.nosins.csv?dl=0) files as well.
+3. Replace each unigram singleton in each of the **en_US.\*.train.8posteos.txt** with the designated **USIN** token.  Because this was a very computationally expensive step, it was broken into several sub-steps which are described in the **TokenizeFromList** project in my git repository.  The results of this step produced the following three files: [en_US.blogs.12ustokens.txt](), [en_US.news.12ustokens.txt]() and [en_US.twitter.12ustokens.txt]()
 
 
 ### Bigrams
@@ -311,7 +359,7 @@ voc1=getWordCount("blogs"); voc2=getWordCount("news"); voc3=getWordCount("twitte
 wt1=getTypeCount("blogs"); wt2=getTypeCount("news"); wt3=getTypeCount("twitter")
 ###### END - Code used to generate descriptive statistics table
 
-###### START - Code used generate raw unigram frequency tables
+###### START - Code used generate raw n-gram frequency tables
 ## Returns a named vector of n-grams and their associated frequencies
 ## extracted from the character vector dat.
 ##
@@ -369,24 +417,24 @@ getNgramTables <- function(n, linesCorpus, igfs=NULL, sort.by.ngram=TRUE,
     return(ngrams.dt)
 }
 
-## Creates and writes out the raw unigram frequecy tables for each of the 
-## corpus data files.  These are the initial unigram tables that include the
-## singletons.
-makeRawUnigrams <- function(table.dir=ddir, filePrefix="en_US.",
-                            inFilePostfix=".train.8posteos.txt",
-                            outFilePostfix=".train.9rawunig.csv",
-                            fileTypes=c("blogs", "news", "twitter")) {
+## Creates and writes out the raw n-gram frequecy tables for each of the 
+## corpus data files.  These are the initial n-gram tables that include the
+## singletons.  Defaults to unigrams: n=1
+makeRawNgrams <- function(table.dir=ddir, filePrefix="en_US.",
+                          inFilePostfix=".train.8posteos.txt",
+                          outFilePostfix=".train.9rawunig.csv",
+                          fileTypes=c("blogs", "news", "twitter"), n=1) {
     inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
                        inFilePostfix)
     outPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
                         outFilePostfix)
     for(i in 1:length(inPaths)) {
         charvect <- read_lines(inPaths[i])
-        unigrams.raw <- getNgramTables(1, charvect)
+        unigrams.raw <- getNgramTables(n, charvect)
         write.csv(unigrams.raw, outPaths[i], row.names = FALSE)
     }
 }
-###### END - Code used generate raw unigram frequency tables
+###### END - Code used generate raw n-gram frequency tables
 
 ###### START - Code used to generate top 10 unigram frequency barplots
 # https://rstudio.github.io/dygraphs/r-markdown.html
@@ -503,6 +551,29 @@ getPercentSingletons <- function(corpus_type, data_paths=c("https://www.dropbox.
     total_ngrams <- length(ngrams$ngram)
     
     return(100 * singletons / total_ngrams)
+}
+
+## Reads in a n-gram frequency csv file and writes two files: 1) a n-gram
+## frequency file with the singletons removed and 2) the n-gram singletons
+## that were removed from the file.
+removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
+                              inFilePostfix=".train.9rawunig.csv",
+                              out1FilePostfix=".train.11unigrams.nosins.csv",
+                              out2FilePostfix=".train.10usingles.txt",
+                              fileTypes=c("blogs", "news", "twitter")) {
+    inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                       inFilePostfix)
+    out1Paths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                         out1FilePostfix)
+    out2Paths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
+                         out2FilePostfix)
+    for(i in 1:length(inPaths)) {
+        raw.unigrams <- read.csv(inPaths[i])
+        nonsingle.unigrams <- filter(raw.unigrams, freq > 1)
+        unigram.singletons <- filter(raw.unigrams, freq == 1)$ngram
+        write.csv(nonsingle.unigrams, out1Paths[i], row.names = FALSE)
+        writeLines(unigram.singletons, out2Paths[i])
+    }
 }
 
 ```
