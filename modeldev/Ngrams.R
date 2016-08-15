@@ -135,13 +135,13 @@ makeRawUnigrams <- function(table.dir=ddir, filePrefix="en_US.",
     }
 }
 
-## Reads in a unigram frequency csv file and writes two files: 1) a unigram
-## frequency file with the singletons removed and 2) the unigram singletons
+## Reads in a n-gram frequency csv file and writes two files: 1) a n-gram
+## frequency file with the singletons removed and 2) the n-gram singletons
 ## that were removed from the file.
 removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
-                              inFilePostfix=".train.11unigrams.raw.csv",
-                              out1FilePostfix=".train.12unigrams.nous.csv",
-                              out2FilePostfix=".train.12usingles.txt",
+                              inFilePostfix=".train.9rawunig.csv",
+                              out1FilePostfix=".train.11unigrams.nosins.csv",
+                              out2FilePostfix=".train.10usingles.txt",
                               fileTypes=c("blogs", "news", "twitter")) {
     inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
                        inFilePostfix)
@@ -150,11 +150,11 @@ removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
     out2Paths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
                          out2FilePostfix)
     for(i in 1:length(inPaths)) {
-        raw.unigrams <- read.csv(inPaths[i])
-        nonsingle.unigrams <- filter(raw.unigrams, freq > 1)
-        unigram.singletons <- filter(raw.unigrams, freq == 1)$ngram
-        write.csv(nonsingle.unigrams, out1Paths[i], row.names = FALSE)
-        writeLines(unigram.singletons, out2Paths[i])
+        raw.ngrams <- read.csv(inPaths[i])
+        nonsingle.ngrams <- filter(raw.ngrams, freq > 1)
+        ngram.singletons <- filter(raw.ngrams, freq == 1)$ngram
+        write.csv(nonsingle.ngrams, out1Paths[i], row.names = FALSE)
+        writeLines(ngram.singletons, out2Paths[i])
     }
 }
 
