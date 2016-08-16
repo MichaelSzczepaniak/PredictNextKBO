@@ -117,21 +117,26 @@ mergeFreqTables <- function(ftab1, ftab2,
     return(mergedTable)
 }
 
-## Creates and writes out the raw unigram frequecy tables for each of the 
-## corpus data files.  These are the initial unigram tables that include the
-## singletons.
-makeRawUnigrams <- function(table.dir=ddir, filePrefix="en_US.",
-                            inFilePostfix=".train.8posteos.txt",
-                            outFilePostfix=".train.9rawunig.csv",
-                            fileTypes=c("blogs", "news", "twitter")) {
+## Creates and writes out the raw n-gram frequecy tables for each of the 
+## corpus data files.  These are the initial n-gram tables that include the
+## singletons.  Defaults to unigrams: n=1
+## table.dir - string: dir where files to processes reside
+## filePrefix - string: prefix of files to process
+## inFilePostfix - string: ending/postfix portion of input file name
+## outFilePostfix - string: ending/postfix portion of output file name
+## n - integer: 1 if unigram table is to be created, 2 if bigram, 3 if trigram
+makeRawNgrams <- function(table.dir=ddir, filePrefix="en_US.",
+                          inFilePostfix=".train.8posteos.txt",
+                          outFilePostfix=".train.9rawunig.csv",
+                          fileTypes=c("blogs", "news", "twitter"), n=1) {
     inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
                        inFilePostfix)
     outPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
                         outFilePostfix)
     for(i in 1:length(inPaths)) {
         charvect <- read_lines(inPaths[i])
-        unigrams.raw <- getNgramTables(1, charvect)
-        write.csv(unigrams.raw, outPaths[i], row.names = FALSE)
+        ngrams.raw <- getNgramTables(n, charvect)
+        write.csv(ngrams.raw, outPaths[i], row.names = FALSE)
     }
 }
 
