@@ -253,9 +253,25 @@ fsws[1] <- getFileSize("en_US.blogs.train.9rawunig.csv")
 fsws[2] <- getFileSize("en_US.news.train.9rawunig.csv")
 fsws[3] <- getFileSize("en_US.twitter.train.9rawunig.csv")
 
+fsws[4] <- getFileSize("en_US.blogs.train.10rawbigrams.csv")
+fsws[5] <- getFileSize("en_US.news.train.10rawbigrams.csv")
+fsws[6] <- getFileSize("en_US.twitter.train.10rawbigrams.csv")
+
+fsws[7] <- getFileSize("en_US.blogs.train.11rawtrigrams.csv")
+fsws[8] <- getFileSize("en_US.news.train.11rawtrigrams.csv")
+fsws[9] <- getFileSize("en_US.twitter.train.11rawtrigrams.csv")
+
 fsns[1] <- getFileSize("en_US.blogs.train.12unigrams.nosins.csv")
 fsns[2] <- getFileSize("en_US.news.train.12unigrams.nosins.csv")
 fsns[3] <- getFileSize("en_US.twitter.train.12unigrams.nosins.csv")
+
+fsns[4] <- getFileSize("en_US.blogs.train.13bigrams.nosins.csv")
+fsns[5] <- getFileSize("en_US.news.train.13bigrams.nosins.csv")
+fsns[6] <- getFileSize("en_US.twitter.train.13bigrams.nosins.csv")
+
+fsns[7] <- getFileSize("en_US.blogs.train.14trigrams.nosins.csv")
+fsns[8] <- getFileSize("en_US.news.train.14trigrams.nosins.csv")
+fsns[9] <- getFileSize("en_US.twitter.train.14trigrams.nosins.csv")
 
 diff <- fsws - fsns
 
@@ -267,29 +283,18 @@ diff <- fsws - fsns
 File Name | File Size (MB) | File Name | File Size (MB) | Difference (MB)
 ---------|:---------------:|-----------|:----------:|----------:|
 [en_US.blogs.train.9rawunig.csv](https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1) | `r round(fsws[1], 2)` | [en_US.blogs.train.12unigrams.nosins.csv](https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1) | `r round(fsns[1], 2)` | `r round(diff[1], 2)`
-[en_US.news.train.9rawunig.csv](https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1)  | `r round(fsws[2], 2)` | [en_US.news.train.12unigrams.nosins.csv](https://www.dropbox.com/s/uo971onngv468t1/en_US.news.train.12unigrams.nosins.csv?dl=0) | `r round(fsns[2], 2)` | `r round(diff[2], 2)`
+[en_US.news.train.9rawunig.csv](https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1)  | `r round(fsws[2], 2)` | [en_US.news.train.12unigrams.nosins.csv](https://www.dropbox.com/s/uo971onngv468t1/en_US.news.train.12unigrams.nosins.csv?dl=1) | `r round(fsns[2], 2)` | `r round(diff[2], 2)`
 [en_US.twitter.train.9rawunig.csv](https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1)   | `r round(fsws[3], 2)` | [en_US.twitter.train.12unigrams.nosins.csv](https://www.dropbox.com/s/41yzwgwdviv8i5k/en_US.twitter.train.12unigrams.nosins.csv?dl=1) | `r round(fsns[3], 2)` | `r round(diff[3], 2)`
-tbd   | `r round(fsws[4], 2)` | tbd | `r round(fsns[4], 2)` | `r diff[4]`
-tbd   | `r round(fsws[5], 2)` | tbd | `r round(fsns[5], 2)` | `r diff[5]`
-tbd   | `r round(fsws[6], 2)` | tbd | `r round(fsns[6], 2)` | `r diff[6]`
-tbd   | `r round(fsws[7], 2)` | tbd | `r round(fsns[7], 2)` | `r diff[7]`
-tbd   | `r round(fsws[8], 2)` | tbd | `r round(fsns[8], 2)` | `r diff[8]`
-tbd   | `r round(fsws[9], 2)` | tbd | `r round(fsns[9], 2)` | `r diff[9]`
+[en_US.blogs.train.10rawbigrams.csv](https://www.dropbox.com/s/85b68bx4fi65kbd/en_US.blogs.train.10rawbigrams.csv?dl=1)  | `r round(fsws[4], 2)` | [en_US.blogs.train.13bigrams.nosins.csv](https://www.dropbox.com/s/opkjiahjsn4i250/en_US.blogs.train.13bigrams.nosins.nosins.csv?dl=0) | `r round(fsns[4], 2)` | `r round(diff[4], 2)`
+[en_US.news.train.10rawbigrams.csv](file:///D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/en_US.news.train.10rawbigrams.csv)  | `r round(fsws[5], 2)` | [en_US.news.train.13bigrams.nosins.csv](https://www.dropbox.com/s/c6bweh2ahs30ma9/en_US.news.train.13bigrams.nosins.nosins.csv?dl=1) | `r round(fsns[5], 2)` | `r round(diff[5], 2)`
+[en_US.twitter.train.10rawbigrams.csv](https://www.dropbox.com/s/9sjruvexfwsxxi5/en_US.twitter.train.10rawbigrams.csv?dl=1)  | `r round(fsws[6], 2)` | [en_US.twitter.train.13bigrams.nosins.csv](https://www.dropbox.com/s/udrxq2qh9dpbgme/en_US.twitter.train.13bigrams.nosins.nosins.csv?dl=1) | `r round(fsns[6], 2)` | `r round(diff[6], 2)`
+[en_US.blogs.train.11rawtrigrams.csv](https://www.dropbox.com/s/r8cbe6gw626ol5q/en_US.blogs.train.14trigrams.nosins.csv?dl=1)   | `r round(fsws[7], 2)` | [en_US.blogs.train.14trigrams.nosins.csv](https://www.dropbox.com/s/r8cbe6gw626ol5q/en_US.blogs.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[7], 2)` | `r round(diff[7], 2)`
+[en_US.news.train.11rawtrigrams.csv](https://www.dropbox.com/s/egmx67siiv3qpkr/en_US.news.train.14trigrams.nosins.csv?dl=1)   | `r round(fsws[8], 2)` | [en_US.news.train.14trigrams.nosins.csv](https://www.dropbox.com/s/egmx67siiv3qpkr/en_US.news.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[8], 2)` | `r round(diff[8], 2)`
+[en_US.twitter.train.11rawtrigrams.csv](https://www.dropbox.com/s/ywhfxjunlo4dbla/en_US.twitter.train.14trigrams.nosins.csv?dl=1)   | `r round(fsws[9], 2)` | [en_US.twitter.train.14trigrams.nosins.csv](https://www.dropbox.com/s/ywhfxjunlo4dbla/en_US.twitter.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[9], 2)` | `r round(diff[9], 2)`
 Totals | `r round(sum(fsws), 2)`|   | `r round(sum(fsns), 2)`| `r round(sum(diff), 2)`
 
 
-The current free plan on [shinyapps.io](http://www.shinyapps.io/) limits deployments to [1 Gb of memory for a large instance](http://shiny.rstudio.com/articles/shinyapps.html) which quite generous.  However, as the table below shows, our n-gram tables are too large if we include singletons.
-
-
-
-The lessons around the importance of dealing with singletons came from discovering that trying to build just a portion of a bigram frequency tables took an extraordinary amount of time (multiple days even on a quad-core i7 with 16 Gb of RAM) to complete.  One way to speed up this computationally expensive processing was to replace each unigram singleton with a special token before trying to build the bigram or trigram frequency tables.
-
-The workflow went as follows:
-
-1. Create lists of unigram singletons from each of the three **en_US.\*.train.9rawunig.csv** files (links provided above).  The **removeSingletons** function was used to generate the [en_US.blogs.train.10singles.txt](https://www.dropbox.com/s/ttbxocp0u7kw5u9/en_US.blogs.train.10usingles.txt?dl=1), [en_US.news.train.10singles.txt](https://www.dropbox.com/s/fyuxceuv8m318rd/en_US.news.train.10usingles.txt?dl=1) and [en_US.twitter.train.10singles.txt](https://www.dropbox.com/s/gcu4lw15zsx482q/en_US.twitter.train.10usingles.txt?dl=0) files.
-2. Create revised (singletons removed) unigram frequency tables.  The **removeSingletons** function was used to generate the [en_US.blogs.train.11unigrams.nosins.csv](https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.11unigrams.nosins.csv?dl=0), [en_US.news.train.11unigrams.nosins.csv](https://www.dropbox.com/s/uo971onngv468t1/en_US.news.train.11unigrams.nosins.csv?dl=0) and [en_US.twitter.train.11unigrams.nosins.csv](https://www.dropbox.com/s/41yzwgwdviv8i5k/en_US.twitter.train.11unigrams.nosins.csv?dl=0) files as well.
-3. Replace each unigram singleton in each of the **en_US.\*.train.8posteos.txt** with the designated **USIN** token.  Because this was a very computationally expensive step, it was broken into several sub-steps which are described in the **TokenizeFromList** project in my git repository.  The results of this step produced the following three files: [en_US.blogs.12ustokens.txt](), [en_US.news.12ustokens.txt]() and [en_US.twitter.12ustokens.txt]()
-
+The current free plan on [shinyapps.io](http://www.shinyapps.io/) limits deployments to [1 Gb of memory for a large instance](http://shiny.rstudio.com/articles/shinyapps.html) which is quite generous.  However, as the above table shows, the total size of the raw n-gram tables (n-gram frequecy tables which include the singletons) exceed the free plan limits.  Fortunately, by removing the singletons, we reduce the size of our of 9 n-gram tables by roughly an order of magnitude.
 
 ### Bigrams
 TODO
@@ -420,6 +425,11 @@ getNgramTables <- function(n, linesCorpus, igfs=NULL, sort.by.ngram=TRUE,
 ## Creates and writes out the raw n-gram frequecy tables for each of the 
 ## corpus data files.  These are the initial n-gram tables that include the
 ## singletons.  Defaults to unigrams: n=1
+## table.dir - string: dir where files to processes reside
+## filePrefix - string: prefix of files to process
+## inFilePostfix - string: ending/postfix portion of input file name
+## outFilePostfix - string: ending/postfix portion of output file name
+## n - integer: 1 if unigram table is to be created, 2 if bigram, 3 if trigram
 makeRawNgrams <- function(table.dir=ddir, filePrefix="en_US.",
                           inFilePostfix=".train.8posteos.txt",
                           outFilePostfix=".train.9rawunig.csv",
@@ -430,8 +440,8 @@ makeRawNgrams <- function(table.dir=ddir, filePrefix="en_US.",
                         outFilePostfix)
     for(i in 1:length(inPaths)) {
         charvect <- read_lines(inPaths[i])
-        unigrams.raw <- getNgramTables(n, charvect)
-        write.csv(unigrams.raw, outPaths[i], row.names = FALSE)
+        ngrams.raw <- getNgramTables(n, charvect)
+        write.csv(ngrams.raw, outPaths[i], row.names = FALSE)
     }
 }
 ###### END - Code used generate raw n-gram frequency tables
@@ -568,11 +578,11 @@ removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
     out2Paths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
                          out2FilePostfix)
     for(i in 1:length(inPaths)) {
-        raw.unigrams <- read.csv(inPaths[i])
-        nonsingle.unigrams <- filter(raw.unigrams, freq > 1)
-        unigram.singletons <- filter(raw.unigrams, freq == 1)$ngram
-        write.csv(nonsingle.unigrams, out1Paths[i], row.names = FALSE)
-        writeLines(unigram.singletons, out2Paths[i])
+        raw.ngrams <- read.csv(inPaths[i])
+        nonsingle.ngrams <- filter(raw.ngrams, freq > 1)
+        ngram.singletons <- filter(raw.ngrams, freq == 1)$ngram
+        write.csv(nonsingle.ngrams, out1Paths[i], row.names = FALSE)
+        writeLines(ngram.singletons, out2Paths[i])
     }
 }
 
