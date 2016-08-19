@@ -142,7 +142,14 @@ makeRawNgrams <- function(table.dir=ddir, filePrefix="en_US.",
 
 ## Reads in a n-gram frequency csv file and writes two files: 1) a n-gram
 ## frequency file with the singletons removed and 2) the n-gram singletons
-## that were removed from the file.
+## that were removed from the file. Both output files are sorted by ngram.
+## table.dir - string, path to data directory
+## filePrefix - string, input and output file prefixes, default="en_US."
+## inFilePostfix - string, postfix for the input ngram frequency tables
+## out1FilePostfix - string, postfix for the output ngram frequency tables
+##                   which have had their singletons removed
+## out2FilePostfix - string, postfix for the output files that contain the
+##                   removed singletons
 removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
                               inFilePostfix=".train.9rawunig.csv",
                               out1FilePostfix=".train.11unigrams.nosins.csv",
@@ -157,7 +164,9 @@ removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
     for(i in 1:length(inPaths)) {
         raw.ngrams <- read.csv(inPaths[i])
         nonsingle.ngrams <- filter(raw.ngrams, freq > 1)
-        ngram.singletons <- filter(raw.ngrams, freq == 1)$ngram
+        nonsingle.ngrams <- arrange(nonsingle.ngrams, ngram)
+        ngram.singletons <- filter(raw.ngrams, freq == 1)
+        ngram.singletons <- arrange(ngram.singletons, ngram)$ngram
         write.csv(nonsingle.ngrams, out1Paths[i], row.names = FALSE)
         writeLines(ngram.singletons, out2Paths[i])
     }

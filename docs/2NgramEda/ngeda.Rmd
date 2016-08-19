@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 2 - N-grams and Exploratory Data Analysis (EDA)"
 author: "Michael Szczepaniak"
-date: "August dd, 2016 (initial release)"
+date: "August 18, 2016 (initial release)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo2ngeda
 ---
@@ -95,10 +95,9 @@ The output files from this function were:
 + [en_US.news.train.9rawunig.csv](https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1)
 + [en_US.twitter.train.9rawunig.csv](https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1)
 
-From the above 3 frequency tables, the following 3 charts were created using the **getTopM_NgramsPlot** function:
+From the above three unigram frequency tables, the following charts were created using the **getTopM_NgramsPlot** function:
 
-```{r cache=TRUE, echo=FALSE, message=FALSE, fig.width=8, fig.height=4}
-# https://rstudio.github.io/dygraphs/r-markdown.html
+```{r topmngrams_chunk, cache=TRUE, echo=FALSE}
 library(dplyr)
 library(ggplot2)
 # https://cran.r-project.org/web/packages/cowplot/vignettes/plot_grid.html
@@ -117,7 +116,8 @@ getNgramType <- function(ngram=1) {
 ## data_type - string: "Blogs", "News", or "Twitter"
 ## ngram - integer: 1, 2, or 3
 ## topm - number of ngrams to display
-getTopM_NgramsPlot <- function(data_path, data_type, ngram=1, topm=10) {
+getTopM_NgramsPlot <- function(data_path, data_type, ngram=1, topm=10,
+                               txt_ang=45, vj=0.5, hj=0) {
     data.ngrams.raw <- read.csv(data_path)
     data.ngrams.raw <- arrange(data.ngrams.raw, desc(freq))
     ngrams.topm <- data.ngrams.raw[2:(topm+1),]  # EOS is most frequent: remove
@@ -125,44 +125,42 @@ getTopM_NgramsPlot <- function(data_path, data_type, ngram=1, topm=10) {
     p <- p + geom_bar(stat = "identity")
     ng_type <- getNgramType(ngram)
     p <- p + xlab(ng_type) + ylab(sprintf("%s%s", ng_type, " Count"))
-    # See eMPee584 comment under: http://stackoverflow.com/questions/11610377/how-do-i-change-the-formatting-of-numbers-on-an-axis-with-ggplot#comment-47793720
+    # See eMPee584 comment under: http://stackoverflow.com/questions/11610377#comment-47793720
     p <- p + scale_y_continuous(labels=function(n){format(n, scientific = FALSE)})
     chart_title <- sprintf("%s%s%s%s%s%s%s", "Top ", topm, " ", data_type,
                            "\n", ng_type, " Counts")
     p <- p + ggtitle(chart_title)
     p <- p + theme(plot.title = element_text(size=10))
     p <- p + theme(axis.title.x = element_text(size=10))
-    p <- p + theme(axis.text.x = element_text(size=8, angle=45))
+    p <- p + theme(axis.text.x = element_text(size=10, angle=txt_ang, vjust=vj, hjust=hj))
     p <- p + theme(axis.title.y = element_text(size=10))
     
     return(p)
 }
-
+```
+```{r echo=FALSE, cache=TRUE, fig.width=9, fig.height=5}
 # top 10 unigram frequencies for each corpus type: blogs, news, twitter
 path <- "https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1"
-p01 <- getTopM_NgramsPlot(path, "Blogs", 1, 10)
+p01 <- getTopM_NgramsPlot(path, "Blogs", 1, 10, txt_ang=90, vj=0.5, hj=0.9)
+p01 <- p01 + coord_cartesian(ylim = c(0, 900000))
 path <- "https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1"
-p02 <- getTopM_NgramsPlot(path, "News", 1, 10)
+p02 <- getTopM_NgramsPlot(path, "News", 1, 10, txt_ang=90, vj=0.5, hj=0.9)
+p02 <- p02 + coord_cartesian(ylim = c(0, 900000))
 path <- "https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1"
-p03 <- getTopM_NgramsPlot(path, "Twitter", 1, 10)
+p03 <- getTopM_NgramsPlot(path, "Twitter", 1, 10, txt_ang=90, vj=0.5, hj=0.9)
+p03 <- p03 + coord_cartesian(ylim = c(0, 900000))
 
 plot_grid(p01, p02, p03, labels = c("Fig 1:", "Fig 2:", "Fig 3:"),
           ncol = 3, align = 'h')
-
 ```
 
-Note:  The **NUM** shown in the middle *Top 10 News Unigram Counts* barplot is the token substituted for all digits found in the news corpus.
+#### Note on Special Tokens
+The **NUM** and **EOS** in the N-gram Count charts are special tokens.  The **NUM** token was used to replace all the digit characters in the corpus.  The **EOS** token was used to mark the end of sentences.
 
 #### Unigram Singletons
 Singletons are instances that only occur once in a corpus.  Unigram singletons are single words that only occur once in a corpus.  Similarly, bigram and trigram singletons are groups of two and three words that occur together once in a corpus.  Why are singletons important?  We can start to see the answer to this question by looking at the three plots below which were created using the **getCountOfCountPlot** function listed in the **Appendix**:
 
-```{r cache=TRUE, echo=FALSE, message=FALSE, fig.width=8, fig.height=4}
-# https://rstudio.github.io/dygraphs/r-markdown.html
-library(dplyr)
-library(ggplot2)
-# https://cran.r-project.org/web/packages/cowplot/vignettes/plot_grid.html
-library(cowplot)
-
+```{r cache=TRUE, echo=FALSE}
 ## Returns a scatter plot of the count of each unigram count vs. count
 ##
 ## data_path - path to the ngram vs. frequency data file
@@ -187,7 +185,8 @@ getCountOfCountPlot <- function(data_path, data_type, xcount=100) {
     
     return(p)
 }
-
+```
+```{r cache=TRUE, echo=FALSE, fig.width=8, fig.height=4}
 # unigram count of counts for each corpus type: blogs, news, twitter
 path <- "https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1"
 p04 <- getCountOfCountPlot(path, "Blogs")
@@ -202,13 +201,16 @@ plot_grid(p04, p05, p06, labels = c("Fig 4:", "Fig 5:", "Fig 6:"),
 
 As we might expect, the number of unigrams that show up once in a corpus (furthest point in the upper left portion of each plot) is much higher than any of the others that appear more than once.  What percentage of each of these unigrams are singletons?
 
-```{r, echo=FALSE}
+```{r cache=TRUE, echo=FALSE}
 ## Returns the percentage of singletons in corpus_type.
 ## corpus_type - string, valid values: "blogs", "news", "twitter"
 ## data_paths - character vector containing the urls to the blogs, news and twitter
 ##              raw unigram data files. Default values provided by
 ##              8/2016 M. Szczepaniak
-getPercentSingletons <- function(corpus_type, data_paths=c("https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1", "https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1", "https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1")) {
+getPercentSingletons <- function(corpus_type, data_paths=
+   c("https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1",
+     "https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1",
+     "https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1")) {
     if(corpus_type == "blogs") {
         data_path = data_paths[1]
     } else if(corpus_type == "news") {
@@ -223,22 +225,21 @@ getPercentSingletons <- function(corpus_type, data_paths=c("https://www.dropbox.
     return(100 * singletons / total_ngrams)
 }
 ```
-```{r}
+```{r cache=TRUE}
 blogs.singletons <- getPercentSingletons("blogs")
 blogs.singletons
 news.singletons <- getPercentSingletons("news")
 news.singletons
 twitter.singletons <-  getPercentSingletons("twitter")
 twitter.singletons
-
-
 ```
+
 This tells us that roughly half of all words (unigrams) are singletons.  O.k., so what does this mean in terms of our prediction model?  This has several implications.  First, because the probability that a particular unigram singleton accurately completes a phrase is very low (around 1 in 30M+), it means that half the data in our intial **en_US.\*.train.9rawunig.csv** unigram tables have very low predictive power.  Second, it means that all the bigrams and trigrams which contain unigram singletons will also be singletons and have low predictive value.  Third, because unigram singletons can be in either the first or second position in a bigram, the number of bigrams containing unigram singletons is twice as large as the number of unigram singletons themselves.  Fourth, by the same argument, the number of trigrams containing unigram singletons is three times as large as the number of unigram singletons themselves.  So in summary, if we include all the unigram singletons in our model, we'll be carrying around alot of data which doesn't add much to the power of our model.
 
 #### Space Constraints
-Let's compare the size of the n-gram tables which including the singletons with those that have them removed.  We've already generated the unigrams which include the singletons: the **en_US.\*.train.9rawunig.csv** files listed above.  The bigrams and trigrams were created using the same inputs to **makeRawNgrams**, but setting **n = 2** to get the bigrams and **n = 3** for the trigrams and changing the output file name parameters accordingly.  The resulting output files and their sizes are shown below.
+Let's compare the size of the n-gram tables which including the singletons with those that have them removed.  We've already generated the unigrams which include the singletons: the **en_US.\*.train.9rawunig.csv** files listed above.  The raw bigrams and trigrams (including the singletons) were created using the same inputs to **makeRawNgrams**, but setting **n = 2** to get the bigrams and **n = 3** for the trigrams and changing the output file name parameters accordingly.  The **nosins** (no singletons) files were created using the **removeSingletons** function.  The resulting output files and their sizes are shown below.
 
-```{r echo=FALSE}
+```{r cache=TRUE, echo=FALSE}
 ## Returns the file size in Mb
 getFileSize <- function(filename,
                         ddir="D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/") {
@@ -277,7 +278,6 @@ diff <- fsws - fsns
 
 ```
 
-
 <!--note colon trick to right & left align text in table -->
 
 File Name | File Size (MB) | File Name | File Size (MB) | Difference (MB)
@@ -285,27 +285,63 @@ File Name | File Size (MB) | File Name | File Size (MB) | Difference (MB)
 [en_US.blogs.train.9rawunig.csv](https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1) | `r round(fsws[1], 2)` | [en_US.blogs.train.12unigrams.nosins.csv](https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1) | `r round(fsns[1], 2)` | `r round(diff[1], 2)`
 [en_US.news.train.9rawunig.csv](https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1)  | `r round(fsws[2], 2)` | [en_US.news.train.12unigrams.nosins.csv](https://www.dropbox.com/s/uo971onngv468t1/en_US.news.train.12unigrams.nosins.csv?dl=1) | `r round(fsns[2], 2)` | `r round(diff[2], 2)`
 [en_US.twitter.train.9rawunig.csv](https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1)   | `r round(fsws[3], 2)` | [en_US.twitter.train.12unigrams.nosins.csv](https://www.dropbox.com/s/41yzwgwdviv8i5k/en_US.twitter.train.12unigrams.nosins.csv?dl=1) | `r round(fsns[3], 2)` | `r round(diff[3], 2)`
-[en_US.blogs.train.10rawbigrams.csv](https://www.dropbox.com/s/85b68bx4fi65kbd/en_US.blogs.train.10rawbigrams.csv?dl=1)  | `r round(fsws[4], 2)` | [en_US.blogs.train.13bigrams.nosins.csv](https://www.dropbox.com/s/opkjiahjsn4i250/en_US.blogs.train.13bigrams.nosins.nosins.csv?dl=0) | `r round(fsns[4], 2)` | `r round(diff[4], 2)`
-[en_US.news.train.10rawbigrams.csv](file:///D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/en_US.news.train.10rawbigrams.csv)  | `r round(fsws[5], 2)` | [en_US.news.train.13bigrams.nosins.csv](https://www.dropbox.com/s/c6bweh2ahs30ma9/en_US.news.train.13bigrams.nosins.nosins.csv?dl=1) | `r round(fsns[5], 2)` | `r round(diff[5], 2)`
-[en_US.twitter.train.10rawbigrams.csv](https://www.dropbox.com/s/9sjruvexfwsxxi5/en_US.twitter.train.10rawbigrams.csv?dl=1)  | `r round(fsws[6], 2)` | [en_US.twitter.train.13bigrams.nosins.csv](https://www.dropbox.com/s/udrxq2qh9dpbgme/en_US.twitter.train.13bigrams.nosins.nosins.csv?dl=1) | `r round(fsns[6], 2)` | `r round(diff[6], 2)`
-[en_US.blogs.train.11rawtrigrams.csv](https://www.dropbox.com/s/r8cbe6gw626ol5q/en_US.blogs.train.14trigrams.nosins.csv?dl=1)   | `r round(fsws[7], 2)` | [en_US.blogs.train.14trigrams.nosins.csv](https://www.dropbox.com/s/r8cbe6gw626ol5q/en_US.blogs.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[7], 2)` | `r round(diff[7], 2)`
-[en_US.news.train.11rawtrigrams.csv](https://www.dropbox.com/s/egmx67siiv3qpkr/en_US.news.train.14trigrams.nosins.csv?dl=1)   | `r round(fsws[8], 2)` | [en_US.news.train.14trigrams.nosins.csv](https://www.dropbox.com/s/egmx67siiv3qpkr/en_US.news.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[8], 2)` | `r round(diff[8], 2)`
-[en_US.twitter.train.11rawtrigrams.csv](https://www.dropbox.com/s/ywhfxjunlo4dbla/en_US.twitter.train.14trigrams.nosins.csv?dl=1)   | `r round(fsws[9], 2)` | [en_US.twitter.train.14trigrams.nosins.csv](https://www.dropbox.com/s/ywhfxjunlo4dbla/en_US.twitter.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[9], 2)` | `r round(diff[9], 2)`
+[en_US.blogs.train.10rawbigrams.csv](https://www.dropbox.com/s/85b68bx4fi65kbd/en_US.blogs.train.10rawbigrams.csv?dl=1)  | `r round(fsws[4], 2)` | [en_US.blogs.train.13bigrams.nosins.csv](https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1) | `r round(fsns[4], 2)` | `r round(diff[4], 2)`
+[en_US.news.train.10rawbigrams.csv](https://www.dropbox.com/s/40nqyqi9a3g97v2/en_US.news.train.10rawbigrams.csv?dl=1)  | `r round(fsws[5], 2)` | [en_US.news.train.13bigrams.nosins.csv](https://www.dropbox.com/s/5xobfsotplbqtv3/en_US.news.train.13bigrams.nosins.csv?dl=1) | `r round(fsns[5], 2)` | `r round(diff[5], 2)`
+[en_US.twitter.train.10rawbigrams.csv](https://www.dropbox.com/s/9sjruvexfwsxxi5/en_US.twitter.train.10rawbigrams.csv?dl=1)  | `r round(fsws[6], 2)` | [en_US.twitter.train.13bigrams.nosins.csv](https://www.dropbox.com/s/47hwbqffufmg16m/en_US.twitter.train.13bigrams.nosins.csv?dl=1) | `r round(fsns[6], 2)` | `r round(diff[6], 2)`
+[en_US.blogs.train.11rawtrigrams.csv](https://www.dropbox.com/s/mdmplwpiyoyxhad/en_US.blogs.train.11rawtrigrams.csv?dl=1)   | `r round(fsws[7], 2)` | [en_US.blogs.train.14trigrams.nosins.csv](https://www.dropbox.com/s/z0rz707mt3da1h1/en_US.blogs.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[7], 2)` | `r round(diff[7], 2)`
+[en_US.news.train.11rawtrigrams.csv](https://www.dropbox.com/s/d8kk4suvsud44r7/en_US.news.train.11rawtrigrams.csv?dl=1)   | `r round(fsws[8], 2)` | [en_US.news.train.14trigrams.nosins.csv](https://www.dropbox.com/s/6e8eueyvnqa3jgs/en_US.news.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[8], 2)` | `r round(diff[8], 2)`
+[en_US.twitter.train.11rawtrigrams.csv](https://www.dropbox.com/s/t1tzbxbv007z0p8/en_US.twitter.train.11rawtrigrams.csv?dl=1)   | `r round(fsws[9], 2)` | [en_US.twitter.train.14trigrams.nosins.csv](https://www.dropbox.com/s/6y0rvzd2bt45f1q/en_US.twitter.train.14trigrams.nosins.csv?dl=1) | `r round(fsns[9], 2)` | `r round(diff[9], 2)`
 Totals | `r round(sum(fsws), 2)`|   | `r round(sum(fsns), 2)`| `r round(sum(diff), 2)`
 
 
-The current free plan on [shinyapps.io](http://www.shinyapps.io/) limits deployments to [1 Gb of memory for a large instance](http://shiny.rstudio.com/articles/shinyapps.html) which is quite generous.  However, as the above table shows, the total size of the raw n-gram tables (n-gram frequecy tables which include the singletons) exceed the free plan limits.  Fortunately, by removing the singletons, we reduce the size of our of 9 n-gram tables by roughly an order of magnitude.
+The current free plan on [shinyapps.io](http://www.shinyapps.io/) limits deployments to [1 Gb of memory for a large instance](http://shiny.rstudio.com/articles/shinyapps.html) which is quite generous.  However, as the above table shows, the total size of the raw n-gram tables (n-gram frequecy tables which include the singletons) exceed the free plan limits.  Fortunately, by removing the singletons, we reduce the size of our 9 n-gram tables by roughly an order of magnitude.
 
 ### Bigrams
-TODO
+Using either of the bigram frequency tables listed above as inputs to the **getTopM_NgramsPlot** function, the 10 highest frequency bigrams for each corpus are shown in Figures 7 thru 9 below.
+
+```{r cache=TRUE, echo=FALSE, fig.width=9, fig.height=5}
+# top 10 bigram frequencies for each corpus type: blogs, news, twitter
+path <- "https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1"
+p07 <- getTopM_NgramsPlot(path, "Blogs", 2, 10, txt_ang=90, vj=0.5, hj=0.9)
+p07 <- p07 + coord_cartesian(ylim=c(0, 140000))
+path <- "https://www.dropbox.com/s/5xobfsotplbqtv3/en_US.news.train.13bigrams.nosins.csv?dl=1"
+p08 <- getTopM_NgramsPlot(path, "News", 2, 10, txt_ang=90, vj=0.5, hj=0.9)
+p08 <- p08 + coord_cartesian(ylim=c(0, 140000))
+path <- "https://www.dropbox.com/s/47hwbqffufmg16m/en_US.twitter.train.13bigrams.nosins.csv?dl=1"
+p09 <- getTopM_NgramsPlot(path, "Twitter", 2, 10, txt_ang=90, vj=0.5, hj=0.9)
+p09 <- p09 + coord_cartesian(ylim=c(0, 140000))
+
+plot_grid(p07, p08, p09, labels = c("Fig 7:", "Fig 8:", "Fig 9:"),
+          ncol = 3, align = 'h')
+```
 
 ### Trigrams
-TODO
+Using either of the trigram frequency tables listed above as inputs to the **getTopM_NgramsPlot** function, the 10 highest frequency trigrams for each corpus are shown in Figures 10 thru 12 below.
+
+```{r cache=TRUE, echo=FALSE, fig.width=9, fig.height=5}
+# top 10 trigram frequencies for each corpus type: blogs, news, twitter
+path <- "https://www.dropbox.com/s/z0rz707mt3da1h1/en_US.blogs.train.14trigrams.nosins.csv?dl=1"
+p10 <- getTopM_NgramsPlot(path, "Blogs", 3, 10, txt_ang=90, vj=0.5, hj=0.9)
+p10 <- p10 + coord_cartesian(ylim=c(0, 12000))
+path <- "https://www.dropbox.com/s/6e8eueyvnqa3jgs/en_US.news.train.14trigrams.nosins.csv?dl=1"
+p11 <- getTopM_NgramsPlot(path, "News", 3, 10, txt_ang=90, vj=0.5, hj=0.9)
+p11 <- p11 + coord_cartesian(ylim=c(0, 12000))
+path <- "https://www.dropbox.com/s/6y0rvzd2bt45f1q/en_US.twitter.train.14trigrams.nosins.csv?dl=1"
+p12 <- getTopM_NgramsPlot(path, "Twitter", 3, 10, txt_ang=90, vj=0.5, hj=0.9)
+p12 <- p12 + coord_cartesian(ylim=c(0, 12000))
+
+plot_grid(p10, p11, p12, labels = c("Fig 10:", "Fig 11:", "Fig 12:"),
+          ncol = 3, align = 'h')
+```
+
+## Next Section:
+[Predicting Next Word Using Katz Back-Off: Part 3 - Understanding the Katz Back-Off Model](http://rpubs.com/mszczepaniak/predictkbo3model)
 
 ## Appendix
 
 ```{r eval=FALSE}
-###### START - Code used to generate descriptive statistics table
+########## Descriptive Statistics section ##########
+library(readr)
 loadLibs <- function() {
     libs <- c("dplyr", "readr", "stringr", "dplyr", "quanteda",
               "ggplot2", "data.table")
@@ -353,18 +389,22 @@ getTypeCount <- function(fileType) {
     f <- getFileLines(fileType)
     return(length(unique(unlist(strsplit(f, " ")))))
 }
+```
+```{r eval=FALSE}
+########## N-gram Computations and Frequency Charts ##########
+library(dplyr)
+library(ggplot2)
+# https://cran.r-project.org/web/packages/cowplot/vignettes/plot_grid.html
+library(cowplot)
+library(quanteda)
 
-# gather values for table - see rmarkdown source for how table was created
-f1=fnames[1]; f2=fnames[2]; f3=fnames[3]
-s1=getFileSize(filename=f1); s2=getFileSize(filename=f2); s3=getFileSize(filename=f3)
-lc1 <- suppressWarnings(getLineCount(fileType="blogs"))  # about 15 sec's
-lc2 <- suppressWarnings(getLineCount(fileType="news"))   # less than 10 sec's
-lc3 <- suppressWarnings(getLineCount(fileType="twit"))   # about 15 sec's
-voc1=getWordCount("blogs"); voc2=getWordCount("news"); voc3=getWordCount("twitter")
-wt1=getTypeCount("blogs"); wt2=getTypeCount("news"); wt3=getTypeCount("twitter")
-###### END - Code used to generate descriptive statistics table
+getNgramType <- function(ngram=1) {
+    ngType <- ifelse((ngram==1), "Unigram",
+                      ifelse((ngram==2), "Bigram",
+                              ifelse((ngram==3), "Trigram", "Unknown")))
+    return(ngType)
+}
 
-###### START - Code used generate raw n-gram frequency tables
 ## Returns a named vector of n-grams and their associated frequencies
 ## extracted from the character vector dat.
 ##
@@ -444,21 +484,6 @@ makeRawNgrams <- function(table.dir=ddir, filePrefix="en_US.",
         write.csv(ngrams.raw, outPaths[i], row.names = FALSE)
     }
 }
-###### END - Code used generate raw n-gram frequency tables
-
-###### START - Code used to generate top 10 unigram frequency barplots
-# https://rstudio.github.io/dygraphs/r-markdown.html
-library(dplyr)
-library(ggplot2)
-# https://cran.r-project.org/web/packages/cowplot/vignettes/plot_grid.html
-library(cowplot)
-
-getNgramType <- function(ngram=1) {
-    ngType <- ifelse((ngram==1), "Unigram",
-                      ifelse((ngram==2), "Bigram",
-                              ifelse((ngram==3), "Trigram", "Unknown")))
-    return(ngType)
-}
 
 ## Returns a barplot of the topm (default = 10) ngrams (default = 1)
 ##
@@ -466,7 +491,8 @@ getNgramType <- function(ngram=1) {
 ## data_type - string: "Blogs", "News", or "Twitter"
 ## ngram - integer: 1, 2, or 3
 ## topm - number of ngrams to display
-getTopM_NgramsPlot <- function(data_path, data_type, ngram=1, topm=10) {
+getTopM_NgramsPlot <- function(data_path, data_type, ngram=1, topm=10,
+                               txt_ang=45, vj=0.5, hj=0) {
     data.ngrams.raw <- read.csv(data_path)
     data.ngrams.raw <- arrange(data.ngrams.raw, desc(freq))
     ngrams.topm <- data.ngrams.raw[2:(topm+1),]  # EOS is most frequent: remove
@@ -474,37 +500,21 @@ getTopM_NgramsPlot <- function(data_path, data_type, ngram=1, topm=10) {
     p <- p + geom_bar(stat = "identity")
     ng_type <- getNgramType(ngram)
     p <- p + xlab(ng_type) + ylab(sprintf("%s%s", ng_type, " Count"))
-    # See eMPee584 comment under: http://stackoverflow.com/questions/11610377/how-do-i-change-the-formatting-of-numbers-on-an-axis-with-ggplot#comment-47793720
+    # See eMPee584 comment under: http://stackoverflow.com/questions/11610377#comment-47793720
     p <- p + scale_y_continuous(labels=function(n){format(n, scientific = FALSE)})
     chart_title <- sprintf("%s%s%s%s%s%s%s", "Top ", topm, " ", data_type,
                            "\n", ng_type, " Counts")
     p <- p + ggtitle(chart_title)
     p <- p + theme(plot.title = element_text(size=10))
     p <- p + theme(axis.title.x = element_text(size=10))
-    p <- p + theme(axis.text.x = element_text(size=8, angle=45))
+    p <- p + theme(axis.text.x = element_text(size=10, angle=txt_ang, vjust=vj, hjust=hj))
     p <- p + theme(axis.title.y = element_text(size=10))
     
     return(p)
 }
-
-# top 10 unigram frequencies for each corpus type: blogs, news, twitter
-path <- "https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1"
-p01 <- getTopM_NgramsPlot(path, "Blogs", 1, 10)
-path <- "https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1"
-p02 <- getTopM_NgramsPlot(path, "News", 1, 10)
-path <- "https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1"
-p03 <- getTopM_NgramsPlot(path, "Twitter", 1, 10)
-
-plot_grid(p01, p02, p03, labels = c("Fig 1:", "Fig 2:", "Fig 3:"),
-          ncol = 3, align = 'h')
-###### END - Code used to generate top 10 unigram frequency barplots
-
-###### START - Code used to generate count of count plots ######
-# https://rstudio.github.io/dygraphs/r-markdown.html
-library(dplyr)
-library(ggplot2)
-# https://cran.r-project.org/web/packages/cowplot/vignettes/plot_grid.html
-library(cowplot)
+```
+```{r eval=FALSE}
+########### Unigram Singletons Code ###########
 
 ## Returns a scatter plot of the count of each unigram count vs. count
 ##
@@ -541,14 +551,16 @@ p06 <- getCountOfCountPlot(path, "Twitter")
 
 plot_grid(p04, p05, p06, labels = c("Fig 4:", "Fig 5:", "Fig 6:"),
           ncol = 3, align = 'h')
-###### END - Code used to generate count of count plots ######
 
 ## Returns the percentage of singletons in corpus_type.
 ## corpus_type - string, valid values: "blogs", "news", "twitter"
 ## data_paths - character vector containing the urls to the blogs, news and twitter
 ##              raw unigram data files. Default values provided by
 ##              8/2016 M. Szczepaniak
-getPercentSingletons <- function(corpus_type, data_paths=c("https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1", "https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1", "https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1")) {
+getPercentSingletons <- function(corpus_type, data_paths=
+   c("https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1",
+     "https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1",
+     "https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1")) {
     if(corpus_type == "blogs") {
         data_path = data_paths[1]
     } else if(corpus_type == "news") {
@@ -562,30 +574,61 @@ getPercentSingletons <- function(corpus_type, data_paths=c("https://www.dropbox.
     
     return(100 * singletons / total_ngrams)
 }
-
-## Reads in a n-gram frequency csv file and writes two files: 1) a n-gram
-## frequency file with the singletons removed and 2) the n-gram singletons
-## that were removed from the file.
-removeSingltetons <- function(table.dir=ddir, filePrefix="en_US.",
-                              inFilePostfix=".train.9rawunig.csv",
-                              out1FilePostfix=".train.11unigrams.nosins.csv",
-                              out2FilePostfix=".train.10usingles.txt",
-                              fileTypes=c("blogs", "news", "twitter")) {
-    inPaths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
-                       inFilePostfix)
-    out1Paths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
-                         out1FilePostfix)
-    out2Paths <- sprintf("%s%s%s%s", table.dir, filePrefix, fileTypes,
-                         out2FilePostfix)
-    for(i in 1:length(inPaths)) {
-        raw.ngrams <- read.csv(inPaths[i])
-        nonsingle.ngrams <- filter(raw.ngrams, freq > 1)
-        ngram.singletons <- filter(raw.ngrams, freq == 1)$ngram
-        write.csv(nonsingle.ngrams, out1Paths[i], row.names = FALSE)
-        writeLines(ngram.singletons, out2Paths[i])
-    }
-}
-
 ```
 
+```{r eval=FALSE}
+########## Code to build Figures 1 thru 12
+# Figures 1-3 top 10 unigram frequencies for each corpus type: blogs, news, twitter
+path <- "https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1"
+p01 <- getTopM_NgramsPlot(path, "Blogs", 1, 10, txt_ang=90, vj=0.5, hj=0.9)
+p01 <- p01 + coord_cartesian(ylim = c(0, 900000))
+path <- "https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1"
+p02 <- getTopM_NgramsPlot(path, "News", 1, 10, txt_ang=90, vj=0.5, hj=0.9)
+p02 <- p02 + coord_cartesian(ylim = c(0, 900000))
+path <- "https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1"
+p03 <- getTopM_NgramsPlot(path, "Twitter", 1, 10, txt_ang=90, vj=0.5, hj=0.9)
+p03 <- p03 + coord_cartesian(ylim = c(0, 900000))
+
+plot_grid(p01, p02, p03, labels = c("Fig 1:", "Fig 2:", "Fig 3:"),
+          ncol = 3, align = 'h')
+
+# Figures 4-6 unigram count of counts for each corpus type: blogs, news, twitter
+path <- "https://www.dropbox.com/s/pv16pe6buubsz4n/en_US.blogs.train.9rawunig.csv?dl=1"
+p04 <- getCountOfCountPlot(path, "Blogs")
+path <- "https://www.dropbox.com/s/4u90r188ht2etic/en_US.news.train.9rawunig.csv?dl=1"
+p05 <- getCountOfCountPlot(path, "News")
+path <- "https://www.dropbox.com/s/2sskj3taoq9bkbi/en_US.twitter.train.9rawunig.csv?dl=1"
+p06 <- getCountOfCountPlot(path, "Twitter")
+
+plot_grid(p04, p05, p06, labels = c("Fig 4:", "Fig 5:", "Fig 6:"),
+          ncol = 3, align = 'h')
+
+# Figures 7-9 top 10 bigram frequencies for each corpus type: blogs, news, twitter
+path <- "https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1"
+p07 <- getTopM_NgramsPlot(path, "Blogs", 2, 10, txt_ang=90, vj=0.5, hj=0.9)
+p07 <- p07 + coord_cartesian(ylim=c(0, 140000))
+path <- "https://www.dropbox.com/s/5xobfsotplbqtv3/en_US.news.train.13bigrams.nosins.csv?dl=1"
+p08 <- getTopM_NgramsPlot(path, "News", 2, 10, txt_ang=90, vj=0.5, hj=0.9)
+p08 <- p08 + coord_cartesian(ylim=c(0, 140000))
+path <- "https://www.dropbox.com/s/47hwbqffufmg16m/en_US.twitter.train.13bigrams.nosins.csv?dl=1"
+p09 <- getTopM_NgramsPlot(path, "Twitter", 2, 10, txt_ang=90, vj=0.5, hj=0.9)
+p09 <- p09 + coord_cartesian(ylim=c(0, 140000))
+
+plot_grid(p07, p08, p09, labels = c("Fig 7:", "Fig 8:", "Fig 9:"),
+          ncol = 3, align = 'h')
+
+# Figures 10-12 top 10 trigram frequencies for each corpus type: blogs, news, twitter
+path <- "https://www.dropbox.com/s/z0rz707mt3da1h1/en_US.blogs.train.14trigrams.nosins.csv?dl=1"
+p10 <- getTopM_NgramsPlot(path, "Blogs", 3, 10, txt_ang=90, vj=0.5, hj=0.9)
+p10 <- p10 + coord_cartesian(ylim=c(0, 12000))
+path <- "https://www.dropbox.com/s/6e8eueyvnqa3jgs/en_US.news.train.14trigrams.nosins.csv?dl=1"
+p11 <- getTopM_NgramsPlot(path, "News", 3, 10, txt_ang=90, vj=0.5, hj=0.9)
+p11 <- p11 + coord_cartesian(ylim=c(0, 12000))
+path <- "https://www.dropbox.com/s/6y0rvzd2bt45f1q/en_US.twitter.train.14trigrams.nosins.csv?dl=1"
+p12 <- getTopM_NgramsPlot(path, "Twitter", 3, 10, txt_ang=90, vj=0.5, hj=0.9)
+p12 <- p12 + coord_cartesian(ylim=c(0, 12000))
+
+plot_grid(p10, p11, p12, labels = c("Fig 10:", "Fig 11:", "Fig 12:"),
+          ncol = 3, align = 'h')
+```
 
