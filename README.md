@@ -1,7 +1,7 @@
 ## Predicting the next word from a series of prior words using a Katz Backoff Trigram language model
 The goal of this project was to build a data product which uses a Katz Backoff Trigram language model to the predict the next word from a series of prior words.  This is being implemented as a Shiny R web application which will be accessible from the following link:
 
-<a href=https://michael-szczepaniak.shinyapps.io/predictnextword/>https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>
+<span>(NOT LIVE YET!)&nbsp;&nbsp;</span><a href=https://michael-szczepaniak.shinyapps.io/predictnextword/>https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>
 
 ### Project Breakdown
 The project is broken down in to four parts described below.  Each part contains a link to a page on rpubs which describes that part in further detail:
@@ -21,11 +21,13 @@ This main goal of this part was to convert the raw corpus data into a form which
     </ul>
   </li>
   </ul>
-<li>Part 2 - N-grams and Exploratory Data Analysis</li>
+<li><a href=http://rpubs.com/mszczepaniak/predictkbo2ngeda>Part 2 - N-grams and Exploratory Data Analysis</a></li>
 The main goal of this part was to construct the n-gram tables which will be used by the language model and do some exploratory analysis on the cleaned up data.
   <ul>
-  <li>Unigram Singleton Processing</li>
-  <li>Unigram, Bigram, and Trigram Frequency Table Generation</li>
+    <li>Unigram Singleton Processing</li>
+    <li>Unigram, Bigram, and Trigram Frequency Table Generation</li>
+    <li>Count of Counts plots</li>
+    <li>Top 10 Unigram, Bigram, and Trigram Frequency Plots</li>
   </ul>
 <li><a href=http://rpubs.com/mszczepaniak/predictkbo3model>Part 3 - Understanding and Implementing the Model</a></li>
 The main goal of this part was to develop the conceptual framework and the code to implement the Katz Backoff Trigram algorithm as the model used to predict the next word.
@@ -39,11 +41,16 @@ The main goal of this part was to develop the conceptual framework and the code 
       <li>Probabiltities of Unobserved N-grams</li>
     </ul>
   </li>
-  <li>Defining and Implementing the KBO Trigram Alogrithm</li>
+  <li>Walk-through of the KBO Trigram Algorithm Calculations</li>
   </ul>
 <li>Part 4 - Parameter Selection and Optimization</li>
-In Part 3, generic values were used for the two parameters of the model: the bigram discount rate and trigram discount rate.  In this part, cross-validation is used to determine values for these discount rates to improve the accuracy of the model.  As time permits, additional performace optimizations will be performed.
+At the end of Part 3, we had developed the ideas and the algorithm needed to make predictions, but two problems with the model remained: First, the implementation was very inefficient. Second, generic values were used for the two parameters of the model: the bigram discount rate and trigram discount rate.  In this last part of this series, we'll work through an efficient way to implement the model developed in Part 3. and then use cross-validation to determine values for these discount rates to improve the accuracy of the model.
 <ul>
+  <li>Identifying How to do Calculations Efficiently</li>
+    <ul>
+      <li>What are the Expensive Calculations?</li>
+      <li>What can be Calculated in Advance?</li>
+    </ul>
   <li>10-Fold Cross-Validation and Parameter Selection Strategy</li>
   <li>Improving Performace by Indexing N-gram Frequency Tables</li>
   </ul>
