@@ -1,9 +1,9 @@
 ---
 title: "Predicting Next Word Using Katz Back-Off"
-subtitle: "Part 3 - Understanding the Katz Back-Off Model"
 author: "Michael Szczepaniak"
 date: "August 9, 2016 (last revision)"
 output: html_document
+subtitle: Part 3 - Understanding the Katz Back-Off Model
 url: http://rpubs.com/mszczepaniak/predictkbo3model
 ---
 
@@ -55,10 +55,7 @@ The theory unlying the use of n-grams probability estimates starts with the [Cha
 
 Jurafsky [[3]](https://www.youtube.com/watch?v=s3kKlUBa3b0) applies equation 1. in the following example to illustrate:
 
-2.
-\begin{equation}
-P(its\:water\:is\:so\:transparent) = P(its) ×P (water\:|\:its) × P(is\:|\:its\:water) × \\ P(so\:|\:its\:water\:is) × P(transparent\:|\:its\:water\:is\:so)
-\end{equation}
+2. $P(its\:water\:is\:so\:transparent) =  \\ \:\:P(its) \times P (water\:|\:its) \times P(is\:|\:its\:water) \times P(so\:|\:its\:water\:is) \times P(transparent\:|\:its\:water\:is\:so)$
 
 #### Simplifying N-gram Probability Estimates: Markov Assumption
 The example in equation 2. is the full expansion of the Chain Rule using equation 1.  This can be simplified by assuming that the probability of the left side of equation 1. can be approximated by less than the prior $(n-1)$ terms which can be expressed more formally as:
@@ -134,7 +131,7 @@ respectively, where the terms $w\:\in\:\mathcal{B}(w_{i-1})$ and $w\:\in\:\mathc
 
 #### Calculating Probabilities for Unobserved N-grams
 
-The steps described in the previous section as straightforward, but step 3. deserves futher explaination.  Each $q_{BO}$ term in equation 17. needs to be calculated using either equation 10. or equation 16. depending on whether the bigram $(w_{i-1}, w_i)$ is observed or unobserved.  If the bigram is observed, equation 10. should be used.  If it is unobserved, equation 16. should be used.
+The steps described in the previous section are straightforward, but step 3. deserves futher explaination.  Each $q_{BO}$ term in equation 17. needs to be calculated using either equation 10. or equation 16. depending on whether the bigram $(w_{i-1}, w_i)$ is observed or unobserved.  If the bigram is observed, equation 10. should be used.  If it is unobserved, equation 16. should be used.
 
 ### Example of Applying the Algorithm: The Little Corpus That Could
 
@@ -232,10 +229,10 @@ bigPre <- 'sell_the'
 ## Returns a two column data.table of observed trigrams that start with
 ## bigramPrefix in the first column named ngram and frequencies/counts in the 
 ## second column named freq. If no observed trigrams with bigramPrefix exist,
-## and empty data.table is returned.
+## an empty data.table is returned.
 ##
-## bigramPrefix - single element character vector which is bigram of the form
-##                word1_word2 e.g. sell_the
+## bigramPrefix - single element character vector which is a bigram of the
+##                form: word1_word2 e.g. sell_the
 ## trigrams - 2 column data.frame or data.table. The first column: ngram,
 ##            contains all the trigrams in the corpus. The second column:
 ##            freq, contains the frequency or count of each trigram.
@@ -386,7 +383,7 @@ alphaBig
 
 ##### Step 3. iii. Calculate $q_{BO}$ for Bigrams
 
-The code below implements equation 10. to calculate $q_{BO}(w_i\:|\:w_{i-1})$ for unobserved bigrams:
+The code below implements equation 10. to calculate $q_{BO}(w_i\:|\:w_{i-1})$ for observed bigrams and equation 16. for unobserved bigrams:
 
 ```{r}
 
