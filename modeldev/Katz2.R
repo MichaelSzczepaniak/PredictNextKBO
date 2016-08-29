@@ -91,10 +91,8 @@ getObsTrigs <- function(bigramPrefix, trigrams) {
 ##         ngram = unigram
 ##         freq = frequency/count of each unigram
 getUnobsTrigTails <- function(obsTrigs, unigs) {
-    # bigPre <- paste(str_split_fixed(obsTrigs[1], "_", 3)[1,1:2], collapse="_")
     obs_trig_tails <- str_split_fixed(obsTrigs, "_", 3)[, 3]
     unobs_trig_tails <- unigs[!(unigs$ngram %in% obs_trig_tails), ]$ngram
-    
     return(unobs_trig_tails)
 }
 
@@ -159,10 +157,42 @@ getObsBoBigrams <- function(bigPre, unobsTrigTails, bigrs) {
 getUnobsBoBigrams <- function(bigPre, unobsTrigTails, obsBoBigram) {
     boBigrams <- getBoBigrams(bigPre, unobsTrigTails)
     unobs_bigs <- boBigrams[!(boBigrams %in% obsBoBigram$ngram)]
-    
     return(unobs_bigs)
 }
 
+## Returns a dataframe of 2 columns: ngram and probs.  Values in the ngram
+## column are bigrams of the form: word2_word1 which are observed as the last
+## two words in .  The values in the probs
+## columns are p(word1 | word2) calc'd from eqn. 10.
+##
+## obsBigTailFreqs - a dataframe with 2 columns: ngram and freq. The ngram
+##                   column contains bigrams of the form w1_w2 which are 
+##                   are observed bigrams that are the last 2 words of
+##                   unobserved trigrams. The freq column contains integers that
+##                   are the counts of these observed bigrams in the corpus.
+## unigs - all the unigrams in the corpus
+## bigDisc - bigram discount rate which should be between 0.01 and 1.99
+getObsBigProbs <- function(obsBigTailFreqs, unigs, bigDisc=0.5) {
+    first_words <- str_split_fixed(obsBigTailFreqs$ngram, "_", 2)[, 1]
+    first_word_freqs <- unigs[unigs$ngram %in% first_words, ]
+    obsBigProbs <- (obsBigTailFreqs$freq - bigDisc) / first_word_freqs$freq
+    obsBigProbs <- data.frame(ngram=obsBigTailFreqs$ngram, probs=obsBigProbs)
+    
+    return(obsBigProbs)
+}
+
+## Tests the getObsBigProbs function
+testGetObsBigProbs <- function(d1=0.5) {
+    ng1 = c("the_house", "the_book"); frq1 = c(3, 5)
+    obt <- data.frame(ngram=ng1, freq=frq1)
+    ng2 = c("house", "car", "spoon", "book"); frq2 = c(7,9,11,13)
+    ungs <- data.frame(ngram=ng2, freq=frq2)
+    obp <- getObsBigProbs(obt, ungs, d1)
+    tol = .Machine$double.eps ^ 0.5
+    pass1 <- isTRUE(all.equal(obp$probs, (frq1 - d1)/c(7,13), tolerance=tol))
+    
+    return(pass1)
+}
 
 
 
@@ -186,39 +216,9 @@ getObsBigrams <- function(bigramPrefix, trigs, bigrs, unigs) {
     return(bigrs[bigrs$ngram %in% big_tails, ])
 }
 
-## Returns a dataframe of 2 columns: ngram and probs.  Values in the ngram
-## column are bigrams of the form: word2_word1 which are observed as the last
-## two words in .  The values in the probs
-## columns are p(word1 | word2) calc'd from eqn. 10.
-##
-## obsBigTailFreqs - a dataframe with 2 columns: ngram and freq. The ngram
-##                   column contains bigrams of the form w1_w2 which are 
-##                   are observed bigrams that are the last 2 words ofunobserved
-##                   trigrams. The freq column contains integers that are the
-##                   counts of these observed bigrams in the corpus.
-## unigs - all the unigrams in the corpus
-## bigDisc - bigram discount rate which should be between 0.01 and 1.99
-getObsBigProbs <- function(obsBigTailFreqs, unigs, bigDisc=0.5) {
-    tail_words <- str_split_fixed(obsBigTailFreqs$ngram, "_", 2)[, 2]
-    tail_word_freqs <- unigs[unigs$ngram %in% tail_words, ]
-    obsBigProbs <- (obsBigTailFreqs$freq - bigDisc) / tail_word_freqs$freq
-    obsBigProbs <- data.frame(ngram=obsBigTailFreqs$ngram, probs=obsBigProbs)
-    
-    return(obsBigProbs)
-}
 
-## Tests the getObsBigProbs function
-testGetObsBigProbs <- function(d1=0.5) {
-    ng1 = c("the_house", "the_book"); frq1 = c(3, 5)
-    obt <- data.frame(ngram=ng1, freq=frq1)
-    ng2 = c("house", "car", "spoon", "book"); frq2 = c(7,9,11,13)
-    ungs <- data.frame(ngram=ng2, freq=frq2)
-    obp <- getObsBigProbs(obt, ungs, d1)
-    tol = .Machine$double.eps ^ 0.5
-    pass1 <- isTRUE(all.equal(obp$probs, (frq1 - d1)/c(7,13), tolerance=tol))
-    
-    return(pass1)
-}
+
+
 
 ## Returns a dataframe of 2 columns: ngram and probs...
 ##

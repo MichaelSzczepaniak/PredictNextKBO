@@ -18,4 +18,8 @@ bo_bigrams <- getBoBigrams(bigPre, unobs_trig_tails)
 # separate bigrams which use eqn 10 and those that use 16
 obs_bo_bigrams <- getObsBoBigrams(bigPre, unobs_trig_tails, bigrs)
 unobs_bo_bigrams <- getUnobsBoBigrams(bigPre, unobs_trig_tails, obs_bo_bigrams)
-unobs_bo_bigrams
+unobs_bo_bigrams # "the_buy"   "the_EOS"   "the_paint" "the_sell"  "the_the"
+# calc obs'd bigram prob's from eqn 10
+qbo_obs_bo_bigrams <- getObsBigProbs(obs_bo_bigrams, unigs, gamma2) #ngram     probs
+                                                                    #the_house 0.3125
+
