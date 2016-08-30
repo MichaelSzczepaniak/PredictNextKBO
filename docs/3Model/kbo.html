@@ -118,14 +118,14 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">Predicting Next Word Using Katz Back-Off</h1>
 <h3 class="subtitle"><em>Part 3 - Understanding the Katz Back-Off Model</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>August 9, 2016 (last revision)</em></h4>
+<h4 class="date"><em>August 30, 2016 (2nd revision)</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level3">
 <h3>Introduction</h3>
-<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) language model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextKBO"><strong>PredictNextKBO</strong></a> as a web app deployed at (due out in late Aug 2016.) <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>.</p>
+<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) language model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextKBO"><strong>PredictNextKBO</strong></a> as a web app deployed at (due in ealy Sep 2016.) <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>.</p>
 <p>Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.</p>
 </div>
 <div id="what-is-the-katz-back-off-kbo-model" class="section level3">
@@ -141,7 +141,7 @@ $(document).ready(function () {
 </div>
 <div id="generative-n-gram-language-model" class="section level4">
 <h4>Generative N-gram Language Model</h4>
-<p>A <em>generative</em> grammar or LM, refers to the quality of languages related to the rules governing its structure or syntax <a href="https://en.wikipedia.org/wiki/Generative_grammar">[2]</a>. Because of these rules, not all combinations of words form valid sentences and therefore combinations that don’t conform to these rules should be assigned a low probability. In such a model, we are aware of the rules governing the structure, but this structure is <em>hidden</em> in that is it not explicitly determined but rather inferred from model. For example, the model should assign a lower probability to the sentence <em>I red a book</em> than to the sentence <em>I read a book</em> based on joint probability distributions of various word groupings known as <strong>n-grams</strong>.</p>
+<p>A <em>generative</em> grammar or LM, refers to the quality of languages related to the rules governing its structure or syntax <a href="https://en.wikipedia.org/wiki/Generative_grammar">[2]</a>. Because of these rules, not all combinations of words form valid sentences and therefore combinations that don’t conform to these rules should be assigned lower probabilities of occurring. In such a model, we are aware of the rules governing the structure, but this structure is not explicitly accounted for, but rather inferred from the model. For example, the model should assign a lower probability to the sentence <em>I red a book</em> than to the sentence <em>I read a book</em> based on joint probability distributions of various word groupings known as <strong>n-grams</strong>.</p>
 <p>The term <strong>n-gram</strong> refers to the number of consecutive words utilized in a LM. For example, say we see the terms “<em>I want to eat Chinese</em>” 7 times and “<em>I want to eat Italian</em>” 3 times in a body of text (aka <em>corpus</em>), we might want to match the highest probability 5-gram to complete the 4-gram “<em>I want to eat</em>” which in this little example would be <em>Chinese</em>.</p>
 <p>Dan Jurafky describes the motivations and basic ideas behind probablistic n-gram models in <a href="https://www.youtube.com/watch?v=s3kKlUBa3b0">this video [3]</a> and how to estimate these probabilities in <a href="https://www.youtube.com/watch?v=o-CvoOkVrnY">this video [4]</a>.</p>
 </div>
@@ -153,18 +153,18 @@ $(document).ready(function () {
 <div id="accounting-for-probability-mass-of-unseen-n-grams-discounting" class="section level3">
 <h3>Accounting for Probability Mass of Unseen N-grams: Discounting</h3>
 <p>In discounting, some of the probability mass is taken from observed n-grams and distributed to unobserved n-grams in order to allow us to estimate probabilities of these unseen n-grams. In the KBO trigram LM, as will be discussed in more detail later in the article, we select an absolute discount which artificially lowers the counts of observed trigrams and distributes this “stolen” probabilty mass to unobserved trigrams.</p>
-<p>The basic concept of discounting is most easily understood by way of example as shown in the two lectured given by Michael Collins referenced in the <strong>Appendix 1</strong> at the end of this page.</p>
-<p>Discounting is a key concept integral to KBO and other advanced LMs like <a href="https://www.youtube.com/watch?v=XdjCCkFUBKU">Good-Turing [7]</a> and <a href="https://www.youtube.com/watch?v=wtB00EczoCM">Kneser-Ney [8]</a> as described in the lectures by Dan Jurafasky provided in links <a href="https://www.youtube.com/watch?v=XdjCCkFUBKU">[7]</a> and <a href="https://www.youtube.com/watch?v=wtB00EczoCM">[8]</a>.</p>
+<p>The basic concept of discounting is most easily understood by way of example as shown in the two lectures given by Michael Collins referenced in the <strong>Appendix 1</strong> at the end of this work.</p>
+<p>Discounting is a key concept integral to KBO and other advanced LMs like <a href="https://www.youtube.com/watch?v=XdjCCkFUBKU">Good-Turing [5]</a> and <a href="https://www.youtube.com/watch?v=wtB00EczoCM">Kneser-Ney [6]</a> as described in the lectures by Dan Jurafasky provided in links <a href="https://www.youtube.com/watch?v=XdjCCkFUBKU">[5]</a> and <a href="https://www.youtube.com/watch?v=wtB00EczoCM">[6]</a>.</p>
 </div>
 <div id="using-n-gram-tables-for-prediction---a-little-math" class="section level3">
 <h3>Using N-gram Tables for Prediction - A Little Math</h3>
-<p>The theory unlying the use of n-grams probability estimates starts with the <a href="https://en.wikipedia.org/wiki/Chain_rule_(probability)">Chain rule for conditional probabilities [9]</a> applied to compute joint probabilities which states:</p>
+<p>The theory unlying the use of n-grams probability estimates starts with the <a href="https://en.wikipedia.org/wiki/Chain_rule_(probability)">Chain rule for conditional probabilities [7]</a> applied to compute joint probabilities which states:</p>
 <ol style="list-style-type: decimal">
 <li><span class="math inline">\(P(w_1, w_2, w_3, ...w_n) = \prod_{i=1}^nP(w_i|w_1, w_2... w_{i-1})\)</span></li>
 </ol>
 <p>Jurafsky <a href="https://www.youtube.com/watch?v=s3kKlUBa3b0">[3]</a> applies equation 1. in the following example to illustrate:</p>
 <ol start="2" style="list-style-type: decimal">
-<li><span class="math inline">\(P(its\:water\:is\:so\:transparent) = \\ \:\:P(its) \times P (water\:|\:its) \times P(is\:|\:its\:water) \times P(so\:|\:its\:water\:is) × P(transparent\:|\:its\:water\:is\:so)\)</span></li>
+<li><span class="math inline">\(P(its\:water\:is\:so\:transparent) = \\ \:\:P(its) \times P (water\:|\:its) \times P(is\:|\:its\:water) \times P(so\:|\:its\:water\:is) \times P(transparent\:|\:its\:water\:is\:so)\)</span></li>
 </ol>
 <div id="simplifying-n-gram-probability-estimates-markov-assumption" class="section level4">
 <h4>Simplifying N-gram Probability Estimates: Markov Assumption</h4>
@@ -186,65 +186,65 @@ $(document).ready(function () {
 <h4>Observed N-grams</h4>
 <p>Using the bigram MLE to estimate the probability of the last word given the previous word can be written as</p>
 <ol start="6" style="list-style-type: decimal">
-<li><span class="math inline">\(P(w_i\:|\:w_{i-1}) = \frac{count(w_{i-1},\:w_i)}{count(w_i)} = \frac{c(w_{i-1},\:w_i)}{c(w_i)}\)</span></li>
+<li><span class="math inline">\(P_{ML}(w_i\:|\:w_{i-1}) = \frac{count(w_{i-1},\:w_i)}{count(w_i)} = \frac{c(w_{i-1},\:w_i)}{c(w_i)}\)</span></li>
 </ol>
 <p>where <span class="math inline">\(w_i\)</span> is the last word (the one we are trying to predict), <span class="math inline">\(w_{i-1}\)</span> is the word just prior to <span class="math inline">\(w_i\)</span> and <em>count</em> has been abbreviated to <em>c</em>. The trigram MLE can be written as:</p>
 <ol start="7" style="list-style-type: decimal">
-<li><span class="math inline">\(P(w_i\:|\:w_{i-1}, \:w_{i-2}) = \frac{c(w_{i-2},\:w_{i-1},\:w_i)}{c(w_{i-1},\:w_i)}\)</span></li>
+<li><span class="math inline">\(P_{ML}(w_i\:|\:w_{i-1}, \:w_{i-2}) = \frac{c(w_{i-2},\:w_{i-1},\:w_i)}{c(w_{i-1},\:w_i)}\)</span></li>
 </ol>
 <p>where <span class="math inline">\(w_{i-2}\)</span> is the word prior to <span class="math inline">\(w_{i-1}\)</span>.</p>
-<p>As long as we have seen one or more bigrams or trigrams, we can use 6. or 7. to estimate the probability of the last word <span class="math inline">\(w_i\)</span> given the previous one (<span class="math inline">\(w_{i-1}\)</span>) or two (<span class="math inline">\(w_{i-2},\:w_{i-1}\)</span>). If we want to estimate probabilities using trigrams, but no trigrams are observed, we could “back-off” and estimate the probability using the bigram. If no bigrams exist, we could estimate using the unigram probability. The <a href="http://www.aclweb.org/anthology/D07-1090.pdf"><em>Stupid Back-off</em> (SBO) model</a> essentially does this without consideration of unseen n-grams, but has been reported to perform quite well with large scale n-gram tables. The SBO is one of the two models implemented in the <strong>PredictNextDuo</strong> project, but is not discussed further in this article. For further details regarding the SBO, the paper written by the creators of this alogrithm can be found <a href="http://www.aclweb.org/anthology/D07-1090.pdf">here.</a></p>
+<p>As long as we have seen one or more bigrams or trigrams, we can use 6. or 7. to estimate the probability of the last word <span class="math inline">\(w_i\)</span> given the previous one (<span class="math inline">\(w_{i-1}\)</span>) or two (<span class="math inline">\(w_{i-2},\:w_{i-1}\)</span>). If we want to estimate probabilities using trigrams, but no trigrams are observed, we could “back-off” and estimate the probability using the bigram. If no bigrams exist, we could estimate using the unigram probability. The <a href="http://www.aclweb.org/anthology/D07-1090.pdf"><em>Stupid Back-off</em> (SBO) model [8]</a> essentially does this without consideration of unseen n-grams, but has been reported to perform quite well with large scale n-gram tables. For further details regarding the SBO, the paper written by the creators of this alogrithm can be found [<a href="http://www.aclweb.org/anthology/D07-1090.pdf">8</a>]</p>
 </div>
 <div id="accounting-for-unobserved-n-grams" class="section level4">
 <h4>Accounting for Unobserved N-grams</h4>
-<p>As mentioned earlier, the KBO algorithm estimates probabilities of unseen n-grams by redistributing some of the probability mass from observed trigrams to those that are unobserved through discounting. So the natural first step in this process is to determine amount of probability mass that gets taken from the observed n-grams. The second step will be to determine how that taken probability mass is redistributed.</p>
+<p>As mentioned earlier, the KBO algorithm estimates probabilities of unseen n-grams by redistributing some of the probability mass from observed trigrams to those that are unobserved through discounting. So the natural first step in this process is to determine the amount of probability mass that gets taken from the observed n-grams. The second step will be to determine how that taken probability mass is redistributed.</p>
 <p>The total probability mass of the observer bigrams and trigrams can be written as:</p>
 <ol start="8" style="list-style-type: decimal">
-<li><p><em>bigram probability mass</em> = <span class="math inline">\(\sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c(w_{i-1},\:w)}{c(w_{i-1})}\)</span></p></li>
+<li><p><em>bigram probability mass</em> = <span class="math inline">\(\sum\limits_{w\:\in\:\mathcal{A}(w_{i-1})} \frac{c(w_{i-1},\:w)}{c(w_{i-1})}\)</span></p></li>
 <li><p><em>trigram probability mass</em> = <span class="math inline">\(\sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\)</span></p></li>
 </ol>
-<p>where the terms <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{A}\)</span> which are all words that terminate an observed bigram starting with <span class="math inline">\((w_{i-1})\)</span> or trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively. If we define <span class="math inline">\(\gamma_2\)</span> to be the amount of discount taken from observed bigram counts, <span class="math inline">\(\gamma_2\)</span> the amount of discount taken from observed trigram counts, and <span class="math inline">\(c^*\)</span> to be the new discounted counts for observed bigrams and trigrams, then the discounted MLE would be written as:</p>
+<p>where the terms <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{A}\)</span> which are all words that terminate an observed bigram starting with <span class="math inline">\((w_{i-1})\)</span> or trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively. If we define <span class="math inline">\(\gamma_2\)</span> to be the amount of discount taken from observed bigram counts, <span class="math inline">\(\gamma_3\)</span> the amount of discount taken from observed trigram counts, and <span class="math inline">\(c^*\)</span> to be the new discounted counts for observed bigrams and trigrams, then the discounted MLEs would be written as:</p>
 <ol start="10" style="list-style-type: decimal">
-<li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:\)</span> for bigrams, where</p></li>
+<li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:\)</span> for observed bigrams, where</p></li>
 <li><p><span class="math inline">\(c^*(w_{i-1},\:w) = c(w_{i-1},\:w) - \gamma_2\:\:\:\:\)</span> and</p></li>
-<li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> for trigrams, where</p></li>
+<li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> for observed trigrams, where</p></li>
 <li><p><span class="math inline">\(c^*(w_{i-2},\:w_{i-1},\:w) = c(w_{i-2},\:w_{i-1},\:w) - \gamma_3\)</span></p></li>
 </ol>
 <p>From here it follows that the amount of discounted probability mass taken from observed bigrams and trigrams can then be defined as:</p>
 <ol start="14" style="list-style-type: decimal">
-<li><p><span class="math inline">\(\alpha(w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-1})} \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:\)</span> for bigrams, and</p></li>
-<li><p><span class="math inline">\(\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> for trigrams.</p></li>
+<li><p><span class="math inline">\(\alpha(w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-1})} \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:\)</span> from observed bigrams, and</p></li>
+<li><p><span class="math inline">\(\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> from observed trigrams.</p></li>
 </ol>
-<p>At this point, we’ve finished the first step by defining the amount of probability mass taken from the observed bigrams and trigrams as a function of some discounted amount <span class="math inline">\(\gamma_n\)</span>. Now we need to know how to assign this discounted probability mass to unseen bigrams and trigrams. Katz proposed that this be done proportionally to the backed-off (n-1)-gram probability parameters. In other words, an unobserved trigram probability would be estimated in proportion to the bigram tail and unobserved bigram probabilities would be estimated in proportion to the unigram tail.</p>
+<p>At this point, we’ve finished the first step by defining the amount of probability mass taken from the observed bigrams and trigrams as a function of some discounted amount <span class="math inline">\(\gamma_n\)</span>. Now we need to know how to assign this discounted probability mass to unseen bigrams and trigrams. Katz proposed that this be done proportionally to the backed-off (n-1)-gram probability parameters. In other words, an unobserved trigram probability would be estimated in proportion to all the possible bigram tails and unobserved bigram probabilities would be estimated in proportion to all possible the unigram tails.</p>
 <p>More formally, if the estimate for this backed-off unigram probability is <span class="math inline">\(q_{ML}(w_i)\)</span> and the backed off bigram probability is <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span>, then the amount of discounted probability mass <span class="math inline">\(\alpha(w_{i-1})\)</span> assigned to unknown bigrams <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> and <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> assigned to unknown trigrams <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> would be:</p>
 <ol start="16" style="list-style-type: decimal">
-<li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \alpha(w_{i-1})\frac{q_{ML}(w_i)}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-1})}q_{ML}(w)}\)</span></p></li>
+<li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \alpha(w_{i-1})\frac{q_{ML}(w_i)}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-1})}q_{ML}(w)} = \alpha(w_{i-1})\frac{c(w_i)}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-1})}c(w)}\)</span></p></li>
 <li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}\)</span></p></li>
 </ol>
-<p>respectively, where the terms <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{B}\)</span> which are all words that terminate an <strong>unobserved</strong> bigram starting with <span class="math inline">\((w_{i-1})\)</span> or trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively. Notice that the subscripts in the <span class="math inline">\(q\)</span> terms on the right side of equation 16. are <strong>ML</strong>. This is because at this point, we are using the Maximum Likelihood estimate for the unigrams.</p>
+<p>respectively, where the terms <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{B}\)</span> which are all words that terminate an <strong>unobserved</strong> bigram starting with <span class="math inline">\((w_{i-1})\)</span> or <strong>unobserved</strong> trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively. Notice that the subscripts in the <span class="math inline">\(q\)</span> terms on the middle terms of equation 16. are <strong>ML</strong>. This is because at this point, we are using the Maximum Likelihood estimate for the unigrams which allows for the simplification the counts shown in the rightmost term.</p>
 </div>
-<div id="steps-in-applying-the-kbo-trigram-alogrithm" class="section level4">
-<h4>Steps in Applying the KBO Trigram Alogrithm</h4>
-<ol start="0" style="list-style-type: decimal">
+</div>
+<div id="steps-in-applying-the-kbo-trigram-alogrithm" class="section level3">
+<h3>Steps in Applying the KBO Trigram Alogrithm</h3>
+<ol style="list-style-type: decimal">
 <li>Organize the data needed to use the equations defined above:
 <ol style="list-style-type: lower-roman">
 <li>Create tables of unigram, bigram, and trigram counts.</li>
 <li>Select the values for discounts at the bigram and trigram levels: <span class="math inline">\(\gamma_2\)</span> and <span class="math inline">\(\gamma_3\)</span>.</li>
 </ol></li>
-<li>Select a bigram that precedes the word you want to predict: <span class="math inline">\((w_{i-2}, w_{i-1})\)</span></li>
+<li>Select a bigram that precedes the word you want to predict: <span class="math inline">\((w_{i-2}, w_{i-1})\)</span>. This will be referred to as the <strong>bigram prefix</strong> in the code and remainder of this document.</li>
 <li>Calculate the probabilities for words that complete <strong>observed</strong> trigrams from equation 12.: <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span></li>
-<li>Calculate the probabilities for words that complete <strong>unobserved</strong> trigrams from equation 17.: <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span></li>
+<li>Calculate the probabilities for words that complete <strong>unobserved</strong> trigrams from equation 17.: <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span>.</li>
 <li>Select <span class="math inline">\(w_i\)</span> with the highest <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> as the prediction.</li>
 </ol>
-</div>
 <div id="calculating-probabilities-for-unobserved-n-grams" class="section level4">
 <h4>Calculating Probabilities for Unobserved N-grams</h4>
-<p>The steps described in the previous section are straightforward, but step 3. deserves futher explaination. Each <span class="math inline">\(q_{BO}\)</span> term in equation 17. needs to be calculated using either equation 10. or equation 16. depending on whether the bigram <span class="math inline">\((w_{i-1}, w_i)\)</span> is observed or unobserved. If the bigram is observed, equation 10. should be used. If it is unobserved, equation 16. should be used.</p>
+<p>The steps described above are straightforward, but step 4. deserves futher explaination. Each <span class="math inline">\(q_{BO}\)</span> term in equation 17. needs to be calculated using either equation 10. or equation 16. depending on whether the bigram <span class="math inline">\((w_{i-1}, w_i)\)</span> is observed or unobserved. If the bigram is observed, equation 10. should be used. If it is unobserved, equation 16. should be used.</p>
 </div>
 </div>
 <div id="example-of-applying-the-algorithm-the-little-corpus-that-could" class="section level3">
 <h3>Example of Applying the Algorithm: The Little Corpus That Could</h3>
-<p>As implied earlier, a corpus is a body of text from which we build and test LMs. To illustrate how the mathematical formulation of the KBO Trigram model works, it’s helpful to look at a simple corpus that is small enough to see n-gram counts, but large enough to illustrate the impact of unobserved n-grams on the calculations. The following sample corpus was extended from an example provided by Michael Collins <a href="https://d396qusza40orc.cloudfront.net/nlangp/quiz_questions/week1.pdf">on page 4 of the week 1 lecture questions.</a> This corpus is listed in <strong>Appendix - 2</strong> at the end of this page.</p>
+<p>As noted earlier, a corpus is a body of text from which we build and test LMs. To illustrate how the mathematical formulation of the KBO Trigram model works, it’s helpful to look at a simple corpus that is small enough to easily keep track of the n-gram counts, but large enough to illustrate the impact of unobserved n-grams on the calculations. The following sample corpus was extended from an example provided by Michael Collins in week 1 of his class referenced in <strong>Appendix 1</strong>. This corpus is listed in <strong>Appendix - 2</strong> at the end of this document.</p>
 <pre class="r"><code>ltcorpus &lt;- readLines(&quot;little_test_corpus1.txt&quot;)
 ltcorpus</code></pre>
 <pre><code>## [1] &quot;SOS buy the book EOS&quot;    &quot;SOS buy the book EOS&quot;   
@@ -252,9 +252,9 @@ ltcorpus</code></pre>
 ## [5] &quot;SOS sell the book EOS&quot;   &quot;SOS buy the house EOS&quot;  
 ## [7] &quot;SOS buy the house EOS&quot;   &quot;SOS paint the house EOS&quot;</code></pre>
 <p>In this corpus, SOS and EOS are tokens used to denote <em>start of sentence</em> and <em>end-of-sentence</em>.</p>
-<div id="step-0.-i.-unigram-bigram-and-trigram-counts" class="section level4">
-<h4>Step 0. i. Unigram, Bigram and Trigram counts</h4>
-<p>This article will use the <strong>quanteda</strong> package written by Ken Benoit and Paul Nulty to construct the n-grams. My experience with this package is that it performs much faster than <strong>tm</strong> and <strong>RWeka</strong> for these types of tasks, but of course, your mileage may vary. A nice little getting started guide to quanteda can be found <a href="https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html">here</a>.</p>
+<div id="step-1.-i.-unigram-bigram-and-trigram-counts" class="section level4">
+<h4>Step 1. i. Unigram, Bigram and Trigram counts</h4>
+<p>This work uses the <strong>quanteda</strong> package written by Ken Benoit and Paul Nulty to construct the n-grams. My experience with this package is that it performs much faster than <strong>tm</strong> and <strong>RWeka</strong> for these types of tasks, but of course, your mileage may vary. A nice little getting started guide to quanteda can be found <a href="https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html">here [9]</a>.</p>
 <p>The following code was used to create the unigram, bigram, and trigrams tables shown below the code.</p>
 <pre class="r"><code>## Returns a named vector of n-grams and their associated frequencies
 ## extracted from the character vector dat.
@@ -262,18 +262,18 @@ ltcorpus</code></pre>
 ## ng - Defines the type of n-gram to be extracted: unigram if ng=1,
 ##      bigram if ng=2, trigram if n=3, etc.
 ## dat - Character vector from which we want to get n-gram counts.
-## igfs - Character vector of words (features) to ignore from frequency table
+## ignores - Character vector of words (features) to ignore from frequency table
 ## sort.by.ngram - sorts the return vector by the names
 ## sort.by.freq - sorts the return vector by frequency/count
-getNgramFreqs &lt;- function(ng, dat, igfs=NULL,
+getNgramFreqs &lt;- function(ng, dat, ignores=NULL,
                           sort.by.ngram=TRUE, sort.by.freq=FALSE) {
     # http://stackoverflow.com/questions/36629329/
     # how-do-i-keep-intra-word-periods-in-unigrams-r-quanteda
-    if(is.null(igfs)) {
+    if(is.null(ignores)) {
         dat.dfm &lt;- dfm(dat, ngrams=ng, toLower = FALSE, removePunct = FALSE,
                        what = &quot;fasterword&quot;, verbose = FALSE)
     } else {
-        dat.dfm &lt;- dfm(dat, ngrams=ng, toLower = FALSE, ignoredFeatures=igfs,
+        dat.dfm &lt;- dfm(dat, ngrams=ng, toLower = FALSE, ignoredFeatures=ignores,
                        removePunct = FALSE, what = &quot;fasterword&quot;, verbose = FALSE)
     }
     rm(dat)
@@ -299,16 +299,16 @@ getNgramFreqs &lt;- function(ng, dat, igfs=NULL,
 ##                If NULL, returns all the ngram and count rows.
 getNgramTables &lt;- function(ng, linesCorpus, prefixFilter=NULL) {
     ngrams &lt;- getNgramFreqs(ng, linesCorpus)
-    ngrams.dt &lt;- data.table(ngram=names(ngrams), freq=ngrams)
-    if(length(grep('^SOS', ngrams.dt$ngram)) &gt; 0) {
-        ngrams.dt &lt;- ngrams.dt[-grep('^SOS', ngrams.dt$ngram),]
+    ngrams_dt &lt;- data.table(ngram=names(ngrams), freq=ngrams)
+    if(length(grep('^SOS', ngrams_dt$ngram)) &gt; 0) {
+        ngrams_dt &lt;- ngrams_dt[-grep('^SOS', ngrams_dt$ngram),]
     }
     if(!is.null(prefixFilter)) {
         regex &lt;- sprintf('%s%s', '^', prefixFilter)
-        ngrams.dt &lt;- ngrams.dt[grep(regex, ngrams.dt$ngram),]
+        ngrams_dt &lt;- ngrams_dt[grep(regex, ngrams_dt$ngram),]
     }
     
-    return(ngrams.dt)
+    return(ngrams_dt)
 }
 
 unigs &lt;- getNgramTables(1, ltcorpus)
@@ -339,63 +339,77 @@ unigs; bigrs; trigs</code></pre>
 ## 5:    the_book_EOS    5
 ## 6:   the_house_EOS    3</code></pre>
 </div>
-<div id="step-0.-ii.-selecting-bigram-and-trigram-discounts" class="section level4">
-<h4>Step 0. ii. Selecting bigram and trigram discounts</h4>
-<p>For this example, we’ll use <span class="math inline">\(\gamma_2 = \gamma_3 = 0.5\)</span>. In practice, these values would be obtained by cross-validation. A great treatment of cross-validation can be found in <a href="http://www-bcf.usc.edu/~gareth/ISL/">Chapter 5 of this (free) book [10]</a> which are discussed by the authors in these three videos: [<a href="https://www.youtube.com/watch?v=_2ij6eaaSl0">11</a>], [<a href="https://www.youtube.com/watch?v=nZAM5OXrktY">12</a>], and [<a href="https://www.youtube.com/watch?v=S06JpVoNaA0">13</a>].</p>
+<div id="step-1.-ii.-selecting-bigram-and-trigram-discounts" class="section level4">
+<h4>Step 1. ii. Selecting bigram and trigram discounts</h4>
+<p>For this example, we’ll use <span class="math inline">\(\gamma_2 = \gamma_3 = 0.5\)</span> for the purpose of illustration. In practice, these values would be obtained by cross-validation. A great treatment of cross-validation can be found in <a href="http://www-bcf.usc.edu/~gareth/ISL/">Chapter 5 of this (free) book [10]</a> which are discussed by the authors in these three videos: [<a href="https://www.youtube.com/watch?v=_2ij6eaaSl0">11</a>], [<a href="https://www.youtube.com/watch?v=nZAM5OXrktY">12</a>], and [<a href="https://www.youtube.com/watch?v=S06JpVoNaA0">13</a>].</p>
 </div>
-<div id="step-1.-select-bigram-preceding-word-to-be-predicted" class="section level4">
-<h4>Step 1. Select Bigram Preceding Word to be Predicted</h4>
+<div id="step-2.-select-bigram-prefix-of-word-to-be-predicted" class="section level4">
+<h4>Step 2. Select Bigram Prefix of Word to be Predicted</h4>
 <p>For this example, we’ll select the bigram: <code>sell the</code></p>
 </div>
-<div id="step-2.-calculate-probabilities-of-words-completing-observed-trigrams" class="section level4">
-<h4>Step 2. Calculate Probabilities of Words Completing Observed Trigrams</h4>
-<p>The code below finds the observed trigrams starting with a specified bigram and calculates their probabilities. In our simple example, we can look at the table of trigrams above and see that there is only one trigram that starts with <code>sell the</code> which is <code>sell the book</code>. Applying equations 12. and 13, we get <span class="math inline">\(q_{BO}(book\:|\:sell,\:the) = (1 - 0.5) / 1 = 0.5\)</span> which is also the result provided from the code below.</p>
-<pre class="r"><code>bigPre &lt;- 'sell_the'
+<div id="step-3.-calculate-probabilities-of-words-completing-observed-trigrams" class="section level4">
+<h4>Step 3. Calculate Probabilities of Words Completing Observed Trigrams</h4>
+<p>The code below finds the observed trigrams starting with the selected bigram prefix and calculates their probabilities. In our simple example, we can look at the table of trigrams above and see that there is only one trigram that starts with <code>sell the</code> which is <code>sell the book</code>. Applying equations 12. and 13, we get <span class="math inline">\(q_{BO}(book\:|\:sell,\:the) = (1 - 0.5) / 1 = 0.5\)</span> which is also the result provided from the code below.</p>
+<pre class="r"><code>gamma2 &lt;- 0.5  # bigram discount
+gamma3 &lt;- 0.5  # trigram discount
+bigPre &lt;- 'sell_the'
 
-## Returns a two column data.table of observed trigrams that start with
-## bigramPrefix in the first column named ngram and frequencies/counts in the 
-## second column named freq. If no observed trigrams with bigramPrefix exist,
-## an empty data.table is returned.
+## Returns a two column data.frame of observed trigrams that start with the
+## bigram prefix (bigPre) in the first column named ngram and
+## frequencies/counts in the second column named freq. If no observed trigrams
+## that start with bigPre exist, an empty data.frame is returned.
 ##
-## bigramPrefix - single element character vector which is a bigram of the
-##                form: word1_word2 e.g. sell_the
+## bigPre -  single-element char array of the form w2_w1 which are the first 
+##           two words of the trigram we are predicting the tail word of
 ## trigrams - 2 column data.frame or data.table. The first column: ngram,
 ##            contains all the trigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each trigram.
-getObsTrigs &lt;- function(bigramPrefix, trigrams) {
-    regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
-    trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram),]
+##            freq, contains the frequency/count of each trigram.
+getObsTrigs &lt;- function(bigPre, trigrams) {
+    trigs.winA &lt;- data.frame(ngrams=vector(mode = 'character', length = 0),
+                             freq=vector(mode = 'integer', length = 0))
+    regex &lt;- sprintf(&quot;%s%s%s&quot;, &quot;^&quot;, bigPre, &quot;_&quot;)
+    trigram_indices &lt;- grep(regex, trigrams$ngram)
+    if(length(trigram_indices) &gt; 0) {
+        trigs.winA &lt;- trigrams[trigram_indices, ]
+    }
+    
     return(trigs.winA)
 }
 
-## Returns the probability estimate for observed trigrams with bigramPrefix
-## calculated from equation 12.
+## Returns a two column data.frame of observed trigrams that start with bigram
+## prefix bigPre in the first column named ngram and the probabilities
+## q_bo(w_i | w_i-2, w_i-1) in the second column named prob calculated from
+## eqn 12. If no observed trigrams starting with bigPre exist, NULL is returned.
 ##
-## The first column of the datatable are the trigrams corresponding to the
-## probability estimate that are in the second column.  If no observed trigrams
-## exist, returns NULL.
-##
-## triDiscount - amount to discount observed trigrams
-## bigramPrefix - single-element char array of the form word1_word2
-## trigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the trigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each trigram.
-calc.qBO.trigramsA &lt;- function(triDiscount=0.5, bigramPrefix, trigrams) {
-    obsTrigsA &lt;- getObsTrigs(bigramPrefix, trigrams)
-    if(nrow(obsTrigsA) &lt; 1) return(NULL)
-    obsCount &lt;- sum(obsTrigsA$freq)
-    probs &lt;- (obsTrigsA$freq - triDiscount) / obsCount
-    qBO.A &lt;- data.table(ngram=obsTrigsA$ngram, prob=probs)
-    return(qBO.A)
+## obsTrigs - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the observed trigrams that start with the bigram
+##            prefix bigPre which we are attempting to the predict the next
+##            word of in a give phrase. The second column: freq, contains the
+##            frequency/count of each trigram.
+## bigrs - 2 column data.frame or data.table. The first column: ngram,
+##         contains all the bigrams in the corpus. The second column:
+##         freq, contains the frequency/count of each bigram.
+## bigPre -  single-element char array of the form w2_w1 which are first two
+##           words of the trigram we are predicting the tail word of
+## triDisc - amount to discount observed trigrams
+getObsTriProbs &lt;- function(obsTrigs, bigrs, bigPre, triDisc=0.5) {
+    if(nrow(obsTrigs) &lt; 1) return(NULL)
+    obsCount &lt;- filter(bigrs, ngram==bigPre)$freq[1]
+    obsTrigProbs &lt;- mutate(obsTrigs, freq=((freq - triDisc) / obsCount))
+    colnames(obsTrigProbs) &lt;- c(&quot;ngram&quot;, &quot;prob&quot;)
+    
+    return(obsTrigProbs)
 }
 
-obsTrigrams &lt;- calc.qBO.trigramsA(bigramPrefix=bigPre, trigrams=trigs)
-obsTrigrams</code></pre>
-<pre><code>##            ngram prob
-## 1: sell_the_book  0.5</code></pre>
+obs_trigs &lt;- getObsTrigs(bigPre, trigs)  # get trigrams and counts
+# convert counts to probabilities
+qbo_obs_trigrams &lt;- getObsTriProbs(obs_trigs, bigrs, bigPre, gamma3)
+qbo_obs_trigrams</code></pre>
+<pre><code>##           ngram prob
+## 1 sell_the_book  0.5</code></pre>
 </div>
-<div id="step-3.-calculate-probabilities-of-words-completing-unobserved-trigrams" class="section level4">
-<h4>Step 3. Calculate Probabilities of Words Completing Unobserved Trigrams</h4>
+<div id="step-4.-calculate-probabilities-of-words-completing-unobserved-trigrams" class="section level4">
+<h4>Step 4. Calculate Probabilities of Words Completing Unobserved Trigrams</h4>
 <p>This is the the most complex step as it involves backing off to the bigram level. Here is a breakdown of the sub-steps in these calculations:</p>
 <ol style="list-style-type: lower-roman">
 <li>Find all the words that complete unobserved trigrams. These are the words in the set <span class="math inline">\(w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})\)</span> described earlier.</li>
@@ -404,340 +418,324 @@ obsTrigrams</code></pre>
 <li>Calculate <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> from equation 15.</li>
 <li>Calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> for each <span class="math inline">\(w_i\)</span> from equation 17.</li>
 </ol>
-<div id="step-3.-i.-find-unobserved-trigrams" class="section level5">
-<h5>Step 3. i. Find Unobserved Trigrams</h5>
-<pre class="r"><code>## Returns a character vector that are the OBSERVED trigram tail words (OTTW)
-## that start with bigramPrefix.
+<div id="step-4.-i.-find-unobserved-trigram-tail-words" class="section level5">
+<h5>Step 4. i. Find unobserved trigram tail words:</h5>
+<pre class="r"><code>## Returns a character vector which are the tail words of unobserved trigrams
+## that start with the first two words of obsTrigs.  These are the words
+## w in the set B(w_i-2, w_i-1) as defined in the section describing the
+## details of equation 17.
 ##
-## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
-## 1st word of an observered trigram and wi-1 is the 2nd/middle word of the
-## trigram.
-##
-## If no trigrams start with bigramPrefix an empty character vector is returned.
-##
-## bigramPrefix - single-element char array of the form word1_word2
-## trigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the trigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each trigram.
-getOTTWinA &lt;- function(bigramPrefix, trigrams) {
-    regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigramPrefix)
-    trigs.winA &lt;- trigrams[grep(regex, trigrams$ngram), ]
-    patToReplace &lt;- sprintf(&quot;%s%s&quot;, bigramPrefix, &quot;_&quot;)
-    wInA &lt;- str_replace(trigs.winA$ngram, patToReplace, &quot;&quot;)
-    return(wInA)
+## obsTrigs - character vector of observed trigrams delimited by _ of the form:
+##            w3_w2_w1
+## unigs - 2 column data.frame of all the unigrams in the corpus:
+##         ngram = unigram
+##         freq = frequency/count of each unigram
+getUnobsTrigTails &lt;- function(obsTrigs, unigs) {
+    obs_trig_tails &lt;- str_split_fixed(obsTrigs, &quot;_&quot;, 3)[, 3]
+    unobs_trig_tails &lt;- unigs[!(unigs$ngram %in% obs_trig_tails), ]$ngram
+    return(unobs_trig_tails)
 }
 
-## Returns the UNOBSERVED trigram tail words (UTTW) that start with bigramPrefix.
-## Precondition: bigramPrefix is of the format wi-2_wi-1 where w1-2 is the
-## 1st word of the trigram and wi-1 is the 2nd/middle word of the trigram.
-##
-## bigramPrefix - single-element char array of the form word1_word2
-## trigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the trigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each trigram.
-## unigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the unigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each unigram.
-getUTTWinB &lt;- function(bigramPrefix, trigrams, unigrams) {
-    allUnigrams &lt;- unigrams$ngram
-    wInA &lt;- getOTTWinA(bigramPrefix, trigrams)
-    if(length(wInA) &lt; 1) {
-        wInB &lt;- allUnigrams
-    } else {
-        wInB &lt;- setdiff(allUnigrams, wInA)
-    }
-    return(wInB)
-}
-
-## Returns a vector of unobserved trigrams that start with bigramPrefix
-##
-## bigramPrefix - first two words of unobserved trigrams we want to estimate
-##                probabilities of
-## trigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the trigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each trigram.
-## unigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the unigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each unigram.
-getUnobsTrigs &lt;- function(bigramPrefix, trigrams, unigrams) {
-    unobsTriTails &lt;- getUTTWinB(bigramPrefix, trigrams, unigrams)
-    unobsTrigs &lt;- vector(mode=&quot;character&quot;, length=length(unobsTriTails))
-    for(i in 1:length(unobsTriTails)) {
-        unobsTrigs[i] &lt;- sprintf('%s%s%s', bigramPrefix, '_', unobsTriTails[i])
-    }
-    return(unobsTrigs)
-}
-
-unobsTrigrams &lt;- getUnobsTrigs(bigramPrefix=bigPre, trigrams=trigs,
-                               unigrams=unigs)
-unobsTrigrams</code></pre>
-<pre><code>## [1] &quot;sell_the_buy&quot;   &quot;sell_the_EOS&quot;   &quot;sell_the_house&quot; &quot;sell_the_paint&quot;
-## [5] &quot;sell_the_sell&quot;  &quot;sell_the_the&quot;</code></pre>
+unobs_trig_tails &lt;- getUnobsTrigTails(obs_trigs$ngram, unigs)
+unobs_trig_tails</code></pre>
+<pre><code>## [1] &quot;buy&quot;   &quot;EOS&quot;   &quot;house&quot; &quot;paint&quot; &quot;sell&quot;  &quot;the&quot;</code></pre>
 </div>
-<div id="step-3.-ii.-calculate-alphaw_i-1" class="section level5">
-<h5>Step 3. ii. Calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></h5>
+<div id="step-4.-ii.-calculate-discounted-probability-mass-at-the-bigram-level-alphaw_i-1" class="section level5">
+<h5>Step 4. ii. Calculate discounted probability mass at the bigram level <span class="math inline">\(\alpha(w_{i-1})\)</span>:</h5>
 <p>The code below implements equation 14. to calculate <span class="math inline">\(\alpha(w_{i-1})\)</span></p>
-<pre class="r"><code>## Returns the total probability mass discounted from all observed bigrams.
-## This is the amount of probability mass which is redistributed to
-## UNOBSERVED bigrams. If no bigrams starting with unigram$ngram[1] exist,
-## NULL is returned.
+<pre class="r"><code>## Returns the total probability mass discounted from all observed bigrams
+## calculated from equation 14.  This is the amount of probability mass which
+## is redistributed to UNOBSERVED bigrams. If no bigrams starting with
+## unigram$ngram[1] exist, 0 is returned.
 ##
-## bigDiscount - amount to discount observed bigrams
+## unigram - single row, 2 column frequency table. The first column: ngram,
+##           contains the w_i-1 unigram (2nd word of the bigram prefix). The
+##           second column: freq, contains the frequency/count of this unigram.
 ## bigrams - 2 column data.frame or data.table. The first column: ngram,
 ##           contains all the bigrams in the corpus. The second column:
 ##           freq, contains the frequency or count of each bigram.
-## unigram - 2 column, single row frequency table The first column: ngram,
-##           contains a unigrams. The second column: freq, contains the
-##           frequency or count of the unigram.
-getAlphaBigram &lt;- function(bigDiscount=0.5, bigrams, unigram) {
+## bigDisc - amount to discount observed bigrams
+getAlphaBigram &lt;- function(unigram, bigrams, bigDisc=0.5) {
     # get all bigrams that start with unigram
-    regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, unigram$ngram[1])
+    regex &lt;- sprintf(&quot;%s%s%s&quot;, &quot;^&quot;, unigram$ngram[1], &quot;_&quot;)
     bigsThatStartWithUnig &lt;- bigrams[grep(regex, bigrams$ngram),]
-    if(nrow(bigsThatStartWithUnig) &lt; 1) return(NULL)
-    alphaBi &lt;- 1 - (sum(bigsThatStartWithUnig$freq - bigDiscount) / unigram$freq)
+    if(nrow(bigsThatStartWithUnig) &lt; 1) return(0)
+    alphaBi &lt;- 1 - (sum(bigsThatStartWithUnig$freq - bigDisc) / unigram$freq)
+    
     return(alphaBi)
 }
 
-
-unig &lt;- str_split(bigPre, '_')[[1]][2]
-unig &lt;- filter(unigs, ngram == unig)
-alphaBig &lt;- getAlphaBigram(bigrams=bigrs, unigram=unig)
-alphaBig</code></pre>
+unig &lt;- str_split(bigPre, &quot;_&quot;)[[1]][2]
+unig &lt;- unigs[unigs$ngram == unig,]
+alpha_big &lt;- getAlphaBigram(unig, bigrs, gamma2)
+alpha_big</code></pre>
 <pre><code>## [1] 0.125</code></pre>
 </div>
-<div id="step-3.-iii.-calculate-q_bo-for-bigrams" class="section level5">
-<h5>Step 3. iii. Calculate <span class="math inline">\(q_{BO}\)</span> for Bigrams</h5>
+<div id="step-4.-iii.-calculate-backed-off-probabilities-q_bo-for-bigrams" class="section level5">
+<h5>Step 4. iii. Calculate backed off probabilities <span class="math inline">\(q_{BO}\)</span> for bigrams</h5>
 <p>The code below implements equation 10. to calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> for observed bigrams and equation 16. for unobserved bigrams:</p>
-<pre class="r"><code>## Returns a 3 column data.table. First column (ngram) = bigrams that are the
-## last two words of unobserved trigrams that start with bigramPrefix.
-## Second column (btfreq) = frequency/count of the bigram tail of unobserved
-##                          trigram
-## Third column (utfreq) = frequency/count of the unigram tail word of the
-##                         bigram defined in the 2nd column (btfreq)
+<pre class="r"><code>## Returns a character vector of backed off bigrams of the form w2_w1. These 
+## are all the (w_i-1, w) bigrams where w_i-1 is the tail word of the bigram
+## prefix bigPre and w are the tail words of unobserved bigrams that start with
+## w_i-1.
 ##
-## bigramPrefix - single-element char array of the form word1_word2
-## unobsTrigs - character vector of unobserved trigrams of the form:
-##              word1_word2_word3, e.g. sell_the_buy
-## bigrams - 2 column data.frame or data.table. The first column: ngram,
-##           contains all the bigrams in the corpus. The second column:
-##           freq, contains the frequency or count of each bigram.
-## unigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the unigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each unigram.
-getUnobsBigramsTable &lt;- function(bigramPrefix, unobsTrigs, bigrams, unigrams) {
-    bigramTails &lt;- vector(mode='character', length = length(unobsTrigs))
-    bigramTailCounts &lt;- rep(-1, length(unobsTrigs))
-    unigramTailCounts &lt;- rep(-1, length(unobsTrigs))
-    for(i in 1:length(unobsTrigs)) {
-        bigramTail &lt;- str_split(unobsTrigs[i], '_')[[1]]
-        unigramTail &lt;- bigramTail[3]
-        bigramTail &lt;- sprintf('%s%s%s', bigramTail[2], '_', bigramTail[3])
-        bigramTails[i] &lt;- bigramTail
-        bigramIndex &lt;- which(bigrams$ngram == bigramTail)
-        if(length(bigramIndex) &gt; 0) {
-            bigramTailCounts[i] &lt;- bigrams$freq[bigramIndex]
-        } else {
-            bigramTailCounts[i] &lt;- 0
-        }
-        unigramTailIndex &lt;- which(unigrams$ngram == unigramTail)
-        unigramTailCounts[i] &lt;- unigrams$freq[unigramTailIndex]
-    }
-    dt &lt;- data.table(ngram=bigramTails, btfreq=bigramTailCounts,
-                     utfreq=unigramTailCounts)
-    return(dt)
+## bigPre - single-element char array of the form w2_w1 which are first two
+##          words of the trigram we are predicting the tail word of
+## unobsTrigTails - character vector that are tail words of unobserved trigrams
+getBoBigrams &lt;- function(bigPre, unobsTrigTails) {
+    w_i_minus1 &lt;- str_split(bigPre, &quot;_&quot;)[[1]][2]
+    boBigrams &lt;- paste(w_i_minus1, unobsTrigTails, sep = &quot;_&quot;)
+    return(boBigrams)
 }
 
-## Returns a data.table with the first column (ngram) containing the bigram
-## tails of unobserved trigrams that start with bigramPrefix. The second column
-## (probs) holds the conditional probability estimate for the last word of the
-## bigram tail given the last word of the bigramPrefix (middle word of the 
-## unobserved trigram).
+## Returns a two column data.frame of backed-off bigrams in the first column
+## named ngram and their frequency/counts in the second column named freq.
+## 
+## bigPre -  single-element char array of the form w2_w1 which are first two
+##           words of the trigram we are predicting the tail word of
+## unobsTrigTails - character vector that are tail words of unobserved trigrams
+## bigrs - 2 column data.frame or data.table. The first column: ngram,
+##         contains all the bigrams in the corpus. The second column:
+##         freq, contains the frequency/count of each bigram.
+getObsBoBigrams &lt;- function(bigPre, unobsTrigTails, bigrs) {
+    boBigrams &lt;- getBoBigrams(bigPre, unobsTrigTails)
+    obs_bo_bigrams &lt;- bigrs[bigrs$ngram %in% boBigrams, ]
+    return(obs_bo_bigrams)
+}
+
+## Returns a character vector of backed-off bigrams which are unobserved.
 ##
-## bigDiscount - amount to discount observed bigrams
-## bigramPrefix - first two words of unobserved trigrams we want to estimate
-##                probabilities of
-## trigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the trigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each trigram.
-## bigrams - 2 column data.frame or data.table. The first column: ngram,
-##           contains all the bigrams in the corpus. The second column:
-##           freq, contains the frequency or count of each bigram.
-## unigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the unigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each unigram.
-calc.qBO.bigramsB &lt;- function(bigDiscount=0.5, bigramPrefix,
-                              trigrams, bigrams, unigrams) {
-    unobsTrigs &lt;- getUnobsTrigs(bigramPrefix, trigrams=trigrams,
-                                unigrams=unigrams)
-    unobBis &lt;- getUnobsBigramsTable(bigramPrefix, unobsTrigs, bigrams, unigrams)
-    unobBiProbs &lt;- rep(-1, length(unobBis$ngram))
-    # calc discounted prob. mass at bigram level
-    unig &lt;- str_split(bigramPrefix, '_')[[1]][2]
-    unigram &lt;- filter(unigrams, ngram == unig)
-    alphaBig &lt;- getAlphaBigram(bigDiscount, bigrams, unigram)
-    uniSumUnobs &lt;- sum(filter(unobBis, btfreq == 0)$utfreq)
-    for(i in 1:length(unobBis$ngram)) {
-        if(unobBis$btfreq[i] &gt; 0) {
-            # bigram tail observed: calc qBO from eqn. 10.
-            unobBiProbs[i] &lt;- (unobBis$btfreq[i]-bigDiscount)/unigram$freq[1]
-        } else {
-            # bigram tail NOT observed: calc qBO w/ bigram from eqn. 16.
-            unobBiProbs[i] &lt;- alphaBig * unobBis$utfreq[i] / uniSumUnobs
-        }
-    }
-    dt &lt;- data.table(ngram=unobBis$ngram, prob=unobBiProbs)
+## bigPre -  single-element char array of the form w2_w1 which are first two
+##           words of the trigram we are predicting the tail word of
+## unobsTrigTails - character vector that are tail words of unobserved trigrams
+## obsBoBigram - data.frame which contains the observed bigrams in a column
+##               named ngram
+getUnobsBoBigrams &lt;- function(bigPre, unobsTrigTails, obsBoBigram) {
+    boBigrams &lt;- getBoBigrams(bigPre, unobsTrigTails)
+    unobs_bigs &lt;- boBigrams[!(boBigrams %in% obsBoBigram$ngram)]
+    return(unobs_bigs)
+}
+
+## Returns a dataframe of 2 columns: ngram and probs.  Values in the ngram
+## column are bigrams of the form: w2_w1 which are observed as the last
+## two words in unobserved trigrams.  The values in the prob column are
+## q_bo(w1 | w2) calculated from from equation 10.
+##
+## obsBoBigrams - a dataframe with 2 columns: ngram and freq. The ngram column
+##                contains bigrams of the form w1_w2 which are observed bigrams
+##                that are the last 2 words of unobserved trigrams (i.e. &quot;backed
+##                off&quot; bigrams). The freq column contains integers that are
+##                the counts of these observed bigrams in the corpus.
+## unigs - 2 column data.frame of all the unigrams in the corpus:
+##         ngram = unigram
+##         freq = frequency/count of each unigram
+## bigDisc - amount to discount observed bigrams
+getObsBigProbs &lt;- function(obsBoBigrams, unigs, bigDisc=0.5) {
+    first_words &lt;- str_split_fixed(obsBoBigrams$ngram, &quot;_&quot;, 2)[, 1]
+    first_word_freqs &lt;- unigs[unigs$ngram %in% first_words, ]
+    obsBigProbs &lt;- (obsBoBigrams$freq - bigDisc) / first_word_freqs$freq
+    obsBigProbs &lt;- data.frame(ngram=obsBoBigrams$ngram, prob=obsBigProbs)
     
-    return(dt)
+    return(obsBigProbs)
 }
 
-qboBigs &lt;- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix=bigPre,
-                             trigrams=trigs, bigrams=bigrs, unigrams=unigs)
-qboBigs</code></pre>
-<pre><code>##        ngram        prob
-## 1:   the_buy 0.031250000
-## 2:   the_EOS 0.041666667
-## 3: the_house 0.312500000
-## 4: the_paint 0.005208333
-## 5:  the_sell 0.005208333
-## 6:   the_the 0.041666667</code></pre>
+## Returns a dataframe of 2 columns: ngram and prob.  Values in the ngram
+## column are unobserved bigrams of the form: w2_w1.  The values in the prob
+## column are the backed off probability estimates q_bo(w1 | w2) calculated
+## from from equation 16.
+##
+## unobsBoBigrams - character vector of unobserved backed off bigrams
+## unigs - 2 column data.frame of all the unigrams in the corpus:
+##         ngram = unigram
+##         freq = frequency/count of each unigram
+## alphaBig - total discounted probability mass at the bigram level
+getQboUnobsBigrams &lt;- function(unobsBoBigrams, unigs, alphaBig) {
+    # get the unobserved bigram tails
+    qboUnobsBigs &lt;- str_split_fixed(unobsBoBigrams, &quot;_&quot;, 2)[, 2]
+    w_in_Aw_iminus1 &lt;- unigs[!(unigs$ngram %in% qboUnobsBigs), ]
+    # convert to data.frame with counts
+    qboUnobsBigs &lt;- unigs[unigs$ngram %in% qboUnobsBigs, ]
+    denom &lt;- sum(qboUnobsBigs$freq)
+    # converts counts to probabilities
+    qboUnobsBigs &lt;- data.frame(ngram=unobsBoBigrams,
+                               prob=(alphaBig * qboUnobsBigs$freq / denom))
+    
+    return(qboUnobsBigs)
+}
+
+bo_bigrams &lt;- getBoBigrams(bigPre, unobs_trig_tails)  # get backed off bigrams
+# separate bigrams which use eqn 10 and those that use 16
+obs_bo_bigrams &lt;- getObsBoBigrams(bigPre, unobs_trig_tails, bigrs)
+unobs_bo_bigrams &lt;- getUnobsBoBigrams(bigPre, unobs_trig_tails, obs_bo_bigrams)
+# unobs_bo_bigrams = c(&quot;the_buy&quot;, &quot;the_EOS&quot;, &quot;the_paint&quot;, &quot;the_sell&quot;, &quot;the_the&quot;)
+# calc obs'd bigram prob's from eqn 10
+qbo_obs_bigrams &lt;- getObsBigProbs(obs_bo_bigrams, unigs, gamma2) #ngram     probs
+# calc alpha_big &amp; unobs'd bigram prob's from eqn 16             #the_house 0.3125
+unig &lt;- str_split(bigPre, &quot;_&quot;)[[1]][2]
+unig &lt;- unigs[unigs$ngram == unig,]
+# distrib discounted bigram prob mass to unobs bigrams in prop to unigram ML
+qbo_unobs_bigrams &lt;- getQboUnobsBigrams(unobs_bo_bigrams, unigs, alpha_big)
+qbo_bigrams &lt;- rbind(qbo_obs_bigrams, qbo_unobs_bigrams)
+qbo_bigrams</code></pre>
+<pre><code>##       ngram        prob
+## 1 the_house 0.312500000
+## 2   the_buy 0.031250000
+## 3   the_EOS 0.041666667
+## 4 the_paint 0.005208333
+## 5  the_sell 0.005208333
+## 6   the_the 0.041666667</code></pre>
 </div>
 <div id="checking-the-bigram-calculations" class="section level5">
 <h5>Checking the Bigram Calculations</h5>
 <p>Before doing the final calculations for the unobserved trigrams, let’s do a simple check on our calculations on the bigram level. In the previous table, all the bigrams except <code>the_house</code> are unobserved which means that if we sum all the unobserved bigram probabilities, we should get the total bigram discount which is <span class="math inline">\(\alpha(w_{i-1})\)</span>. As we see below, this looks like it checks out.</p>
-<pre class="r"><code>unobs &lt;- qboBigs[-3,]
+<pre class="r"><code>unobs &lt;- qbo_bigrams[-1,]
 sum(unobs$prob)</code></pre>
 <pre><code>## [1] 0.125</code></pre>
 </div>
-<div id="step-3.-iv.-calculate-alphaw_i-2w_i-1-discount-for-trigrams" class="section level5">
-<h5>Step 3. iv. Calculate <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> Discount for Trigrams</h5>
-<p>The <strong>getAlphaTrigram</strong> function shown below implements equation 15. above to compute the trigram discount. Here we use it to compute the trigram discount for <span class="math inline">\(q_{BO}(house\:|\:sell,\:the)\)</span>:</p>
+<div id="step-4.-iv.-calculate-discounted-probability-mass-at-the-trigram-level-alphaw_i-2w_i-1" class="section level5">
+<h5>Step 4. iv. Calculate discounted probability mass at the trigram level <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span></h5>
+<p>The <strong>getAlphaTrigram</strong> function shown below implements equation 15. to compute the trigram discount. Here we use it to compute the trigram discount for <span class="math inline">\(q_{BO}(house\:|\:sell,\:the)\)</span>:</p>
 <pre class="r"><code>## Returns the total probability mass discounted from all observed trigrams.
-## This is the amount of probability mass which is redistributed to
-## UNOBSERVED trigrams. If no trigrams starting with bigram$ngram[1] exist,
-## NULL is returned.
+## calculated from equation 14. This is the amount of probability mass which is
+## redistributed to UNOBSERVED trigrams. If no trigrams starting with
+## bigram$ngram[1] exist, 0 is returned.
 ##
-## triDiscount - amount to discount observed trigrams
-## trigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the trigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each trigram.
+## obsTrigs - 2 column data.frame or data.table. The first column: ngram,
+##            contains all the observed trigrams that start with the bigram
+##            prefix we are attempting to the predict the next word of. The 
+##            second column: freq, contains the frequency/count of each trigram.
 ## bigram - single row frequency table where the first col: ngram, is the bigram
 ##          which are the first two words of unobserved trigrams we want to
-##          estimate probabilities of (same as bigramPrefix in previous functions
-##          listed above) delimited with '_'. The second column: freq, is the
-##          frequency/count of the bigram listed in the 1st column.
-getAlphaTrigram &lt;- function(triDiscount=0.5, trigrams, bigram) {
-    # get all trigrams that start with bigram
-    regex &lt;- sprintf(&quot;%s%s&quot;, &quot;^&quot;, bigram$ngram[1])
-    trigsThatStartWithBig &lt;- trigrams[grep(regex, trigrams$ngram),]
-    if(nrow(trigsThatStartWithBig) &lt; 1) return(NULL)
-    alphaTri &lt;- 1 - (sum(trigsThatStartWithBig$freq - triDiscount) / bigram$freq)
+##          estimate probabilities of (same as bigPre in other functions listed
+##          prior) delimited with '_'. The second column: freq, is the
+##          frequency/count of the bigram listed in the ngram column.
+## triDisc - amount to discount observed trigrams
+getAlphaTrigram &lt;- function(obsTrigs, bigram, triDisc=0.5) {
+    if(nrow(obsTrigs) &lt; 1) return(0)
+    alphaTri &lt;- 1 - sum((obsTrigs$freq - triDisc) / bigram$freq[1])
     
     return(alphaTri)
 }
 
-bigr &lt;- filter(bigrs, ngram == bigPre)
-alphaTrig &lt;- getAlphaTrigram(0.5, trigs, bigr)
-alphaTrig</code></pre>
+bigram &lt;- bigrs[bigrs$ngram %in% bigPre, ]
+alpha_trig &lt;- getAlphaTrigram(obs_trigs, bigram, gamma3)
+alpha_trig</code></pre>
 <pre><code>## [1] 0.5</code></pre>
 </div>
-<div id="step-3.-v.-calculate-q_bow_iw_i-2w_i-1-for-unobserved-trigrams" class="section level5">
-<h5>Step 3. v. Calculate <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> for Unobserved Trigrams</h5>
-<pre class="r"><code>## Returns a two column data table with column names ngram and prob.  The first
-## column are trigrams formatted as w1_w2_w3 meaning that the values in the
-## prob column are probability estimates of q_BO(w3 | w1, w2) for unobserved
-## trigrams that start with bigramPrefix (w1, w2) calculated from equation 17.
+<div id="step-4.-v.-calculate-unobserved-trigram-probabilities-q_bow_iw_i-2w_i-1" class="section level5">
+<h5>Step 4. v. Calculate unobserved trigram probabilities <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span>:</h5>
+<pre class="r"><code>## Returns a dataframe of 2 columns: ngram and prob.  Values in the ngram
+## column are unobserved trigrams of the form: w3_w2_w1.  The values in the prob
+## column are q_bo(w1 | w3, w2) calculated from from equation 17.
 ##
-## bigDiscount - amount to discount observed bigrams
-## bigramPrefix - first two words of unobserved trigrams we want to estimate
-##                probabilities of
-## trigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the trigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each trigram.
-## bigrams - 2 column data.frame or data.table. The first column: ngram,
-##           contains all the bigrams in the corpus. The second column:
-##           freq, contains the frequency or count of each bigram.
-## unigrams - 2 column data.frame or data.table. The first column: ngram,
-##            contains all the unigrams in the corpus. The second column:
-##            freq, contains the frequency or count of each unigram.
-## alphaTrigr - total amount of discounted probability mass at the trigram level
-calc.qBO.trigramB &lt;- function(bigDiscount=0.5, bigramPrefix, trigrams, bigrams,
-                              unigrams, alphaTrigr) {
-    qBoUnobsBigs &lt;- calc.qBO.bigramsB(bigDiscount=0.5, bigramPrefix=bigramPrefix,
-                                      trigrams=trigrams, bigrams=bigrams,
-                                      unigrams=unigrams)
-    sum.qBoUnobsBigs &lt;- sum(qBoUnobsBigs$prob)
-    qBoUnobsTrigProbs &lt;- alphaTrigr * qBoUnobsBigs$prob / sum.qBoUnobsBigs
-    qBoUnobsTrigrams &lt;- paste0(str_split(bigramPrefix, '_')[[1]][1],
-                               '_', qBoUnobsBigs$ngram)
-    dt &lt;- data.table(ngram=qBoUnobsTrigrams, prob=qBoUnobsTrigProbs)
+## bigPre -  single-element char array of the form w2_w1 which are first two
+##           words of the trigram we are predicting the tail word of
+## unobsTrigTails - character vector which are the tail words of unobserved
+##                  trigrams that start with bigPre
+## qboUnobsBigrams - 2 column data.frame -
+##                   ngram: unobserved bigrams of the form w2_w1
+##                   probs: the probability estimate for unobserved bigrams
+##                          calc'd from equation 16.
+## alphaTrig - total discounted probability mass at the trigram level
+getUnobsTriProbs &lt;- function(bigPre, qboObsBigrams,
+                             qboUnobsBigrams, alphaTrig) {
+    qboBigrams &lt;- rbind(qboObsBigrams, qboUnobsBigrams)
+    qboBigrams &lt;- qboBigrams[order(-qboBigrams$prob), ]
+    sumQboBigs &lt;- sum(qboBigrams$prob)
+    first_bigPre_word &lt;- str_split(bigPre, &quot;_&quot;)[[1]][1]
+    unobsTrigNgrams &lt;- paste(first_bigPre_word, qboBigrams$ngram, sep=&quot;_&quot;)
+    unobsTrigProbs &lt;- alphaTrig * qboBigrams$prob / sumQboBigs
+    unobsTrigDf &lt;- data.frame(ngram=unobsTrigNgrams, prob=unobsTrigProbs)
     
-    return(dt)
+    return(unobsTrigDf)
 }
 
-qBO.trigs.B &lt;- calc.qBO.trigramB(0.5, bigPre, trigs, bigrs, unigs, alphaTrig)
-qBO.trigs.B</code></pre>
-<pre><code>##             ngram        prob
-## 1:   sell_the_buy 0.035714286
-## 2:   sell_the_EOS 0.047619048
-## 3: sell_the_house 0.357142857
-## 4: sell_the_paint 0.005952381
-## 5:  sell_the_sell 0.005952381
-## 6:   sell_the_the 0.047619048</code></pre>
+qbo_unobs_trigrams &lt;- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
+                                       qbo_unobs_bigrams, alpha_trig)
+qbo_unobs_trigrams</code></pre>
+<pre><code>##            ngram        prob
+## 1 sell_the_house 0.357142857
+## 2   sell_the_EOS 0.047619048
+## 3   sell_the_the 0.047619048
+## 4   sell_the_buy 0.035714286
+## 5 sell_the_paint 0.005952381
+## 6  sell_the_sell 0.005952381</code></pre>
 </div>
 </div>
-<div id="step-4.-select-w_i-with-the-highest-q_bow_iw_i-2w_i-1" class="section level4">
-<h4>Step 4. Select <span class="math inline">\(w_i\)</span> with the highest <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span></h4>
+<div id="step-5.-select-w_i-with-the-highest-q_bow_iw_i-2w_i-1" class="section level4">
+<h4>Step 5. Select <span class="math inline">\(w_i\)</span> with the highest <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span></h4>
 <p>We’ve done all the calculations required to make our prediction. These are summarized in the table below:</p>
-<pre class="r"><code>all_trigrams &lt;- rbind(obsTrigrams, qBO.trigs.B)
-all_trigrams</code></pre>
-<pre><code>##             ngram        prob
-## 1:  sell_the_book 0.500000000
-## 2:   sell_the_buy 0.035714286
-## 3:   sell_the_EOS 0.047619048
-## 4: sell_the_house 0.357142857
-## 5: sell_the_paint 0.005952381
-## 6:  sell_the_sell 0.005952381
-## 7:   sell_the_the 0.047619048</code></pre>
-<pre class="r"><code>sum(all_trigrams$prob)  # good idea to check our work</code></pre>
+<pre class="r"><code>getPredictionMsg &lt;- function(qbo_trigs) {
+    # pull off tail word of highest prob trigram
+    prediction &lt;- str_split(qbo_trigs$ngram[1], &quot;_&quot;)[[1]][3]
+    result &lt;- sprintf(&quot;%s%s%s%s&quot;, &quot;highest prob prediction is &gt;&gt;&gt; &quot;, prediction,
+                      &quot; &lt;&lt;&lt; which has probability = &quot;, qbo_trigs$prob[1])
+    return(result)
+}
+
+qbo_trigrams &lt;- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
+qbo_trigrams &lt;- qbo_trigrams[order(-qbo_trigrams$prob), ]  # sort by desc prob
+out_msg &lt;- getPredictionMsg(qbo_trigrams)
+out_msg</code></pre>
+<pre><code>## [1] &quot;highest prob prediction is &gt;&gt;&gt; book &lt;&lt;&lt; which has probability = 0.5&quot;</code></pre>
+</div>
+</div>
+<div id="going-a-little-deeper-exploring-an-interesting-question" class="section level3">
+<h3>Going a little deeper: Exploring an interesting question</h3>
+<p>Any good data scientist at this point would be asking themselves some questions about their results, especially if they have not worked with a particular algorithm before. A simple first check might be to test whether all the <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> values sum to 1:</p>
+<pre class="r"><code>sum(qbo_trigrams$prob)</code></pre>
 <pre><code>## [1] 1</code></pre>
-<p>From the above table, we can see that <strong>book</strong> would be our prediction as the code below confirms:</p>
-<pre class="r"><code>predict_trigram &lt;- all_trigrams[which.max(all_trigrams$prob),]
-predict_trigram</code></pre>
-<pre><code>##            ngram prob
-## 1: sell_the_book  0.5</code></pre>
-</div>
-</div>
-<div id="an-interesting-question" class="section level3">
-<h3>An Interesting Question</h3>
-<p>Any good data scientist at this point would be asking themselves some questions about their results, especially if they have not worked with a particular algorithm before. Let’s explore one such question to see if we can deepen our understanding.</p>
+<p>That looks O.k., so let’s explore something more interesting to see if we can deepen our understanding.</p>
 <p>In the example we just completed, our prediction of <strong>book</strong> was based on the fact that <span class="math inline">\(q_{BO}(book\:|\:sell,\:the)\)</span> was higher than any other <span class="math inline">\(q_{BO}(w_i\:|\:sell,\:the)\)</span>. But this wasn’t really very interesting because <em>sell the book</em> was an observed trigram and the next closest probability <span class="math inline">\(q_{BO}(house\:|\:sell,\:the)\)</span> was based on an unobserved trigram <em>sell the house</em>. This leads us to wonder if observed trigrams always trump unobserved trigrams.</p>
 <p>We can prove to ourselves that this is not the case with a simple experiment. Let’s redo the above calculations with increased discount rates at both bigram and trigram levels. If we increase our discount rates from 0.5 to 0.7, what happens? If we set <span class="math inline">\(\gamma_2 = \gamma_3 = 0.7\)</span>, these are the results we get:</p>
-<pre class="r"><code>gamma2=0.7; gamma3=0.7
-obsTrigrams &lt;- calc.qBO.trigramsA(gamma3, bigramPrefix=bigPre, trigrams=trigs)
-alphaBig &lt;- getAlphaBigram(gamma2, bigrams=bigrs, unigram=unig)
-qboBigs &lt;- calc.qBO.bigramsB(bigDiscount=gamma2, bigramPrefix=bigPre,
-                             trigrams=trigs, bigrams=bigrs, unigrams=unigs)
-alphaTrig &lt;- getAlphaTrigram(gamma3, trigs, bigr)
-qBO.trigs.B &lt;- calc.qBO.trigramB(gamma3, bigPre, trigs, bigrs, unigs, alphaTrig)
-all_trigrams &lt;- rbind(obsTrigrams, qBO.trigs.B)
-all_trigrams</code></pre>
-<pre><code>##             ngram        prob
-## 1:  sell_the_book 0.300000000
-## 2:   sell_the_buy 0.050000000
-## 3:   sell_the_EOS 0.066666667
-## 4: sell_the_house 0.500000000
-## 5: sell_the_paint 0.008333333
-## 6:  sell_the_sell 0.008333333
-## 7:   sell_the_the 0.066666667</code></pre>
-<pre class="r"><code>predict_trigram &lt;- all_trigrams[which.max(all_trigrams$prob),]
-predict_trigram</code></pre>
-<pre><code>##             ngram prob
-## 1: sell_the_house  0.5</code></pre>
+<pre class="r"><code>gamma2=0.7; gamma3=0.7  # initialize new discount rates
+
+obs_trigs &lt;- getObsTrigs(bigPre, trigs)
+unobs_trig_tails &lt;- getUnobsTrigTails(obs_trigs$ngram, unigs)
+bo_bigrams &lt;- getBoBigrams(bigPre, unobs_trig_tails)
+# separate bigrams which use eqn 10 and those that use 16
+obs_bo_bigrams &lt;- getObsBoBigrams(bigPre, unobs_trig_tails, bigrs)
+unobs_bo_bigrams &lt;- getUnobsBoBigrams(bigPre, unobs_trig_tails, obs_bo_bigrams)
+# calc obs'd bigram prob's from eqn 10
+qbo_obs_bigrams &lt;- getObsBigProbs(obs_bo_bigrams, unigs, gamma2)
+# calc alpha_big &amp; unobs'd bigram prob's from eqn 16
+unig &lt;- str_split(bigPre, &quot;_&quot;)[[1]][2]
+unig &lt;- unigs[unigs$ngram == unig,]
+alpha_big &lt;- getAlphaBigram(unig, bigrs, gamma2)
+# distrib discounted bigram prob mass to unobs bigrams in prop to unigram ML
+qbo_unobs_bigrams &lt;- getQboUnobsBigrams(unobs_bo_bigrams, unigs, alpha_big)
+# calc trigram probabilities - start with observed trigrams: eqn 12
+qbo_obs_trigrams &lt;- getObsTriProbs(obs_trigs, bigrs, bigPre, gamma3)
+# finally, calc trigram unobserved probabilities: eqn 17
+bigram &lt;- bigrs[bigrs$ngram %in% bigPre, ]
+alpha_trig &lt;- getAlphaTrigram(obs_trigs, bigram, gamma3)
+qbo_unobs_trigrams &lt;- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
+                                       qbo_unobs_bigrams, alpha_trig)
+qbo_trigrams &lt;- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
+qbo_trigrams &lt;- qbo_trigrams[order(-qbo_trigrams$prob), ]
+getPredictionMsg(qbo_trigrams)</code></pre>
+<pre><code>## [1] &quot;highest prob prediction is &gt;&gt;&gt; house &lt;&lt;&lt; which has probability = 0.435135135135135&quot;</code></pre>
 <p>While changing the discount rate doesn’t always change a prediction, this example shows how it can. As mentioned earlier, the values we should use for these discount rates should be determined by cross-validation and will be strongly dependent upon the corpus used for the training. Determining the parameters for this model is the focus of <a href="http://rpubs.com/mszczepaniak/predictkbo4params">Part 4 of this series (expected release Sep 2016)</a>.</p>
+</div>
+<div id="references" class="section level3">
+<h3>References</h3>
+<p><a href="https://en.wikipedia.org/wiki/Katz's_back-off_model">[1] Wikipedia: Katz’s Back-off Model - https://en.wikipedia.org/wiki/Katz’s_back-off_model</a><br />
+<a href="https://en.wikipedia.org/wiki/Generative_grammar">[2] Wikipedia: Generative Grammar - https://en.wikipedia.org/wiki/Generative_grammar</a><br />
+<a href="https://www.youtube.com/watch?v=s3kKlUBa3b0">[3] Dan Jurafsky on N-grams - https://www.youtube.com/watch?v=s3kKlUBa3b0</a><br />
+<a href="https://www.youtube.com/watch?v=o-CvoOkVrnY">[4] Dan Jurafsky on Estimating N-grams Probabilities - https://www.youtube.com/watch?v=o-CvoOkVrnY</a><br />
+<a href="https://www.youtube.com/watch?v=XdjCCkFUBKU">[5] Dan Jurafsky on Good-Turing - https://www.youtube.com/watch?v=XdjCCkFUBKU</a><br />
+<a href="https://www.youtube.com/watch?v=wtB00EczoCM">[6] Dan Jurafsky on Kneser-Ney - https://www.youtube.com/watch?v=wtB00EczoCM</a><br />
+<a href="https://en.wikipedia.org/wiki/Chain_rule_(probability)">[7] Wikipedia: Chain rule for conditional probabilities - https://en.wikipedia.org/wiki/Chain_rule_(probability)</a><br />
+<a href="http://www.aclweb.org/anthology/D07-1090.pdf">[8] Large Language Models in Machine Translation - Brants, Popat, Xu, Och, and Dean - http://www.aclweb.org/anthology/D07-1090.pdf</a><br />
+<a href="https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html">[9] Quanteda Quick Start - https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html</a><br />
+<a href="http://www-bcf.usc.edu/~gareth/ISL/">[10] An Introduction to Statistical Learning - http://www-bcf.usc.edu/~gareth/ISL/</a><br />
+<a href="https://www.youtube.com/watch?v=_2ij6eaaSl0">[11] Trevor Hastie &amp; Rob Tibshirani on Cross-Validation (part 1) - https://www.youtube.com/watch?v=_2ij6eaaSl0</a><br />
+<a href="https://www.youtube.com/watch?v=nZAM5OXrktY">[12] Trevor Hastie &amp; Rob Tibshirani on K-Fold Cross-Validation (part 2) - https://www.youtube.com/watch?v=nZAM5OXrktY</a><br />
+<a href="https://www.youtube.com/watch?v=S06JpVoNaA0">[13] Trevor Hastie &amp; Rob Tibshirani on Right &amp; Wrong Ways to do CV (part 3) - https://www.youtube.com/watch?v=S06JpVoNaA0</a></p>
 </div>
 <div id="appendix-1---michael-collins-coursera-lectures" class="section level3">
 <h3>Appendix 1 - Michael Collins Coursera Lectures</h3>
-<p><a href="https://www.coursera.org/instructor/~312">Michael Collins of Columbia</a> had an excellent class on NLP which used to be available on Coursera but was removed sometime during the first half of 2016. At the time of this writing, many of these lectures had been put on youtube and the two referenced on this page could be found at the following links:</p>
+<p><a href="https://www.coursera.org/instructor/~312">Michael Collins of Columbia</a> gave an excellent class on NLP which used to be available on Coursera but was removed sometime during the first half of 2016. At the time of this writing, many of these lectures had been put on youtube and the two referenced on this page could be found at the following links:</p>
 <p><a href="https://www.youtube.com/watch?v=hsHw9F3UuAQ">Discounting methods: Part 1 - Katz Bigram</a></p>
 <p><a href="https://www.youtube.com/watch?v=FedWcgXcp8w">Discounting methods: Part 2 - Katz Trigram</a></p>
 </div>
