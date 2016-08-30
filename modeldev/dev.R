@@ -3,14 +3,31 @@ source("Katz2.R")
 
 
 # 1, 2 select corpus, discount rates, and n
-ltcorpus <- readLines("../data/little_test_corpus1.txt")
-unigs <- getNgramTables(1, ltcorpus)
-bigrs <- getNgramTables(2, ltcorpus)
-trigs <- getNgramTables(3, ltcorpus)
+### litte test corpus
+# use_corpus <- readLines("../data/little_test_corpus1.txt")
+# unigs <- getNgramTables(1, use_corpus)
+# bigrs <- getNgramTables(2, use_corpus)
+# trigs <- getNgramTables(3, use_corpus)
+# bigPre <- "sell_the"
+### blogs corpus
+corpType <- "blogs"
+dataPrefix <- "en_US."
+dataPostfix <- c(".train.12unigrams.nosins.csv",
+                 ".train.13bigrams.nosins.csv",
+                 ".train.14trigrams.nosins.csv")
+dataDir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/"
+ngramPaths <- sprintf("%s%s%s%s",
+                      dataDir, dataPrefix, corpType, dataPostfix)
+
+unigs <- read.csv(ngramPaths[1])
+bigrs <- read.csv(ngramPaths[2]) # about 4 sec
+trigs <- read.csv(ngramPaths[3]) # about 8 sec
+
+bigPre <- "a_baby"
+
 gamma3 <- 0.5  # trigram discount
 gamma2 <- 0.5  # bigram discount
 top_n <- 3
-bigPre <- "sell_the"
 # gather bigrams for denom of eqn 17
 obs_trigs <- getObsTrigs(bigPre, trigs)
 unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigs)
@@ -27,9 +44,13 @@ unig <- unigs[unigs$ngram == unig,]
 alpha_big <- getAlphaBigram(unig, bigrs, gamma2)
 # distrib discounted bigram prob mass to unobs bigrams in prop to unigram ML
 qbo_unobs_bigrams <- getQboUnobsBigrams(unobs_bo_bigrams, unigs, alpha_big)
-# finally, calc trigram probabilities - start with observed trigrams: eqn 12
-qbo_obs_trigrams <- getObsTriProbs(bigPre, trigs, gamma3)
-bigram <- bigrs[bigrs$ngram %in% bigPre]
-alpha_trig <- getAlphaTrigram(bigram, trigs, gamma3)
+# calc trigram probabilities - start with observed trigrams: eqn 12
+qbo_obs_trigrams <- getObsTriProbs(obs_trigs, bigrs, bigPre, gamma3)
+# finally, calc trigram unobserved probabilities: eqn 17
+bigram <- bigrs[bigrs$ngram %in% bigPre, ]
+alpha_trig <- getAlphaTrigram(obs_trigs, bigram, gamma3)
 qbo_unobs_trigrams <- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
                                        qbo_unobs_bigrams, alpha_trig)
+qbo_trigrams <- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
+qbo_trigrams <- qbo_trigrams[order(-qbo_trigrams$prob), ]
+sum(qbo_trigrams$prob)
