@@ -44,14 +44,4 @@ The main goal of this part was to develop the conceptual framework and the code 
   <li>Walk-through of the KBO Trigram Algorithm Calculations</li>
   </ul>
 <li>Part 4 - Parameter Selection and Optimization</li>
-At the end of Part 3, we had developed the ideas and the algorithm needed to make predictions, but two problems with the model remained: First, the implementation was very inefficient. Second, generic values were used for the two parameters of the model: the bigram discount rate and trigram discount rate.  In this last part of this series, we'll work through an efficient way to implement the model developed in Part 3. and then use cross-validation to determine values for these discount rates to improve the accuracy of the model.
-<ul>
-  <li>Identifying How to do Calculations Efficiently</li>
-    <ul>
-      <li>What are the Expensive Calculations?</li>
-      <li>What can be Calculated in Advance?</li>
-    </ul>
-  <li>10-Fold Cross-Validation and Parameter Selection Strategy</li>
-  <li>Improving Performace by Indexing N-gram Frequency Tables</li>
-  </ul>
-</ol>
+At the end of Part 3, we had developed the ideas and the algorithm needed to make predictions, but generic values were used for the two parameters of the model: the bigram discount rate and trigram discount rate.  In this last part of this series, we'll use cross-validation to determine values for these discount rates to improve the accuracy of the model.
