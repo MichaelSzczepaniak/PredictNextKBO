@@ -2,22 +2,29 @@
 source('Katz.R')
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 # Use next 3 lines for development
-uniPath <- "./data/unigrams.chars.ltc1.csv"
-bigPath <- "./data/bigrams.chars.ltc1.csv"
-triPath <- "./data/trigrams.chars.ltc1.csv"
+uniPaths <- "../data/ltc1_unigrams.csv"
+bigPaths <- "../data/ltc1_bigrams.csv"
+triPaths <- "../data/ltc1_trigrams.csv"
+
 # Use the next 3 lines for live deployement
-# uniPath <- "./data/unigrams.chars.csv"
-# bigPath <- "./data/bigrams.chars.csv"
-# triPath <- "./data/trigrams.chars.csv"
+# uniPaths <- c("./data/en_US.blogs.train.12unigrams.nosins.csv",
+#               "./data/en_US.news.train.12unigrams.nosins.csv",
+#               "./data/en_US.twitter.train.12unigrams.nosins.csv")
+# bigPaths <- c("./data/en_US.blogs.train.13bigrams.nosins.csv",
+#              "./data/en_US.news.train.13bigrams.nosins.csv",
+#              "./data/en_US.twitter.train.13bigrams.nosins.csv")
+# triPaths <- c("./data/en_US.blogs.train.14trigrams.nosins.csv",
+#              "./data/en_US.news.train.14trigrams.nosins.csv",
+#              "./data/en_US.twitter.train.14trigrams.nosins.csv")
 
 # default parameters for bigram and trigram discount rates
 # gamma2 <- 0.5
 # gamma3 <- 0.5
 
 # read n-gram tables upfront so they can be passed to the Katz.R functions
-unigrams <- read.csv(uniPath)
-bigrams <- read.csv(bigPath)
-trigrams <- read.csv(triPath)
+unigrams <- read.csv(uniPaths[1])
+bigrams <- read.csv(bigPaths[1])
+trigrams <- read.csv(triPaths[1])
 
 getSettings <- function(corpus, bigDisc=0.1, trigDisc=0.2) {
     corpusLabels <- c("blogs", "news", "twitter")
@@ -43,33 +50,44 @@ getInputBigram <- function(inputPhrase) {
     return(bigram_tail)
 }
 
-## Returns a character vector of the n words that complete the highest
-## probability trigrams.
-## bigTail - last 2 words of user input separated by an _ e.g. sell_the
+## Returns a data.frame of 2 columns: ngram and prob with n rows. Value in the 
+## ngram column are words that complete the highest probability trigrams using
+## the KBO Trigram alogrithm.  The values in the prob column are
+## q_bo(w1 | w3, w2) calculated from either eqn 12 if w3_w2_w1 is observed
+## or eqn 17 if w3_w2_w1 is not observed.
+##
+## bigPre - last 2 words of user input separated by an _ e.g. sell_the
+##          This is also referred to as the bigram prefix in code futher
+##          downstream.
 ## n - number of predictions to return, default is 3
 ## gamma2 - bigram discount rate
 ## gamma3 - trigram discount rate
-getTopNPredictions <- function(bigTail, n=3, gamma2=0.5, gamma3=0.5) {
-    obsTrigs <- calc.qBO.trigramsA(gamma3, bigTail, trigrams)
-    # Get unobserved trigrams
-    unobsTrigrams <- getUnobsTrigs(bigramPrefix=bigTail, trigrams=trigrams,
-                                   unigrams=unigrams)
-    # Get total probability mass discounted from all observed bigrams
-    unig <- str_split(bigTail, '_')[[1]][2]
-    unig <- filter(unigrams, ngram == unig)
-    alphaBig <- getAlphaBigram(bigrams=bigrams, unigram=unig)
-    # Calculate trigram discount
-    bigr <- filter(bigrams, ngram == bigTail)
-    alphaTrig <- getAlphaTrigram(gamma3, trigrams, bigr)
-    # Calculate qBO(wi | wi-1, wi-1) for unobserved trigrams
-    qBO.trigs.B <- calc.qBO.trigramB(gamma2, bigTail, trigrams, bigrams,
-                                     unigrams, alphaTrig)
-    # Gather all the trigrams and select the one with the highest probability
-    trigramPreds <- rbind(obsTrigs, qBO.trigs.B)
-    preds <- arrange(trigramPreds, desc(prob))[1:n,]
+getTopNPredictions <- function(bigPre, n=3, gamma2=1.0, gamma3=1.0) {
+    obs_trigs <- getObsTrigs(bigPre, trigrams)
+    unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
+    bo_bigrams <- getBoBigrams(bigPre, unobs_trig_tails)
+    # separate bigrams which use eqn 10 and those that use 16
+    obs_bo_bigrams <- getObsBoBigrams(bigPre, unobs_trig_tails, bigrams)
+    unobs_bo_bigrams <- getUnobsBoBigrams(bigPre, unobs_trig_tails,
+                                          obs_bo_bigrams)
+    # calc obs'd bigram prob's from eqn 10
+    qbo_obs_bigrams <- getObsBigProbs(obs_bo_bigrams, unigrams, gamma2)
+    # calc alpha_big & unobs'd bigram prob's from eqn 16
+    unig <- str_split(bigPre, "_")[[1]][2]
+    unig <- unigrams[unigrams$ngram == unig,]
+    alpha_big <- getAlphaBigram(unig, bigrams, gamma2)
+    qbo_unobs_bigrams <- getQboUnobsBigrams(unobs_bo_bigrams, unigrams, alpha_big)
+    # calc trigram probabilities - start with observed trigrams: eqn 12
+    qbo_obs_trigrams <- getObsTriProbs(obs_trigs, bigrams, bigPre, gamma3)
+    # finally, calc trigram unobserved probabilities: eqn 17
+    bigram <- bigrams[bigrams$ngram %in% bigPre, ]
+    alpha_trig <- getAlphaTrigram(obs_trigs, bigram, gamma3)
+    qbo_unobs_trigrams <- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
+                                           qbo_unobs_bigrams, alpha_trig)
+    qbo_trigrams <- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
+    qbo_trigrams <- qbo_trigrams[order(-qbo_trigrams$prob), ]
     
-    return(preds)
-    # return(trigramPreds)
+    return(qbo_trigrams[1:n,])
 }
 
 getPrediction <- function(topPreds) {
@@ -83,6 +101,7 @@ getPrediction <- function(topPreds) {
     return(prediction)
 }
 
+## TODO
 filterInput <- function(someText) {
     # st <- ""
     # if(nchar(someText) > 1) {
