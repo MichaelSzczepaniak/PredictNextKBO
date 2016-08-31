@@ -42,7 +42,7 @@ getNgramFreqs <- function(ng, dat, ignores=NULL,
 ##
 ## ng - Defines the type of n-gram to be extracted: unigram if ng=1,
 ##      bigram if ng=2, trigram if n=3, etc.
-## linesCorpus - character vector which is a line from a corpus file
+## linesCorpus - character vector: each element is a line from a corpus file
 ## prefixFilter - character vector: If not NULL, tells the function to return
 ##                only rows where the ngram column starts with prefixFilter.
 ##                If NULL, returns all the ngram and count rows.
@@ -83,12 +83,12 @@ getObsTrigs <- function(bigPre, trigrams) {
 }
 
 ## Returns a character vector which are the tail words of unobserved trigrams
-## that start with the first two words of obsTrigs.  These are the words
-## w in the set B(w_i-2, w_i-1) as defined in the section describing the
-## details of equation 17.
+## that start with the first two words of obsTrigs (aka the bigram prefix).
+## These are the words w in the set B(w_i-2, w_i-1) as defined in the section
+## describing the details of equation 17.
 ##
 ## obsTrigs - character vector of observed trigrams delimited by _ of the form:
-##            w3_w2_w1
+##            w3_w2_w1 where w3_w2 is the bigram prefix
 ## unigs - 2 column data.frame of all the unigrams in the corpus:
 ##         ngram = unigram
 ##         freq = frequency/count of each unigram
