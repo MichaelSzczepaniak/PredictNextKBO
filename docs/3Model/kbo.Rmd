@@ -1,8 +1,8 @@
 ---
 title: "Predicting Next Word Using Katz Back-Off"
 author: "Michael Szczepaniak"
-date: "August 30, 2016 (2nd revision)"
-output: pdf_document
+date: "August 31, 2016"
+output: html_document
 subtitle: Part 3 - Understanding the Katz Back-Off Model
 url: http://rpubs.com/mszczepaniak/predictkbo3model
 ---
@@ -17,7 +17,7 @@ library(dplyr)
 ```
 
 ### Introduction
-Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) language model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextKBO**](https://github.com/MichaelSzczepaniak/PredictNextKBO) as a web app deployed at (due in ealy Sep 2016.) [https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/).  
+Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) language model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project [**PredictNextKBO**](https://github.com/MichaelSzczepaniak/PredictNextKBO) as a web app deployed at (due in early Sep 2016.) [https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/).  
 
 Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.
 
@@ -39,17 +39,17 @@ The term **n-gram** refers to the number of consecutive words utilized in a LM. 
 Dan Jurafky describes the motivations and basic ideas behind probablistic n-gram models in [this video [3]](https://www.youtube.com/watch?v=s3kKlUBa3b0) and how to estimate these probabilities in [this video [4]](https://www.youtube.com/watch?v=o-CvoOkVrnY).
 
 ### Assigning Probabilities Using the Maximum Likelihood Estimate
-The most intuitive way to assign probabilities to a series of event is to count up the number of occurances of each event type (like seeing a particular word or combination of words) and divide by the total number of occurances.  Assigning probilities in this manner is referred to as the **Maximum Likelihood Estimate** (MLE) because such estimates will be higher than the actual or true probability because unobserved events (e.g. combinations of words) have not been accounted for.  These unobserved events take up some of the probability mass in the true probability density function which is not accounted for in the observed distribution.
+The most intuitive way to assign probabilities to a series of events is to count up the number of occurances of each event type (like seeing a particular word or combination of words) and divide by the total number of occurances.  Assigning probilities in this manner is referred to as the **Maximum Likelihood Estimate** (MLE) because such estimates will be higher than the actual or true probability because unobserved events (e.g. combinations of words) have not been accounted for.  These unobserved events take up some of the probability mass in the true probability density function which is not accounted for in the observed distribution.
 
 ### Accounting for Probability Mass of Unseen N-grams: Discounting
 In discounting, some of the probability mass is taken from observed n-grams and distributed to unobserved n-grams in order to allow us to estimate probabilities of these unseen n-grams.  In the KBO trigram LM, as will be discussed in more detail later in the article, we select an absolute discount which artificially lowers the counts of observed trigrams and distributes this "stolen" probabilty mass to unobserved trigrams.
 
-The basic concept of discounting is most easily understood by way of example as shown in the two lectures given by Michael Collins referenced in the **Appendix 1** at the end of this work.
+The basic concept of discounting is most easily understood by way of example as shown in the two lectures given by Michael Collins referenced in **Appendix 1** at the end of this work.
 
 Discounting is a key concept integral to KBO and other advanced LMs like [Good-Turing [5]](https://www.youtube.com/watch?v=XdjCCkFUBKU) and [Kneser-Ney [6]](https://www.youtube.com/watch?v=wtB00EczoCM) as described in the lectures by Dan Jurafasky provided in links [[5]](https://www.youtube.com/watch?v=XdjCCkFUBKU) and [[6]](https://www.youtube.com/watch?v=wtB00EczoCM).
 
 ### Using N-gram Tables for Prediction - A Little Math
-The theory unlying the use of n-grams probability estimates starts with the [Chain rule for conditional probabilities [7]](https://en.wikipedia.org/wiki/Chain_rule_(probability)) applied to compute joint probabilities which states:
+The theory behind the use of n-gram probability estimates starts with the [Chain rule for conditional probabilities [7]](https://en.wikipedia.org/wiki/Chain_rule_(probability)) applied to compute joint probabilities which states:
 
 1. $P(w_1, w_2, w_3, ...w_n) = \prod_{i=1}^nP(w_i|w_1, w_2... w_{i-1})$
 
@@ -57,7 +57,7 @@ Jurafsky [[3]](https://www.youtube.com/watch?v=s3kKlUBa3b0) applies equation 1. 
 
 2. $P(its\:water\:is\:so\:transparent) =  \\ \:\:P(its) \times P (water\:|\:its) \times P(is\:|\:its\:water) \times P(so\:|\:its\:water\:is) \times P(transparent\:|\:its\:water\:is\:so)$
 
-#### Simplifying N-gram Probability Estimates: Markov Assumption
+#### Simplifying N-gram Probability Estimates: The Markov Assumption
 The example in equation 2. is the full expansion of the Chain Rule using equation 1.  This can be simplified by assuming that the probability of the left side of equation 1. can be approximated by less than the prior $(n-1)$ terms which can be expressed more formally as:
 
 3. $P(w_1, w_2, w_3, ...w_n) \approx \prod_{i=1}^nP(w_i|w_1, w_{i-k}... w_{i-1})$
@@ -68,7 +68,7 @@ Making the above approximation is referred to as applying the Markov Assumption.
 
 5. $P(the\:|\:its\:water\:is\:so\:transparent\:that) \approx P (the\:|\:transparent\:that)$
 
-In equation 3., the probability of the bigram *the* given *that* is used to estimate the probability of *the* given *its water is so transparent that*.  In equation 4., the probability of the trigram *the* given *transparent that* is used to make the same estimate.
+In equation 4., the probability of the bigram *the* given *that* is used to estimate the probability of *the* given *its water is so transparent that*.  In equation 5., the probability of the trigram *the* given *transparent that* is used to make the same estimate.
 
 ### Estimating Probabilities
 #### Observed N-grams
@@ -82,7 +82,7 @@ where $w_i$ is the last word (the one we are trying to predict), $w_{i-1}$ is th
 
 where $w_{i-2}$ is the word prior to $w_{i-1}$.
 
-As long as we have seen one or more bigrams or trigrams, we can use 6. or 7. to estimate the probability of the last word $w_i$ given the previous one ($w_{i-1}$) or two ($w_{i-2},\:w_{i-1}$).  If we want to estimate probabilities using trigrams, but no trigrams are observed, we could "back-off" and estimate the probability using the bigram.  If no bigrams exist, we could estimate using the unigram probability.  The [*Stupid Back-off* (SBO) model [8]](http://www.aclweb.org/anthology/D07-1090.pdf) essentially does this without consideration of unseen n-grams, but has been reported to perform quite well with large scale n-gram tables.  For further details regarding the SBO, the paper written by the creators of this alogrithm can be found [[8](http://www.aclweb.org/anthology/D07-1090.pdf)]
+As long as we have seen one or more bigrams or trigrams, we can use 6. or 7. to estimate the probability of the last word $w_i$ given the previous one ($w_{i-1}$) or two ($w_{i-2},\:w_{i-1}$).  If we want to estimate probabilities using trigrams, but no trigrams are observed, we could "back-off" and estimate the probability using the bigram.  If no bigrams exist, we could estimate using the unigram probability.  The [*Stupid Back-off* (SBO) model [8]](http://www.aclweb.org/anthology/D07-1090.pdf) essentially does this without consideration of unseen n-grams, but has been reported to perform quite well with large scale n-gram tables.  Further details regarding the SBO can be found in [the paper written by the creators of this alogrithm. [8]](http://www.aclweb.org/anthology/D07-1090.pdf)
 
 #### Accounting for Unobserved N-grams
 As mentioned earlier, the KBO algorithm estimates probabilities of unseen n-grams by redistributing some of the probability mass from observed trigrams to those that are unobserved through discounting. So the natural first step in this process is to determine the amount of probability mass that gets taken from the observed n-grams.  The second step will be to determine how that taken probability mass is redistributed.
@@ -93,7 +93,7 @@ The total probability mass of the observer bigrams and trigrams can be written a
 
 9. *trigram probability mass* = $\sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}$
 
-where the terms $w\:\in\:\mathcal{A}(w_{i-1})$ and $w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{A}$ which are all words that terminate an observed bigram starting with $(w_{i-1})$ or trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  If we define $\gamma_2$ to be the amount of discount taken from observed bigram counts, $\gamma_3$ the amount of discount taken from observed trigram counts, and $c^*$ to be the new discounted counts for observed bigrams and trigrams, then the discounted MLEs would be written as:
+where the terms $w\:\in\:\mathcal{A}(w_{i-1})$ and $w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{A}$ which are all words that terminate an observed bigram starting with $(w_{i-1})$ or trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  If we define $\gamma_2$ to be the amount of discount taken from observed bigram counts, $\gamma_3$ the amount of discount taken from observed trigram counts, and $c^*$ to be the new discounted counts for observed bigrams and trigrams, then the backed off probability estimates would be written as:
 
 10. $q_{BO}(w_i\:|\:w_{i-1}) = \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:$ for observed bigrams, where
 
@@ -109,7 +109,7 @@ From here it follows that the amount of discounted probability mass taken from o
 
 15. $\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:$ from observed trigrams.
 
-At this point, we've finished the first step by defining the amount of probability mass taken from the observed bigrams and trigrams as a function of some discounted amount $\gamma_n$.  Now we need to know how to assign this discounted probability mass to unseen bigrams and trigrams.  Katz proposed that this be done proportionally to the backed-off (n-1)-gram probability parameters.  In other words, an unobserved trigram probability would be estimated in proportion to all the possible bigram tails and unobserved bigram probabilities would be estimated in proportion to all possible the unigram tails.
+At this point, we've finished the first step by defining the amount of probability mass taken from the observed bigrams and trigrams as a function of some discounted amount $\gamma_n$.  Now we need to know how to assign this discounted probability mass to unseen bigrams and trigrams.  Katz proposed that this be done proportionally to the backed-off (n-1)-gram probability parameters.  In other words, an unobserved trigram probability would be estimated in proportion to all the possible bigram tails and unobserved bigram probabilities would be estimated in proportion to all the possible unigram tails.
 
 More formally, if the estimate for this backed-off unigram probability is $q_{ML}(w_i)$ and the backed off bigram probability is $q_{BO}(w_i\:|\:w_{i-1})$, then the amount of discounted probability mass $\alpha(w_{i-1})$ assigned to unknown bigrams $q_{BO}(w_i\:|\:w_{i-1})$ and $\alpha(w_{i-2},\:w_{i-1})$ assigned to unknown trigrams $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ would be:
 
@@ -117,7 +117,7 @@ More formally, if the estimate for this backed-off unigram probability is $q_{ML
 
 17. $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}$
 
-respectively, where the terms $w\:\in\:\mathcal{B}(w_{i-1})$ and $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{B}$ which are all words that terminate an **unobserved** bigram starting with $(w_{i-1})$ or **unobserved** trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  Notice that the subscripts in the $q$ terms on the middle terms of equation 16. are **ML**.  This is because at this point, we are using the Maximum Likelihood estimate for the unigrams which allows for the simplification the counts shown in the rightmost term.
+respectively, where the terms $w\:\in\:\mathcal{B}(w_{i-1})$ and $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{B}$ which are all words that terminate an **unobserved** bigram starting with $(w_{i-1})$ or **unobserved** trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  Notice that the subscripts in the $q$ terms on the middle terms of equation 16. are **ML**.  This is because at this point, we are using the Maximum Likelihood estimate for the unigrams which allows for the simplification to the counts shown in the rightmost term.
 
 ### Steps in Applying the KBO Trigram Alogrithm
 
@@ -135,7 +135,7 @@ The steps described above are straightforward, but step 4. deserves futher expla
 
 ### Example of Applying the Algorithm: The Little Corpus That Could
 
-As noted earlier, a corpus is a body of text from which we build and test LMs.  To illustrate how the mathematical formulation of the KBO Trigram model works, it's helpful to look at a simple corpus that is small enough to easily keep track of the n-gram counts, but large enough to illustrate the impact of unobserved n-grams on the calculations.  The following sample corpus was extended from an example provided by Michael Collins in week 1 of his class referenced in **Appendix 1**.  This corpus is listed in **Appendix - 2** at the end of this document.
+As noted earlier, a corpus is a body of text from which we build and test LMs.  To illustrate how the mathematical formulation of the KBO Trigram model works, it's helpful to look at a simple corpus that is small enough to easily keep track of the n-gram counts, but large enough to illustrate the impact of unobserved n-grams on the calculations.  The following sample corpus was extended from an example provided by Michael Collins in week 1 of his class referenced in **Appendix 1**.  This corpus is listed in **Appendix 2** at the end of this document.
 
 ```{r ltc}
 ltcorpus <- readLines("little_test_corpus1.txt")
@@ -144,7 +144,7 @@ ltcorpus
 In this corpus, SOS and EOS are tokens used to denote *start of sentence* and *end-of-sentence*.
 
 #### Step 1. i. Unigram, Bigram and Trigram counts
-This work uses the **quanteda** package written by Ken Benoit and Paul Nulty to construct the n-grams.  My experience with this package is that it performs much faster than **tm** and **RWeka** for these types of tasks, but of course, your mileage may vary.  A nice little getting started guide to quanteda can be found [here [9]](https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html).
+This work used the **quanteda** package written by Ken Benoit and Paul Nulty to construct the n-gram tables.  My experience with this package is that it performs much faster than **tm** and **RWeka** for these types of tasks, but of course, your mileage may vary.  A nice little getting started guide to quanteda can be found [here [9]](https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html).
 
 The following code was used to create the unigram, bigram, and trigrams tables shown below the code.
 
@@ -186,7 +186,7 @@ getNgramFreqs <- function(ng, dat, ignores=NULL,
 ##
 ## ng - Defines the type of n-gram to be extracted: unigram if ng=1,
 ##      bigram if ng=2, trigram if n=3, etc.
-## linesCorpus - character vector which is a line from a corpus file
+## linesCorpus - character vector: each element is a line from a corpus file
 ## prefixFilter - character vector: If not NULL, tells the function to return
 ##                only rows where the ngram column starts with prefixFilter.
 ##                If NULL, returns all the ngram and count rows.
@@ -282,7 +282,7 @@ qbo_obs_trigrams
 
 #### Step 4. Calculate Probabilities of Words Completing Unobserved Trigrams
 
-This is the the most complex step as it involves backing off to the bigram level.  Here is a breakdown of the sub-steps in these calculations:
+This is the the most complex step as it involves backing off to the bigram level.  Here is a breakdown of the sub-steps for these calculations:
 
 i. Find all the words that complete unobserved trigrams. These are the words in the set $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ described earlier.
 ii. Calculate $\alpha(w_{i-1})$ from equation 14.
@@ -294,12 +294,12 @@ v. Calculate $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})$ for each $w_i$ from equation 17
 
 ```{r}
 ## Returns a character vector which are the tail words of unobserved trigrams
-## that start with the first two words of obsTrigs.  These are the words
-## w in the set B(w_i-2, w_i-1) as defined in the section describing the
-## details of equation 17.
+## that start with the first two words of obsTrigs (aka the bigram prefix).
+## These are the words w in the set B(w_i-2, w_i-1) as defined in the section
+## describing the details of equation 17.
 ##
 ## obsTrigs - character vector of observed trigrams delimited by _ of the form:
-##            w3_w2_w1
+##            w3_w2_w1 where w3_w2 is the bigram prefix
 ## unigs - 2 column data.frame of all the unigrams in the corpus:
 ##         ngram = unigram
 ##         freq = frequency/count of each unigram
@@ -458,7 +458,7 @@ qbo_bigrams
 
 ##### Checking the Bigram Calculations
 
-Before doing the final calculations for the unobserved trigrams, let's do a simple check on our calculations on the bigram level.  In the previous table, all the bigrams except `the_house` are unobserved which means that if we sum all the unobserved bigram probabilities, we should get the total bigram discount which is $\alpha(w_{i-1})$. As we see below, this looks like it checks out.
+Before doing the final calculations for the unobserved trigrams, let's do a simple check on our calculations at the bigram level.  In the previous table, all the bigrams except `the_house` are unobserved which means that if we sum all the unobserved bigram probabilities, we should get the total bigram discount which is $\alpha(w_{i-1})$. As we see below, this looks like it checks out.
 
 ```{r}
 unobs <- qbo_bigrams[-1,]
@@ -559,7 +559,7 @@ sum(qbo_trigrams$prob)
 
 ```
 
-That looks O.k., so let's explore something more interesting to see if we can deepen our understanding.
+That looks O.K., so let's explore something more interesting to see if we can deepen our understanding.
 
 In the example we just completed, our prediction of **book** was based on the fact that $q_{BO}(book\:|\:sell,\:the)$ was higher than any other $q_{BO}(w_i\:|\:sell,\:the)$.  But this wasn't really very interesting because *sell the book* was an observed trigram and the next closest probability $q_{BO}(house\:|\:sell,\:the)$ was based on an unobserved trigram *sell the house*.  This leads us to wonder if observed trigrams always trump unobserved trigrams.
 
@@ -618,7 +618,8 @@ While changing the discount rate doesn't always change a prediction, this exampl
 [https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html](https://cran.r-project.org/web/packages/quanteda/vignettes/quickstart.html)  
 [10] An Introduction to Statistical Learning -  
 [http://www-bcf.usc.edu/~gareth/ISL/](http://www-bcf.usc.edu/~gareth/ISL/)  
-[[11] Trevor Hastie & Rob Tibshirani on Cross-Validation (part 1) -  https://www.youtube.com/watch?v=_2ij6eaaSl0](https://www.youtube.com/watch?v=_2ij6eaaSl0)  
+[11] Trevor Hastie & Rob Tibshirani on Cross-Validation (part 1) -  
+[https://www.youtube.com/watch?v=_2ij6eaaSl0](https://www.youtube.com/watch?v=_2ij6eaaSl0)  
 [12] Trevor Hastie & Rob Tibshirani on K-Fold Cross-Validation (part 2) -  
 [https://www.youtube.com/watch?v=nZAM5OXrktY](https://www.youtube.com/watch?v=nZAM5OXrktY)  
 [13] Trevor Hastie & Rob Tibshirani on Right & Wrong Ways to do CV (part 3) -  
@@ -628,9 +629,9 @@ While changing the discount rate doesn't always change a prediction, this exampl
 ### Appendix 1 - Michael Collins Coursera Lectures
 [Michael Collins of Columbia](https://www.coursera.org/instructor/~312) gave an excellent class on NLP which used to be available on Coursera but was removed sometime during the first half of 2016.  At the time of this writing, many of these lectures had been put on youtube and the two referenced on this page could be found at the following links:
 
-[Discounting methods: Part 1 - Katz Bigram](https://www.youtube.com/watch?v=hsHw9F3UuAQ)
+[Discounting methods: Part 1 - Katz Bigram - https://www.youtube.com/watch?v=hsHw9F3UuAQ](https://www.youtube.com/watch?v=hsHw9F3UuAQ)
 
-[Discounting methods: Part 2 - Katz Trigram]( https://www.youtube.com/watch?v=FedWcgXcp8w)
+[Discounting methods: Part 2 - Katz Trigram - https://www.youtube.com/watch?v=FedWcgXcp8w](https://www.youtube.com/watch?v=FedWcgXcp8w)
 
 ### Appendix 2 - The little test corpus:
 
