@@ -4,6 +4,8 @@ shinyServer(
     function(input, output) {
         # get bigram and discount rates once and use them in multiple
         # reactive functions to build multiple objects/observers
+        useCorpus <- eventReactive(input$predictButton,
+                                   {as.integer(input$corpusToUse)})
         inBigram <- eventReactive(input$predictButton,
                                   {getInputBigram(input$phrase)})
         bigDisc <- eventReactive(input$predictButton,
@@ -12,11 +14,13 @@ shinyServer(
                                   {as.numeric(input$trigDiscount)})
         
         topPreds <- eventReactive(input$predictButton,
-            {getTopNPredictions(inBigram(), 3, bigDisc(), trigDisc())}
+                                  {getTopNPredictions(inBigram(), 3, 
+                                                      useCorpus(),
+                                                      bigDisc(), trigDisc())}
         )
         
         output$sPredictionSettings <-
-            renderPrint({getSettings(input$corpusToUSe, bigDisc(), trigDisc())})
+            renderPrint({getSettings(useCorpus(), bigDisc(), trigDisc())})
         
         output$sInputBigram <- renderPrint(inBigram())
         
@@ -24,10 +28,7 @@ shinyServer(
         
         output$pTop3Probs <- renderPlot({
             getPlot(topPreds()$ngram, topPreds()$prob)
-            # getPlot()
         })
-        
-        # output$pTop3Probs <- renderPrint({topPreds()})
         
     }
 )

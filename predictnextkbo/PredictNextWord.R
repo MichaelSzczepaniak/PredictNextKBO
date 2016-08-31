@@ -1,31 +1,33 @@
 #
 source('Katz.R')
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
-# Use next 3 lines for development
-uniPaths <- "../data/ltc1_unigrams.csv"
-bigPaths <- "../data/ltc1_bigrams.csv"
-triPaths <- "../data/ltc1_trigrams.csv"
+# Use next 3 lines for development and troubleshooting
+# uniPaths <- "../data/ltc1_unigrams.csv"
+# bigPaths <- "../data/ltc1_bigrams.csv"
+# triPaths <- "../data/ltc1_trigrams.csv"
 
-# Use the next 3 lines for live deployement
-# uniPaths <- c("./data/en_US.blogs.train.12unigrams.nosins.csv",
-#               "./data/en_US.news.train.12unigrams.nosins.csv",
-#               "./data/en_US.twitter.train.12unigrams.nosins.csv")
-# bigPaths <- c("./data/en_US.blogs.train.13bigrams.nosins.csv",
-#              "./data/en_US.news.train.13bigrams.nosins.csv",
-#              "./data/en_US.twitter.train.13bigrams.nosins.csv")
-# triPaths <- c("./data/en_US.blogs.train.14trigrams.nosins.csv",
-#              "./data/en_US.news.train.14trigrams.nosins.csv",
-#              "./data/en_US.twitter.train.14trigrams.nosins.csv")
+# Next 9 lines are paths to corpus ngram tables to use for live deployement
+uniPaths <- c("./data/en_US.blogs.train.12unigrams.nosins.csv",
+              "./data/en_US.news.train.12unigrams.nosins.csv",
+              "./data/en_US.twitter.train.12unigrams.nosins.csv")
+bigPaths <- c("./data/en_US.blogs.train.13bigrams.nosins.csv",
+             "./data/en_US.news.train.13bigrams.nosins.csv",
+             "./data/en_US.twitter.train.13bigrams.nosins.csv")
+triPaths <- c("./data/en_US.blogs.train.14trigrams.nosins.csv",
+             "./data/en_US.news.train.14trigrams.nosins.csv",
+             "./data/en_US.twitter.train.14trigrams.nosins.csv")
 
 # default parameters for bigram and trigram discount rates
 # gamma2 <- 0.5
 # gamma3 <- 0.5
 
 # read n-gram tables upfront so they can be passed to the Katz.R functions
-unigrams <- read.csv(uniPaths[1])
-bigrams <- read.csv(bigPaths[1])
-trigrams <- read.csv(triPaths[1])
+# unigrams <- read.csv(uniPaths[1])
+# bigrams <- read.csv(bigPaths[1])
+# trigrams <- read.csv(triPaths[1])
 
+## Gets the user settings to use for the model prediction, sets model parameters
+## and loads the ngram frequency tables corresponding to the corpus to use
 getSettings <- function(corpus, bigDisc=0.1, trigDisc=0.2) {
     corpusLabels <- c("blogs", "news", "twitter")
     corpus <- as.numeric(corpus)
@@ -60,9 +62,19 @@ getInputBigram <- function(inputPhrase) {
 ##          This is also referred to as the bigram prefix in code futher
 ##          downstream.
 ## n - number of predictions to return, default is 3
+## corp_index - integer corresponding to corpus selected by user:
+##              1 for blogs, 2 for news, 3 for twitter
 ## gamma2 - bigram discount rate
 ## gamma3 - trigram discount rate
-getTopNPredictions <- function(bigPre, n=3, gamma2=1.0, gamma3=1.0) {
+getTopNPredictions <- function(bigPre, n=3, corp_index,
+                               gamma2=1.0, gamma3=1.0) {
+    # load unigram, bigram, and trigram tables corresponding to the corpus
+    # selected by the user
+    unigrams <- read.csv(uniPaths[corp_index])
+    bigrams <- read.csv(bigPaths[corp_index])
+    trigrams <- read.csv(triPaths[corp_index])
+    
+    
     obs_trigs <- getObsTrigs(bigPre, trigrams)
     unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
     bo_bigrams <- getBoBigrams(bigPre, unobs_trig_tails)

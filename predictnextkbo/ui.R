@@ -7,7 +7,7 @@ fluidPage(
     
     sidebarPanel(
         textInput('phrase', h4("Enter phrase:")),
-        radioButtons('corpusToUSe', h4("Corpus"), modelChoices),
+        radioButtons('corpusToUse', h4("Corpus"), modelChoices),
         sliderInput("bigDiscount",
                     label = h4("Bigram Discount"),
                     min = 0.1, max = 1.9, value = 0.5, step = 0.1),
