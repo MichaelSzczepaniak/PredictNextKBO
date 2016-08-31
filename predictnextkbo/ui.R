@@ -3,7 +3,7 @@
 modelChoices <- list("Blogs"=1, "News"=2, "Twitter"=3)
 
 fluidPage(
-    titlePanel(title="Predict Next Word (dev UI)"),
+    titlePanel(title="Predict Next Word"),
     
     sidebarPanel(
         textInput('phrase', h4("Enter phrase:")),
