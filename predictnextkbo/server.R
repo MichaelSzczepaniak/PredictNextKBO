@@ -16,8 +16,7 @@ shinyServer(
         topPreds <- eventReactive(input$predictButton,
                                   {getTopNPredictions(inBigram(), 3, 
                                                       useCorpus(),
-                                                      bigDisc(), trigDisc())}
-        )
+                                                      bigDisc(), trigDisc())})
         
         output$sPredictionSettings <-
             renderPrint({getSettings(useCorpus(), bigDisc(), trigDisc())})

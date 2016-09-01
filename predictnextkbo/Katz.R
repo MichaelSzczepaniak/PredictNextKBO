@@ -1,8 +1,13 @@
-# COMMENT THE NEXT 4 LINES BEFORE DEPLOYMENT BECAUSE SHINY IMPORTS WHAT IT NEEDS
-libs <- c("dplyr", "readr", "stringr", "quanteda", "data.table")
-new.packages <- libs[!(libs %in% installed.packages()[,"Package"])]
-if(length(new.packages) > 0) install.packages(new.packages)
-lapply(libs, require, character.only=TRUE)
+# 
+# libs <- c("dplyr", "readr", "stringr", "quanteda", "data.table")
+# new.packages <- libs[!(libs %in% installed.packages()[,"Package"])]
+# if(length(new.packages) > 0) install.packages(new.packages)
+# lapply(libs, require, character.only=TRUE)
+library(dplyr)
+library(readr)
+library(stringr)
+library(quanteda)
+library(data.table)
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 
 ## Returns a named vector of n-grams and their associated frequencies
