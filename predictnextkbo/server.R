@@ -12,9 +12,11 @@ shinyServer(
                             {as.numeric(input$bigDiscount)})
         trigDisc <- eventReactive(input$predictButton,
                                   {as.numeric(input$trigDiscount)})
+        probBars <- eventReactive(input$predictButton,
+                                  {as.integer(input$histBars)})
         
         topPreds <- eventReactive(input$predictButton,
-                                  {getTopNPredictions(inBigram(), 3, 
+                                  {getTopNPredictions(inBigram(), probBars(), 
                                                       useCorpus(),
                                                       bigDisc(), trigDisc())})
         

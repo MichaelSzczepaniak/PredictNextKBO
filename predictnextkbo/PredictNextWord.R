@@ -27,7 +27,7 @@ getSettings <- function(corpus, bigDisc=0.1, trigDisc=0.2) {
 
 getInputBigram <- function(inputPhrase) {
     bigram_tail = ""
-    inPh <- filterInput(inputPhrase)
+    inPh <- inputPhrase #filterInput(inputPhrase)
     inputTokens <- str_split(inPh, " ")
     if(length(inputTokens[1]) > 0) {
         lastIndex <- length(inputTokens[[1]])
