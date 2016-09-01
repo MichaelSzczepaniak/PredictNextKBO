@@ -99,39 +99,6 @@ getPrediction <- function(topPreds) {
     return(prediction)
 }
 
-getBigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL,
-                                        bigPath=bigPath) {
-    bdata <- read.csv(bigPath, stringsAsFactors=FALSE)
-    if(!is.null(wrd1)) {
-        bdata <- filter(bdata, w1==wrd1 & w2 != "EOS" &
-                            !grepl("^[^a-z]+$", w2))
-    }
-    if(!is.null(wrd2)) {
-        bdata <- filter(bdata, w2==wrd2 & w2 != "EOS" &
-                            !grepl("^[^a-z]+$", w2))
-    }
-    
-    return(arrange(bdata, desc(freq)))
-}
-
-getTrigramsStartingWithChars <- function(wrd1=NULL, wrd2=NULL, wrd3=NULL,
-                                         triPath=triPath) {
-    tdata <- read.csv(triPath, stringsAsFactors=FALSE)
-    if(!is.null(wrd1)) {
-        tdata <- filter(tdata, w1==wrd1 & w3 != "EOS" &
-                            !grepl("^[^a-z]+$", w3))
-    }
-    if(!is.null(wrd2)) {
-        tdata <- filter(tdata, w2==wrd2 & w3 != "EOS" &
-                            !grepl("^[^a-z]+$", w3))
-    }
-    if(!is.null(wrd3)) {
-        tdata <- filter(tdata, w3==wrd3)
-    }
-    
-    return(arrange(tdata, desc(freq)))
-}
-
 ## Creates a horizontal bar plot of the words with the three highest
 ## trigram tail word probabilities
 ## topTrigrams - character vector of trigrams delimited by _
