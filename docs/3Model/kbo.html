@@ -11,7 +11,6 @@
 
 <meta name="author" content="Michael Szczepaniak" />
 
-<meta name="date" content="2016-08-31" />
 
 <title>Predicting Next Word Using Katz Back-Off</title>
 
@@ -119,14 +118,15 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">Predicting Next Word Using Katz Back-Off</h1>
 <h3 class="subtitle"><em>Part 3 - Understanding the Katz Back-Off Model</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>August 31, 2016</em></h4>
+<h4 class="date"><em>September 1, 2016</em></h4>
 
 </div>
 
 
 <div id="introduction" class="section level3">
 <h3>Introduction</h3>
-<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) language model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextKBO"><strong>PredictNextKBO</strong></a> as a web app deployed at (due in early Sep 2016.) <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>.</p>
+<p>Before one can implement any kind of mathematical model, machine learning or otherwise, they need a solid understanding of how it works. This article describes how the Katz Back-Off (KBO) language model works by way of simple examples keeping the math to a minimum. The ideas presented here are implemented in the git project <a href="https://github.com/MichaelSzczepaniak/PredictNextKBO"><strong>PredictNextKBO</strong></a> as a web app deployed at:</p>
+<p><a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a>.</p>
 <p>Familiarity with basic concepts such as conditional probabilities, the chain rule of probabilities, Markov assumptions, probability density functions, et. al. are helpful, but not required. I will describe these concepts in an easy to understand manner as they arise throughout this article and/or provide references for those who want to dive deeper into a particular concept.</p>
 </div>
 <div id="what-is-the-katz-back-off-kbo-model" class="section level3">
@@ -669,7 +669,7 @@ qbo_unobs_trigrams</code></pre>
 <pre class="r"><code>getPredictionMsg &lt;- function(qbo_trigs) {
     # pull off tail word of highest prob trigram
     prediction &lt;- str_split(qbo_trigs$ngram[1], &quot;_&quot;)[[1]][3]
-    result &lt;- sprintf(&quot;%s%s%s%s&quot;, &quot;highest prob prediction is &gt;&gt;&gt; &quot;, prediction,
+    result &lt;- sprintf(&quot;%s%s%s%.4f&quot;, &quot;highest prob prediction is &gt;&gt;&gt; &quot;, prediction,
                       &quot; &lt;&lt;&lt; which has probability = &quot;, qbo_trigs$prob[1])
     return(result)
 }
@@ -678,7 +678,7 @@ qbo_trigrams &lt;- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
 qbo_trigrams &lt;- qbo_trigrams[order(-qbo_trigrams$prob), ]  # sort by desc prob
 out_msg &lt;- getPredictionMsg(qbo_trigrams)
 out_msg</code></pre>
-<pre><code>## [1] &quot;highest prob prediction is &gt;&gt;&gt; book &lt;&lt;&lt; which has probability = 0.5&quot;</code></pre>
+<pre><code>## [1] &quot;highest prob prediction is &gt;&gt;&gt; book &lt;&lt;&lt; which has probability = 0.5000&quot;</code></pre>
 </div>
 </div>
 <div id="going-a-little-deeper-exploring-an-interesting-question" class="section level3">
@@ -715,7 +715,7 @@ qbo_unobs_trigrams &lt;- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
 qbo_trigrams &lt;- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
 qbo_trigrams &lt;- qbo_trigrams[order(-qbo_trigrams$prob), ]
 getPredictionMsg(qbo_trigrams)</code></pre>
-<pre><code>## [1] &quot;highest prob prediction is &gt;&gt;&gt; house &lt;&lt;&lt; which has probability = 0.435135135135135&quot;</code></pre>
+<pre><code>## [1] &quot;highest prob prediction is &gt;&gt;&gt; house &lt;&lt;&lt; which has probability = 0.4351&quot;</code></pre>
 <p>While changing the discount rate doesn’t always change a prediction, this example shows how it can. As mentioned earlier, the values we should use for these discount rates should be determined by cross-validation and will be strongly dependent upon the corpus used for the training. Determining the parameters for this model is the focus of <a href="http://rpubs.com/mszczepaniak/predictkbo4params">Part 4 of this series (expected release Sep 2016)</a>.</p>
 </div>
 <div id="references" class="section level3">
