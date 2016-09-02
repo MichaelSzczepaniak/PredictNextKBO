@@ -99,6 +99,12 @@ getPrediction <- function(topPreds) {
     return(prediction)
 }
 
+getPredictFrom <- function() {
+    mgs <- c("observed trigram", "observed bigram", "unigram")
+    
+    return(mgs[1])
+}
+
 ## Creates a horizontal bar plot of the words with the three highest
 ## trigram tail word probabilities
 ## topTrigrams - character vector of trigrams delimited by _
@@ -116,8 +122,9 @@ getPlot <- function(topTrigrams=c('to_love_wisdom', 'to_cultivate_health',
     
     df <- data.frame(words, probs=topProbs)
     
-    p <- ggplot(df, aes(x=reorder(words, probs), weight=probs))
-    p <- p + geom_bar() + coord_flip()
+    p <- ggplot(df, aes(x=reorder(words, probs), y=probs))
+    p <- p + geom_bar(stat="identity", fill="#996633", colour="black") +
+        coord_flip()
     p <- p + labs(x = 'predicted word', y = 'probability')
     
     return(p)

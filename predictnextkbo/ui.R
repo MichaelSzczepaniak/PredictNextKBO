@@ -26,10 +26,14 @@ fluidPage(
              }
           ")),
         
-        textInput('phrase', h4("Enter phrase:")),
+        textInput('phrase', h4("Enter phrase:"), value="i love"),
         
         radioButtons('corpusToUse', h4("Corpus"), modelChoices,
-                     selected=1, inline=TRUE),
+                     selected=3, inline=TRUE),
+        
+        checkboxGroupInput("checkGroup", label = h4("Options (not functional yet)"), 
+                           choices=list("Include EOS"=1, "Filter Input"=2),
+                           selected=1, inline=TRUE),
         
         sliderInput("bigDiscount",
                     label = h4("Bigram Discount"),
@@ -39,8 +43,8 @@ fluidPage(
                     label = h4("Trigram Discount"),
                     min = 0.1, max = 1.9, value = 0.5, step = 0.1),
         
-        selectInput("histBars", label=h4("Number of Probability Bars"),
-                    probBarChoices, selected=3, width="250px"),
+        numericInput("histBars", label=h4("Probability Bars"), value=3,
+                    width="150px"),
         
         actionButton("predictButton", "Predict next word of phrase"),
         
@@ -49,15 +53,25 @@ fluidPage(
         
     ),
     mainPanel(
-        h4('Prediction Settings:'),
-        verbatimTextOutput("sPredictionSettings"),
-        h4('Last two words of input phrase:'),
-        verbatimTextOutput("sInputBigram"),
-        # h4('Algorithm Path:'),
-        # verbatimTextOutput("sAlgoPath"),
-        h4('Predicted Word:'),
-        verbatimTextOutput("sPredictedWord"),
-        plotOutput("pTop3Probs", width = 500, height = 350)
-        # verbatimTextOutput("pTop3Probs")
+        tabsetPanel(
+            tabPanel("Predict",
+                     h4('Prediction Settings:'),
+                     verbatimTextOutput("sPredictionSettings"),
+                     h4('Last two words of input phrase:'),
+                     verbatimTextOutput("sInputBigram"),
+                     # h4('Algorithm Path:'),
+                     # verbatimTextOutput("sAlgoPath"),
+                     h4('Predicted Word:'),
+                     verbatimTextOutput("sPredictedWord"),
+                     h4('Predicted From: (not functional yet)'),
+                     verbatimTextOutput("sPredictedFrom"),
+                     plotOutput("pTop3Probs", width = 450, height = 300)
+            ),
+            tabPanel("User Guide",
+                h4("Coming Soon!")
+            )
+        )
+        
+        
     )
 )
