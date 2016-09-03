@@ -118,7 +118,7 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">Predicting Next Word Using Katz Back-Off</h1>
 <h3 class="subtitle"><em>Part 3 - Understanding the Katz Back-Off Model</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>September 1, 2016</em></h4>
+<h4 class="date"><em>September 3, 2016 (last updated)</em></h4>
 
 </div>
 
@@ -627,16 +627,18 @@ alpha_trig</code></pre>
 <h5>Step 4. v. Calculate unobserved trigram probabilities <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span>:</h5>
 <pre class="r"><code>## Returns a dataframe of 2 columns: ngram and prob.  Values in the ngram
 ## column are unobserved trigrams of the form: w3_w2_w1.  The values in the prob
-## column are q_bo(w1 | w3, w2) calculated from from equation 17.
+## column are q_bo(w1 | w3, w2) calculated from equation 17.
 ##
 ## bigPre -  single-element char array of the form w2_w1 which are first two
 ##           words of the trigram we are predicting the tail word of
-## unobsTrigTails - character vector which are the tail words of unobserved
-##                  trigrams that start with bigPre
-## qboUnobsBigrams - 2 column data.frame -
+## qboObsBigrams - 2 column data.frame with the following columns -
+##                 ngram: observed bigrams of the form w2_w1
+##                 probs: the probability estimate for observed bigrams:
+##                        qbo(w1 | w2) calc'd from equation 10.
+## qboUnobsBigrams - 2 column data.frame with the following columns -
 ##                   ngram: unobserved bigrams of the form w2_w1
 ##                   probs: the probability estimate for unobserved bigrams
-##                          calc'd from equation 16.
+##                          qbo(w1 | w2) calc'd from equation 16.
 ## alphaTrig - total discounted probability mass at the trigram level
 getUnobsTriProbs &lt;- function(bigPre, qboObsBigrams,
                              qboUnobsBigrams, alphaTrig) {

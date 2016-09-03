@@ -268,12 +268,15 @@ getAlphaTrigram <- function(obsTrigs, bigram, triDisc=0.5) {
 ##
 ## bigPre -  single-element char array of the form w2_w1 which are first two
 ##           words of the trigram we are predicting the tail word of
-## unobsTrigTails - character vector which are the tail words of unobserved
-##                  trigrams that start with bigPre
-## qboUnobsBigrams - 2 column data.frame -
+## qboObsBigrams - 2 column data.frame with the following columns -
+##                 ngram: observed bigrams of the form w2_w1
+##                 probs: the probability estimate for observed bigrams:
+##                        qbo(w1 | w2) calc'd from equation 10.
+##                 trigrams that start with bigPre
+## qboUnobsBigrams - 2 column data.frame with the following columns -
 ##                   ngram: unobserved bigrams of the form w2_w1
 ##                   probs: the probability estimate for unobserved bigrams
-##                          calc'd from equation 16.
+##                          qbo(w1 | w2) calc'd from equation 16.
 ## alphaTrig - total discounted probability mass at the trigram level
 getUnobsTriProbs <- function(bigPre, qboObsBigrams,
                              qboUnobsBigrams, alphaTrig) {

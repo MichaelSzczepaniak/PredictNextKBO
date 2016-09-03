@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 1 - Overview and Preprocessing"
 author: "Michael Szczepaniak"
-date: "July 2016"
+date: "September 3, 2016 (last updated)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo1preproc
 ---
@@ -28,14 +28,15 @@ A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm
 3. **Interesting and challenging - ** Because the SBO is much simplier to implement, I felt the project would be more intersting and challenging to work on if the more complex KBO algorithm was selected for implementation.
 
 ### Objective #4 - Parameter Optimization
-[As described here](http://rpubs.com/mszczepaniak/predictkbo3model), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here (NOT ACTIVE YET: REMOVE THIS NOTICE WHEN ACTIVE!)](http://rpubs.com/mszczepaniak/kbotparamcv).
+[As described here](http://rpubs.com/mszczepaniak/predictkbo3model), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained will be available here when this work has been completed:  
+
+[http://rpubs.com/mszczepaniak/predictkbo4params](http://rpubs.com/mszczepaniak/predictkbo4params).
 
 ### Objective #5 - Make the Work Reproducible
 This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files were provided.  All pre-processing code (Objective #1) is provided in the **Appendix** section of this R Markdown document.
 
 ### Objective #6 - Deploy the App on shinyapps.io
-The results of meeting this objective can be found by visiting (NOT ACTIVE YET: REMOVE WHEN ACTIVE!):
-[https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/)
+The results of meeting this objective can be found by visiting: [https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/)
 
 ## Acquiring and Partitioning the Data
 The data was originally downloaded from [this link](https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip) and stored locally. If this link is no longer available, the data can obtained from [my dropbox](https://www.dropbox.com/s/ti5b9q25nc70edd/Coursera-SwiftKey.zip?dl=1). The zip file was download to a directory called **data** in a local project and unzipped there.  The the unzipped data contained four subdirectories: **de_DE** (German), **en_US** (US english), **fi_FI** (Finnish), and **ru_RU** (Russian). This project focuses on the English corpora residing in the **en_US** folder. This folder contains three files named **en_US.blogs.txt**, **en_US.news.txt**, and **en_US.twitter.txt**.
