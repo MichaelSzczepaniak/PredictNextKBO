@@ -125,7 +125,7 @@ $(document).ready(function () {
 <p>The overall goal of this project was to develop a prototype predictive web application that suggests the next word in a message of text based on what has been typed in by the user. For example, a user may type <em>I love Italian</em> and the the application might suggest: <em>food</em>, <em>shoes</em>, or <em>opera</em>. This goal was broken down into four objectives:</p>
 <div id="objective-1---partition-and-clean-the-data" class="section level3">
 <h3>Objective #1 - Partition and Clean the Data</h3>
-<p>In addition to the objectives, this document describes the details around how the data was partitioned, how it was cleaned prior to n-gram table construction, and what exploratory data analysis (EDA) was done. This was the most time consuming objective which was no surprise given <a href="https://www.jstatsoft.org/index.php/jss/article/view/v059i10/v59i10.pdf">what has been reported in the literature.</a></p>
+<p>In addition to the objective, this document describes the details around how the data was partitioned, how it was cleaned prior to n-gram table construction, and what exploratory data analysis (EDA) was done. This was the most time objective which was no surprise given <a href="https://www.jstatsoft.org/index.php/jss/article/view/v059i10/v59i10.pdf">what has been reported in the literature.</a></p>
 <p>The data was initially split into an 80% training set and a 20% test set. All cleaning, exploratory data analysis (EDA) and parameter optimization work was performed on the training set. All code used to perform any analysis step is listed in the Appendix and referred to throughout this document.</p>
 </div>
 <div id="objective-2---n-grams-and-exploratory-data-analysis-eda" class="section level3">
@@ -143,7 +143,7 @@ $(document).ready(function () {
 </div>
 <div id="objective-4---parameter-optimization" class="section level3">
 <h3>Objective #4 - Parameter Optimization</h3>
-<p><a href="http://rpubs.com/mszczepaniak/predictkbo3model">As described here</a>, the KBO Trigram has two parameters: the bigram discount rate (<span class="math inline">\(\gamma_2\)</span>) and the trigram discount rate (<span class="math inline">\(\gamma_3\)</span>). The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation. Better performing values for these parameters and the process by which they were obtained is <a href="http://rpubs.com/mszczepaniak/kbotparamcv">described here (NOT ACTIVE YET: REMOVE THIS NOTICE WHEN ACTIVE!)</a>.</p>
+<p><a href="http://rpubs.com/mszczepaniak/predictkbo3model">As described here</a>, the KBO Trigram has two parameters: the bigram discount rate (<span class="math inline">\(\gamma_2\)</span>) and the trigram discount rate (<span class="math inline">\(\gamma_3\)</span>). The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation. Better performing values for these parameters and the process by which they were obtained is <a href="http://rpubs.com/mszczepaniak/predictkbo4params">described here.</a>.</p>
 </div>
 <div id="objective-5---make-the-work-reproducible" class="section level3">
 <h3>Objective #5 - Make the Work Reproducible</h3>
@@ -151,7 +151,7 @@ $(document).ready(function () {
 </div>
 <div id="objective-6---deploy-the-app-on-shinyapps.io" class="section level3">
 <h3>Objective #6 - Deploy the App on shinyapps.io</h3>
-<p>The results of meeting this objective can be found by visiting (NOT ACTIVE YET: REMOVE WHEN ACTIVE!): <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a></p>
+<p>The results of meeting this objective can be found by visiting: <a href="https://michael-szczepaniak.shinyapps.io/predictnextkbo/" class="uri">https://michael-szczepaniak.shinyapps.io/predictnextkbo/</a></p>
 </div>
 </div>
 <div id="acquiring-and-partitioning-the-data" class="section level2">

@@ -28,13 +28,13 @@ A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm
 3. **Interesting and challenging - ** Because the SBO is much simplier to implement, I felt the project would be more intersting and challenging to work on if the more complex KBO algorithm was selected for implementation.
 
 ### Objective #4 - Parameter Optimization
-[As described here](http://rpubs.com/mszczepaniak/predictkbo3model), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here (NOT ACTIVE YET: REMOVE THIS NOTICE WHEN ACTIVE!)](http://rpubs.com/mszczepaniak/kbotparamcv).
+[As described here](http://rpubs.com/mszczepaniak/predictkbo3model), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained is [described here.](http://rpubs.com/mszczepaniak/predictkbo4params).
 
 ### Objective #5 - Make the Work Reproducible
 This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files were provided.  All pre-processing code (Objective #1) is provided in the **Appendix** section of this R Markdown document.
 
 ### Objective #6 - Deploy the App on shinyapps.io
-The results of meeting this objective can be found by visiting (NOT ACTIVE YET: REMOVE WHEN ACTIVE!):
+The results of meeting this objective can be found by visiting:
 [https://michael-szczepaniak.shinyapps.io/predictnextkbo/](https://michael-szczepaniak.shinyapps.io/predictnextkbo/)
 
 ## Acquiring and Partitioning the Data
