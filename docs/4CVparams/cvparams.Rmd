@@ -1,0 +1,33 @@
+---
+title: "Predicting Next Word Using Katz Back-Off"
+subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
+author: "Michael Szczepaniak"
+date: "September 12, 2016 (initial release)"
+output: html_document
+url: http://rpubs.com/mszczepaniak/predictkbo4params
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Introduction
+In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values of the discount rates at the bigram and trigram levels.  In the final installment in this 4-part series, we'll determine good values for these discount rates using 10-fold cross-validation on the training partitions of each of the corpuses: Blogs, New, and Twitter.  After selecting are most promising values, we'll conclude the analysis with an accuracy estimate using the held out test set.
+
+
+## How Does Cross-Validation Work?
+In their book [*An Introduction to Statistical Learning* James, Witten, Hastie, and Tibshirani [1]](http://www-bcf.usc.edu/~gareth/ISL/), they describe K-Fold Cross-Validation:
+
+*This approach involves randomly dividing the set of observations into k groups, or **folds** of approximately equal size.  The first fold is treated as a validation set, and method is fit on the remaining k - 1 folds.*
+
+
+
+### References
+[1] An Introduction to Statistical Learning -  
+[http://www-bcf.usc.edu/~gareth/ISL/](http://www-bcf.usc.edu/~gareth/ISL/)  
+[2] Trevor Hastie & Rob Tibshirani on Cross-Validation (part 1) -  
+[https://www.youtube.com/watch?v=_2ij6eaaSl0](https://www.youtube.com/watch?v=_2ij6eaaSl0)  
+[3] Trevor Hastie & Rob Tibshirani on K-Fold Cross-Validation (part 2) -  
+[https://www.youtube.com/watch?v=nZAM5OXrktY](https://www.youtube.com/watch?v=nZAM5OXrktY)  
+[4] Trevor Hastie & Rob Tibshirani on Right & Wrong Ways to do CV (part 3) -  
+[https://www.youtube.com/watch?v=S06JpVoNaA0](https://www.youtube.com/watch?v=S06JpVoNaA0)
