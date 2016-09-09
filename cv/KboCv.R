@@ -1,23 +1,79 @@
 library(readr)
 library(stringr)
 
-rm(list = ls())
-source("../predictnextkbo/PredictNextWord.R")
-corpus_data <- c("https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1",
-                 "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
-                 "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
-g2_start=0.1; g2_end=1.9; g3_start=0.1; g3_end=1.9; intv=0.1; trials=100
-corpus_lines <- read_lines(corpus_data[1])
-ng=3
+init <- function() {
+    rm(list = ls())
+    corpus_data <- c("https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1",
+                     "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
+                     "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
+    b=c("https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1",
+        "https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1",
+        "https://www.dropbox.com/s/z0rz707mt3da1h1/en_US.blogs.train.14trigrams.nosins.csv?dl=1")
+    n=c("", "", "") # TODO
+    t=c("", "", "") # TODO
+    ngram_paths <- list(blogs=b, news=n, twitter=t)
+    
+    
+    g2_start=0.1; g2_end=1.9; g3_start=0.1; g3_end=1.9; intv=0.1; trials=100
+    corpus_lines <- read_lines(corpus_data[1])
+    ng=3
+}
 
-## Returns 3 columns data.frame: gamma2 = bigram discount
+## Returns a single word character vector which has the highest probability of
+## completing the trigram starting with the two words defined in the bigram
+## prefix parameter bigPre based on the KBO Trigram alogrithm.
+##
+## bigPre - last 2 words of user input separated by an _ e.g. sell_the
+##          This is also referred to as the bigram prefix in code futher
+##          downstream.
+## gamma2 - bigram discount rate
+## gamma3 - trigram discount rate
+## ngram_paths - 3 element character vector containing the paths to the
+##               unigram, bigram, and trigram frequency tables respectively
+getTopPrediction <- function(bigPre, gamma2, gamma3, ngram_paths) {
+    # load unigram, bigram, and trigram tables corresponding to the corpus
+    # selected by the user
+    unigrams <- read.csv(ngram_paths[1])
+    bigrams <- read.csv(ngram_paths[2])
+    trigrams <- read.csv(ngram_paths[3])
+    
+    obs_trigs <- getObsTrigs(bigPre, trigrams)
+    unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
+    bo_bigrams <- getBoBigrams(bigPre, unobs_trig_tails)
+    # separate bigrams which use eqn 10 and those that use 16
+    obs_bo_bigrams <- getObsBoBigrams(bigPre, unobs_trig_tails, bigrams)
+    unobs_bo_bigrams <- getUnobsBoBigrams(bigPre, unobs_trig_tails,
+                                          obs_bo_bigrams)
+    # calc obs'd bigram prob's from eqn 10
+    qbo_obs_bigrams <- getObsBigProbs(obs_bo_bigrams, unigrams, gamma2)
+    # calc alpha_big & unobs'd bigram prob's from eqn 16
+    unig <- str_split(bigPre, "_")[[1]][2]
+    unig <- unigrams[unigrams$ngram == unig,]
+    alpha_big <- getAlphaBigram(unig, bigrams, gamma2)
+    qbo_unobs_bigrams <- getQboUnobsBigrams(unobs_bo_bigrams, unigrams, alpha_big)
+    # calc trigram probabilities - start with observed trigrams: eqn 12
+    qbo_obs_trigrams <- getObsTriProbs(obs_trigs, bigrams, bigPre, gamma3)
+    # finally, calc trigram unobserved probabilities: eqn 17
+    bigram <- bigrams[bigrams$ngram %in% bigPre, ]
+    alpha_trig <- getAlphaTrigram(obs_trigs, bigram, gamma3)
+    qbo_unobs_trigrams <- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
+                                           qbo_unobs_bigrams, alpha_trig)
+    qbo_trigrams <- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
+    qbo_trigrams <- qbo_trigrams[order(-qbo_trigrams$prob), ]
+    predicted_word <- qbo_trigrams[1]$ngram
+    predicted_word <- str_split(predicted_word, "_")[[1]][3]
+    
+    return(predicted_word)
+}
+
+## Returns 4 columns data.frame: gamma2 = bigram discount
 ##                               gamma3 = trigram discount
 ##                               trials = number of trials used to calc predacc
 ##                               predacc = prediction accuracy
-## g2_start - 
-## g2_end - 
-## g3_start - 
-## g3_end - 
+## g2_start - smallest value for bigram discount gamma2 to eval from
+## g2_end - largest value for bigram discount gamma2 to eval up to
+## g3_start - smallest value for trigram discount gamma3 to eval from
+## g3_end - largest value for trigram discount gamma3 to eval up to
 ## intv - spacing interval between gx_start and gx_end
 ## trials - number of trials used to calc prediction accuracy (predacc)
 makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
@@ -49,7 +105,7 @@ getRandomNgram <- function(corpus_lines, ng=3) {
     # pick a random n-gram from within the line
     ngram_index <- sample(1:(length(str_split(random_line, " ")[[1]]) -
                                  ng + 1), 1, TRUE)
-    ngram <- getNgram(random_line, ngram_index)
+    ngram <- getNgram(random_line, ngram_index, ng)
     
     return(ngram)
 }
@@ -82,22 +138,28 @@ getNgram <- function(rline, nindex, nw) {
 ## results_file - file holding the results of ntrial prediction trials on the
 ##                corpus
 runTrials <- function(corpus_lines, data_grid, ntrials=100,
-                      corpus_uri=corpus_data[1],
-                      results_file="blogs_t=100.csv") {
-    
+                      results_file="blogs_t=100.csv", ng=3) {
+    for(i in 1:nrow(data_grid)) {
+        target_trigram <- getRandomNgram(corpus_lines, ng) # trigram to predict
+        bigPre <- paste(str_split_fixed(target_trigram, "_", 3)[1,1:2],
+                        collapse = "_")
+        predicted_trigram <-
+            getTopNPredictions(bigPre, n=3, corp_index, gamma2, gamma3)[1]
+        
+    }
 }
 
 ## heat map experimentation
 # http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization
 
-mydata <- mtcars[, c(1,3,4,5,6,7)]
-# create data to make heat map from
-cormat <- round(cor(mydata),2)
-library(reshape2)
-melted_cormat <- melt(cormat)
-library(ggplot2)
-p <- ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + geom_tile()
-p <- p + scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-                              midpoint = 0, limit = c(-1,1), space = "Lab", 
-                              name="Pearson\nCorrelation")
-p
+# mydata <- mtcars[, c(1,3,4,5,6,7)]
+# # create data to make heat map from
+# cormat <- round(cor(mydata),2)
+# library(reshape2)
+# melted_cormat <- melt(cormat)
+# library(ggplot2)
+# p <- ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + geom_tile()
+# p <- p + scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+#                               midpoint = 0, limit = c(-1,1), space = "Lab", 
+#                               name="Pearson\nCorrelation")
+# p
