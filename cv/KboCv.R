@@ -28,15 +28,14 @@ init <- function() {
 ##          downstream.
 ## gamma2 - bigram discount rate
 ## gamma3 - trigram discount rate
-## ngram_paths - 3 element character vector containing the paths to the
-##               unigram, bigram, and trigram frequency tables respectively
-getTopPrediction <- function(bigPre, gamma2, gamma3, ngram_paths) {
-    # load unigram, bigram, and trigram tables corresponding to the corpus
-    # selected by the user
-    unigrams <- read.csv(ngram_paths[1])
-    bigrams <- read.csv(ngram_paths[2])
-    trigrams <- read.csv(ngram_paths[3])
-    
+## unigrams - 2 column data.frame: ngram - a unigram in the corpus of interest
+##                                 freq - count of this unigram in the corpus
+## bigrams - 2 column data.frame: ngram - a bigram in the corpus of interest
+##                                freq - count of this bigram in the corpus
+## trigrams - 2 column data.frame: ngram - a trigram in the corpus of interest
+##                                 freq - count of this trigram in the corpus
+getTopPrediction <- function(bigPre, gamma2, gamma3,
+                             unigrams, bigrams, trigrams) {
     obs_trigs <- getObsTrigs(bigPre, trigrams)
     unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
     bo_bigrams <- getBoBigrams(bigPre, unobs_trig_tails)
@@ -94,7 +93,7 @@ makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
 ## string.
 ## corpus_lines - 
 ## ng - number of words in the returned n-gram, default = 3
-getRandomNgram <- function(corpus_lines, ng=3) {
+getRandomNgram <- function(corpus_lines, ng=3, delim="_") {
     # pick a line at random that has enough words in it
     random_line <- ""
     # pick a line that has at least ng number of words in it
@@ -105,22 +104,23 @@ getRandomNgram <- function(corpus_lines, ng=3) {
     # pick a random n-gram from within the line
     ngram_index <- sample(1:(length(str_split(random_line, " ")[[1]]) -
                                  ng + 1), 1, TRUE)
-    ngram <- getNgram(random_line, ngram_index, ng)
+    ngram <- getNgram(random_line, ngram_index, ng, delim)
     
     return(ngram)
 }
 
-## Returns an underscore (_) delimited string of nw words of the form:
+## Returns string delimited by delimiter (default _) of nw words of the form:
 ## w1_w2_...wN where N=nw is the number of words to return from a single
 ## element character vector rline.
 ## rline - single element character vector with at least nw words in it
 ## nindex - index within rline of the first word in the n-gram to be returned
 ## nw - number of words in the n-gram to be returned
-getNgram <- function(rline, nindex, nw) {
+## delimiter - character(s) to delimit returned n-gram
+getNgram <- function(rline, nindex, nw, delimiter="_") {
     line_tokens <- str_split(rline, " ")[[1]]
     line_tokens <- line_tokens[nindex:(nindex+nw-1)]
     # why use collapse: https://gist.github.com/briandk/d9231ba1e2603eed0df1
-    return(paste(line_tokens, collapse="_"))
+    return(paste(line_tokens, collapse=delimiter))
 }
 
 ## Runs ntrials number of trials on corpus data at corpus_uri and outputs the
@@ -133,21 +133,46 @@ getNgram <- function(rline, nindex, nw) {
 ##             trials: number of predictions made on the corpus to calculate
 ##                     predacc over
 ##             predacc: prediction accuracy over trials number of trials
-## ntrials - int, the number of prediction trials to execute on the corpus per
-##           discount pair
+## ngram_paths - 
+## ntrials - 
 ## results_file - file holding the results of ntrial prediction trials on the
 ##                corpus
-runTrials <- function(corpus_lines, data_grid, ntrials=100,
+## ng - n-gram size, default 3 (trigram)
+runTrials <- function(corpus_lines, data_grid, ngram_paths,
                       results_file="blogs_t=100.csv", ng=3) {
-    for(i in 1:nrow(data_grid)) {
-        target_trigram <- getRandomNgram(corpus_lines, ng) # trigram to predict
-        bigPre <- paste(str_split_fixed(target_trigram, "_", 3)[1,1:2],
-                        collapse = "_")
-        predicted_trigram <-
-            getTopNPredictions(bigPre, n=3, corp_index, gamma2, gamma3)[1]
-        
+    cat("Start reading ngram frequency tables @ time:", as.character(Sys.time()), "\n")
+    unigrams <- read.csv(ngram_paths[1])
+    bigrams <- read.csv(ngram_paths[2])
+    trigrams <- read.csv(ngram_paths[3])
+    cat("Finish reading ngram frequency tables @ time:", as.character(Sys.time()), "\n")
+    cat("Begin data grid evaluation @ time:", as.character(Sys.time()), "\n")
+    for(experiment in 1:nrow(data_grid)) {
+        gam2 <- data_grid$gamma2[experiment]
+        gam3 <- data_grid$gamma3[experiment]
+        ntrials <- data_grid$trials[experiment]
+        cat("***** START experiment:", experiment, "@ time:", as.character(Sys.time()), "\n")
+        cat("      # of trials =", ntrials, ", gamma2 =", gam2, ", gamma3 =", gam3, "\n")
+        good_predictions = 0
+        for(trial in 1:ntrials) {
+            target_trigram <- getRandomNgram(corpus_lines, ng)
+            target_word <- str_split_fixed(target_trigram, "_", 3)[1,3]
+            bigPre <- paste(str_split_fixed(target_trigram, "_", 3)[1,1:2],
+                            collapse = "_")
+            predicted_word <- getTopPrediction(bigPre, gam2, gam3,
+                                               unigrams, bigrams, trigrams)
+            good_predictions <- good_predictions +
+                                (target_word == predicted_word)
+        }
+        accuracy <- good_predictions / ntrials
+        data_grid$predacc[experiment] <- accuracy
+        cat("      Experiment accuracy =", accuracy)
+        cat("***** END Experiment:", experiment, "@ time:", as.character(Sys.time()), "*****\n")
     }
+    # write the results
+    write.csv(data_grid, "blogs_test.csv", row.names = FALSE)
+    cat("FINISH data grid evaluation with", ntrials, "trials @ time:", as.character(Sys.time()), "\n")
 }
+
 
 ## heat map experimentation
 # http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization
