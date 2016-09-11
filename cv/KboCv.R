@@ -139,7 +139,7 @@ getNgram <- function(rline, nindex, nw, delimiter="_") {
 ##                corpus
 ## ng - n-gram size, default 3 (trigram)
 runTrials <- function(corpus_lines, data_grid, ngram_paths,
-                      results_file="blogs_t=100.csv", ng=3) {
+                      results_file_prefix="blogs_t=", ng=3) {
     cat("Start reading ngram frequency tables @ time:", as.character(Sys.time()), "\n")
     unigrams <- read.csv(ngram_paths[1])
     bigrams <- read.csv(ngram_paths[2])
@@ -165,10 +165,12 @@ runTrials <- function(corpus_lines, data_grid, ngram_paths,
         }
         accuracy <- good_predictions / ntrials
         data_grid$predacc[experiment] <- accuracy
-        cat("      Experiment accuracy =", accuracy)
+        cat("      Experiment accuracy =", accuracy, "\n")
         cat("***** END Experiment:", experiment, "@ time:", as.character(Sys.time()), "*****\n")
     }
     # write the results
+    out_file <- sprintf("%s%s%s", results_file_prefix, data_grid$trials[1], ".csv")
+    out_file <- sprintf("%s%s", "../cv/", outfile)
     write.csv(data_grid, "blogs_test.csv", row.names = FALSE)
     cat("FINISH data grid evaluation with", ntrials, "trials @ time:", as.character(Sys.time()), "\n")
 }
