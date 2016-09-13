@@ -134,24 +134,29 @@ getNgram <- function(rline, nindex, nw, delimiter="_") {
 ##                     predacc over
 ##             predacc: prediction accuracy over trials number of trials
 ## ngram_paths - 
-## ntrials - 
-## results_file - file holding the results of ntrial prediction trials on the
-##                corpus
+## results_file_prefix - prefix of the file holding the results of ntrial
+##                       prediction trials on the corpus
 ## ng - n-gram size, default 3 (trigram)
-runTrials <- function(corpus_lines, data_grid, ngram_paths,
-                      results_file_prefix="blogs_t=", ng=3) {
+## dgrid_start - which row in data_grid to start processing at, default = 1
+## out_dir - directory to write the results file to
+## fold - int, fold identifier
+runTrials <- function(corpus_lines, data_grid, ngram_paths, fold=1,
+                      results_file_prefix="blogs_t=", ng=3, dgrid_start=1,
+                      out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/",
+                      seed_value=709) {
     cat("Start reading ngram frequency tables @ time:", as.character(Sys.time()), "\n")
     unigrams <- read.csv(ngram_paths[1])
     bigrams <- read.csv(ngram_paths[2])
     trigrams <- read.csv(ngram_paths[3])
     cat("Finish reading ngram frequency tables @ time:", as.character(Sys.time()), "\n")
     cat("Begin data grid evaluation @ time:", as.character(Sys.time()), "\n")
-    for(experiment in 1:nrow(data_grid)) {
+    set.seed(seed_value)  # for reproducibility
+    for(experiment in dgrid_start:nrow(data_grid)) {
         gam2 <- data_grid$gamma2[experiment]
         gam3 <- data_grid$gamma3[experiment]
         ntrials <- data_grid$trials[experiment]
-        cat("***** START experiment:", experiment, "@ time:", as.character(Sys.time()), "\n")
-        cat("      # of trials =", ntrials, ", gamma2 =", gam2, ", gamma3 =", gam3, "\n")
+        # cat("***** START experiment:", experiment, "@ time:", as.character(Sys.time()), "\n")
+        # cat("      # of trials =", ntrials, ", gamma2 =", gam2, ", gamma3 =", gam3, "\n")
         good_predictions = 0
         for(trial in 1:ntrials) {
             target_trigram <- getRandomNgram(corpus_lines, ng)
@@ -165,15 +170,67 @@ runTrials <- function(corpus_lines, data_grid, ngram_paths,
         }
         accuracy <- good_predictions / ntrials
         data_grid$predacc[experiment] <- accuracy
-        cat("      Experiment accuracy =", accuracy, "\n")
-        cat("***** END Experiment:", experiment, "@ time:", as.character(Sys.time()), "*****\n")
+        # cat("      Experiment accuracy =", accuracy, "\n")
+        # cat("***** END Experiment:", experiment, "@ time:", as.character(Sys.time()), "*****\n")
+        exp_results <- sprintf("%.1f%s%.1f%s%i%s%.4f%s%s",
+                               gam2, ",", gam3, ",", ntrials, ",",
+                               accuracy, ",", as.character(Sys.time()))
+        cat(exp_results, "\n")
+        # write the intermediate results to be safe
+        out_file <- sprintf("%s%s%s%i%s", results_file_prefix,
+                            data_grid$trials[1], ".fold.", fold, ".csv")
+        out_file <- sprintf("%s%s", out_dir, out_file)
+        write.csv(data_grid, out_file, row.names = FALSE)
     }
-    # write the results
-    out_file <- sprintf("%s%s%s", results_file_prefix, data_grid$trials[1], ".csv")
-    out_file <- sprintf("%s%s", "../cv/", outfile)
-    write.csv(data_grid, "blogs_test.csv", row.names = FALSE)
-    cat("FINISH data grid evaluation with", ntrials, "trials @ time:", as.character(Sys.time()), "\n")
+    
+    cat("FINISH data grid evaluation with", ntrials, "trials @ time:",
+        as.character(Sys.time()), "\n")
 }
+
+# https://www.dropbox.com/s/1kpclcq7o907t61/blogs_test.csv?dl=1
+gamma_df <- read.csv("blogs_test.csv")
+
+makeHeatMapAccVgammas <- function(gamma_df=gamma_df) {
+    library(ggplot2)
+    p <- ggplot(data = gamma_df, aes(x=gamma2, y=gamma3, fill=predacc)) + geom_tile()
+    p <- p + scale_fill_gradient2(low = "white", high = "red",
+                                  space = "Lab",
+                                  name="Accuracy\n")
+    # http://stackoverflow.com/questions/9639127#21016269
+    p <- p + theme(legend.position="right")
+    p <- p + guides(color=guide_colourbar(title.vjust=0.5))
+    p
+}
+
+makeCountourAccVgammas <- function() {
+    library(ggplot2)
+    # Controur - http://docs.ggplot2.org/0.9.3.1/stat_contour.html
+    # Basic plot
+    v <- ggplot(gamma_df, aes(x=gamma2, y=gamma3, z=predacc))
+    v + stat_contour()
+    v + xlab("bigram discount") + ylab("trigram discount")
+    v
+}
+
+
+make3dAccVgammas <- function(df=gamma_df) {
+    # 3D Plot - https://www.r-bloggers.com/3d-plots-in-r/
+    # install.packages("plot3D")
+    library(plot3D)
+    par(mar = c(2, 2, 2, 2))
+    par(mfrow = c(1, 1))
+    df <- gamma_df[,c(1,2,4)]
+    xmat <- matrix(df$gamma2, nrow=19, ncol=19)
+    ymat <- matrix(df$gamma3, nrow=19, ncol=19)
+    zmat <- matrix(df$predacc, nrow=19, ncol=19)
+    
+    surf3D(x=xmat, y=ymat, z=zmat, xlab="bigram discount", ylab="trigram discount",
+           zlab="prediction accuracy",
+           colkey=TRUE, bty="b2",
+           main="Bigram & Trigram Discount Rates vs. Prediction Accuracy")
+}
+
+
 
 
 ## heat map experimentation
