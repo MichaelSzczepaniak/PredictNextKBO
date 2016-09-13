@@ -5,3 +5,4 @@ sandbox.R
 # directories
 data/
 *_cache
+.Rproj.user
