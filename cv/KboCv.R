@@ -188,7 +188,53 @@ runTrials <- function(corpus_lines, data_grid, ngram_paths, fold=1,
 }
 
 # https://www.dropbox.com/s/1kpclcq7o907t61/blogs_test.csv?dl=1
-gamma_df <- read.csv("blogs_test.csv")
+# gamma_df <- read.csv("blogs_test.csv")
+
+## Returns a list with nfolds items. Each list contains the indices for the 
+## data in each fold. Indices are then written to files: one set of indices
+## per fold.
+## indices_count - int that are the number of items to take a sample from. If
+##                 sample data is a data frame, this is typically nrows(data).
+## nfolds - number of folds in the data to make
+## write_folds - TRUE if indices for each fold should be written to files
+## fold_indices_file_prefix - start of the output file name
+## fold_indices_file_postfix - end of the output file name
+## out_dir - directory to write the output files if write_folds == TRUE
+## seed_value - seed value for random selects, set for reproducibility
+makeFolds <- function(indices_count, nfolds=10, write_folds=TRUE,
+                      fold_indices_file_prefix="fold_",
+                      fold_indices_file_postfix=".txt",
+                      out_dir="./",
+                      seed_value=719) {
+    folds <- vector("list", nfolds)
+    inds <- 1:indices_count
+    min_per_fold <- length(inds) / nfolds # min # of samples in each fold
+    for(i in 1:nfolds) {
+        samp_inds = sample(inds, min_per_fold) # get indices for fold
+        folds[[i]] <- samp_inds
+        inds <- setdiff(inds, samp_inds) # remaining after taking for fold
+        if(i == nfolds) {
+            cat("there are ", length(inds), "remaining samples to distribute.\n")
+            for(j in 1:length(inds)) {
+                samp <- sample(inds, 1)
+                folds[[j]] <- c(folds[[j]], samp)
+                inds <- setdiff(inds, samp)
+            }
+        }
+    }
+    # write out the indices in each fold
+    if(write_folds) {
+        for(k in 1:nfolds) {
+            out_file <- sprintf("%s%s%s", fold_indices_file_prefix, i,
+                                fold_indices_file_postfix)
+            out_file <- sprintf("%s%s", out_dir, out_file)
+            write.table(samp_inds, out_file, quote=FALSE, sep="\n",
+                        row.names=FALSE, col.names=FALSE)
+        }
+    }
+    
+    return(folds)
+}
 
 makeHeatMapAccVgammas <- function(gamma_df=gamma_df) {
     library(ggplot2)
