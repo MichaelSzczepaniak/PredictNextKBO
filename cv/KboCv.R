@@ -208,9 +208,6 @@ runTrials <- function(corpus_lines, data_grid, ngram_paths, fold=1,
         as.character(Sys.time()), "\n")
 }
 
-# https://www.dropbox.com/s/1kpclcq7o907t61/blogs_test.csv?dl=1
-# gamma_df <- read.csv("blogs_test.csv")
-
 ## Returns a list with nfolds items. Each list contains the indices for the 
 ## data in each fold. Indices are then written to files: one set of indices
 ## per fold.
@@ -224,7 +221,8 @@ runTrials <- function(corpus_lines, data_grid, ngram_paths, fold=1,
 ## seed_value - seed value for random selects, set for reproducibility
 makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
                       fold_indices_file_prefix="fold_",
-                      fold_indices_file_postfix=".txt",
+                      fold_indices_file_postfix="blogs",
+                      fold_indices_file_ext=".txt",
                       out_dir="./",
                       seed_value=719) {
     folds <- vector("list", nfolds)
@@ -246,8 +244,9 @@ makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
     # write out the indices in each fold
     if(write_folds) {
         for(k in 1:nfolds) {
-            out_file <- sprintf("%s%s%s", fold_indices_file_prefix, k,
-                                fold_indices_file_postfix)
+            out_file <- sprintf("%s%s%s%s", fold_indices_file_prefix, k,
+                                fold_indices_file_postfix,
+                                fold_indices_file_ext)
             out_file <- sprintf("%s%s", out_dir, out_file)
             write.table(folds[[k]], out_file, quote=FALSE, sep="\n",
                         row.names=FALSE, col.names=FALSE)
