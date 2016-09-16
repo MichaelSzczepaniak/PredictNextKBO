@@ -151,12 +151,13 @@ getNgram <- function(rline, nindex, nw, delimiter="_") {
 ##                     predacc over
 ##             predacc: prediction accuracy over trials number of trials
 ## ngram_paths - 
+## fold -
 ## results_file_prefix - prefix of the file holding the results of ntrial
 ##                       prediction trials on the corpus
 ## ng - n-gram size, default 3 (trigram)
 ## dgrid_start - which row in data_grid to start processing at, default = 1
 ## out_dir - directory to write the results file to
-## fold - int, fold identifier
+## seed_value - 
 runTrials <- function(corpus_lines, data_grid, ngram_paths, fold=1,
                       results_file_prefix="blogs_t=", ng=3, dgrid_start=1,
                       out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/",
