@@ -9,8 +9,8 @@ init <- function() {
     b=c("https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1",
         "https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1",
         "https://www.dropbox.com/s/z0rz707mt3da1h1/en_US.blogs.train.14trigrams.nosins.csv?dl=1")
-    n=c("", "", "") # TODO
-    t=c("", "", "") # TODO
+    n=c("", "", "") # TODO news
+    t=c("", "", "") # TODO twitter
     ngram_paths <- list(blogs=b, news=n, twitter=t)
     
     
@@ -74,25 +74,27 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
 ## g3_start - smallest value for trigram discount gamma3 to eval from
 ## g3_end - largest value for trigram discount gamma3 to eval up to
 ## intv - spacing interval between gx_start and gx_end
-## trials - number of trials used to calc prediction accuracy (predacc)
 makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
-                              g3_end=1.9, intv=0.1, trials=100) {
+                              g3_end=1.9, intv=0.1) {
     # make grid manually
     g3_seq <- seq(g3_start, g3_end, intv)
     g2_seq <- unlist(lapply(g3_seq, rep, length(g3_seq)))
     g3_seq <- rep(g3_seq, length(g3_seq))
-    df_data_grid <- data.frame(gamma2=g2_seq, gamma3=g3_seq,
-                               trials=trials, predacc=-1)
+    df_data_grid <- data.frame(gamma2=g2_seq, gamma3=g3_seq, predacc=-1)
+    
     return(df_data_grid)
 }
 
-## Returns an underscore (_) delimited string of ng words of the form:
+## Returns an delim (default = _) delimited string of ng words of the form:
 ## w1_w2_...wN where N=ng is the number of words to return from a line.
 ## A random line is selected from corpus_lines and a random n-gram of size ng
 ## is selected from within the random line and returned as a single _ delimited
 ## string.
 ## corpus_lines - 
 ## ng - number of words in the returned n-gram, default = 3
+## delim - delimiter used in the returned ngram e.g. if delim and ng are
+##         their default values, then returned value will be of the form:
+##         w1_w2_w3
 getRandomNgram <- function(corpus_lines, ng=3, delim="_") {
     # pick a line at random that has enough words in it
     random_line <- ""
@@ -107,6 +109,21 @@ getRandomNgram <- function(corpus_lines, ng=3, delim="_") {
     ngram <- getNgram(random_line, ngram_index, ng, delim)
     
     return(ngram)
+}
+
+## Returns a character array of trigram_count elements. Each element is an
+## _ delimited trigram of the form w1_w2_w3 randomly extracted from corp_data.
+## corp_data - character array where each element is line of text from a corpus
+##             file such as blogs, news, or twitter
+## trigram_count - the number of randomly selected trigrams to return
+getRandomTrigrams <- function(corp_data, trigram_count) {
+    random_trigrams <- vector(mode = "character")
+    for(i in 1:trigram_count) {
+        trig <- getRandomNgram(corp_data)
+        random_trigrams <- append(random_trigrams, trig)
+    }
+    
+    return(random_trigrams)
 }
 
 ## Returns string delimited by delimiter (default _) of nw words of the form:
@@ -201,7 +218,7 @@ runTrials <- function(corpus_lines, data_grid, ngram_paths, fold=1,
 ## fold_indices_file_postfix - end of the output file name
 ## out_dir - directory to write the output files if write_folds == TRUE
 ## seed_value - seed value for random selects, set for reproducibility
-makeFolds <- function(indices_count, nfolds=10, write_folds=TRUE,
+makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
                       fold_indices_file_prefix="fold_",
                       fold_indices_file_postfix=".txt",
                       out_dir="./",
@@ -225,11 +242,12 @@ makeFolds <- function(indices_count, nfolds=10, write_folds=TRUE,
     # write out the indices in each fold
     if(write_folds) {
         for(k in 1:nfolds) {
-            out_file <- sprintf("%s%s%s", fold_indices_file_prefix, i,
+            out_file <- sprintf("%s%s%s", fold_indices_file_prefix, k,
                                 fold_indices_file_postfix)
             out_file <- sprintf("%s%s", out_dir, out_file)
-            write.table(samp_inds, out_file, quote=FALSE, sep="\n",
+            write.table(folds[[k]], out_file, quote=FALSE, sep="\n",
                         row.names=FALSE, col.names=FALSE)
+            cat("Finished writing", out_file, "\n")
         }
     }
     
