@@ -23,7 +23,7 @@ readFolds <- function(fold_paths) {
     for(i in 1:length(fold_paths)) {
         path <- fold_paths[i]
         fold <- read.csv(path, header=FALSE)
-        folds[[i]] <- fold
+        folds[[i]] <- fold$V1
     }
     
     return(folds)
@@ -36,17 +36,20 @@ fold_paths <- c("D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_1.txt",
                 "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5.txt")
 
 default_folds <- readFolds(fold_paths)
+out_default <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
+ggrid_start=1; folds=default_folds; fold_start=1; nitrs=200
+kfolds=5; out_dir=out_default; seed_val=719
 
 ## Runs K-Fold CV on corpus_train and returns a list of best pairs of (gamma2,
 ## gamma3) with the highest prediction accuracy for each validation fold
 runKfoldTrials <- function(corpus_train, gamma_grid, ggrid_start=1,
                            folds=default_folds, fold_start=1, nitrs=200,
-                           kfolds=5, out_dir="./", seed_val=719) {
+                           kfolds=5, out_dir=out_default, seed_val=719) {
     best_gammas <- data.frame(vfold=seq(1, 5), gamma2=rep(-1, 5),
                               gamma3=rep(-1, 5), pred_acc=rep(-1, 5))
     set.seed(seed_val)  # set for reproducibility
     # folds <- makeFolds(length(corpus_lines), kfolds) # writes fold indices
-    out_file <- paste0("out_dir", "cv_results.csv")
+    out_file <- paste0(out_dir, "cv_results.csv")
     for(f in fold_start:length(folds)) {
         valid_fold_indices <- folds[[f]]
         valid_data <- corpus_lines[valid_fold_indices]
