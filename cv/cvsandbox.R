@@ -80,8 +80,6 @@ runKfoldTrials <- function(corpus_train, gamma_grid, ggrid_start=1,
             gam3 <- gamma_grid$gamma3[experiment]
             # Now try to predict each of the unknown trigram tails with
             # current (gam2, gam3):
-            cat("START", nitrs, "predictions with gamma2=", gam2,
-                "and gamma3=", gam3, "at ", as.character(Sys.time()), "\n")
             for(ttp in trigrams_to_predict) {
                 target_word <- str_split_fixed(ttp, "_", 3)[1,3]
                 bigPre <- paste(str_split_fixed(ttp, "_", 3)[1,1:2],
@@ -94,8 +92,8 @@ runKfoldTrials <- function(corpus_train, gamma_grid, ggrid_start=1,
             exp_results[[1]][experiment] <- accuracy
             exp_results[[2]][experiment] <- gam2
             exp_results[[3]][experiment] <- gam3
-            cat("*** FINISH", nitrs, "predictions with accurarcy =", accuracy,
-                " at time =", as.character(Sys.time()), "***\n")
+            out_line <- sprintf("%s%s%s%s%s", gam2, ",",gam3, ",", accuracy)
+            cat(out_line, ",", as.character(Sys.time()), "\n")
         }
         acc_max_index <- which.max(exp_results[[1]])
         best_gammas$vfold[f] <- f
