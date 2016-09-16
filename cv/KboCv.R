@@ -188,16 +188,6 @@ runTrials <- function(corpus_lines, data_grid, ngram_paths, fold=1,
         }
         accuracy <- good_predictions / ntrials
         data_grid$predacc[experiment] <- accuracy
-<<<<<<< HEAD
-        cat("      Experiment accuracy =", accuracy, "\n")
-        cat("***** END Experiment:", experiment, "@ time:", as.character(Sys.time()), "*****\n")
-    }
-    # write the results
-    out_file <- sprintf("%s%s%s", results_file_prefix, data_grid$trials[1], ".csv")
-    out_file <- sprintf("%s%s", "../cv/", outfile)
-    write.csv(data_grid, "blogs_test.csv", row.names = FALSE)
-    cat("FINISH data grid evaluation with", ntrials, "trials @ time:", as.character(Sys.time()), "\n")
-=======
         # cat("      Experiment accuracy =", accuracy, "\n")
         # cat("***** END Experiment:", experiment, "@ time:", as.character(Sys.time()), "*****\n")
         exp_results <- sprintf("%.1f%s%.1f%s%i%s%.4f%s%s",
@@ -285,7 +275,6 @@ makeCountourAccVgammas <- function() {
     v + stat_contour()
     v + xlab("bigram discount") + ylab("trigram discount")
     v
->>>>>>> origin/dev_cv
 }
 
 
