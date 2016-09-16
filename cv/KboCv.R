@@ -65,9 +65,8 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
     return(predicted_word)
 }
 
-## Returns 4 columns data.frame: gamma2 = bigram discount
+## Returns 3 columns data.frame: gamma2 = bigram discount
 ##                               gamma3 = trigram discount
-##                               trials = number of trials used to calc predacc
 ##                               predacc = prediction accuracy
 ## g2_start - smallest value for bigram discount gamma2 to eval from
 ## g2_end - largest value for bigram discount gamma2 to eval up to
@@ -113,13 +112,17 @@ getRandomNgram <- function(corpus_lines, ng=3, delim="_") {
 
 ## Returns a character array of trigram_count elements. Each element is an
 ## _ delimited trigram of the form w1_w2_w3 randomly extracted from corp_data.
+## EACH TRIGRAM IS UNIQUE.
 ## corp_data - character array where each element is line of text from a corpus
 ##             file such as blogs, news, or twitter
 ## trigram_count - the number of randomly selected trigrams to return
-getRandomTrigrams <- function(corp_data, trigram_count) {
+getUniqueRandomTrigrams <- function(corp_data, trigram_count) {
     random_trigrams <- vector(mode = "character")
     for(i in 1:trigram_count) {
         trig <- getRandomNgram(corp_data)
+        while (trig %in% random_trigrams) {
+            trig <- getRandomNgram(corp_data)
+        }
         random_trigrams <- append(random_trigrams, trig)
     }
     
