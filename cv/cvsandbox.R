@@ -12,7 +12,7 @@ corpus_data <- c("https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8p
                  "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
                  "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
 
-corpus_ <- read_lines(corpus_data[1])
+corpus_lines <- read_lines(corpus_data[1])
 
 # ng_paths=c("https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1",
 #            "https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1",
@@ -38,7 +38,7 @@ readFolds <- function(fold_paths) {
 default_folds <- readFolds(fold_paths)
 out_default <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
 topn=3; corpus_type="blogs"
-ggrid_start=1; folds=default_folds; fold_start=1; nitrs=200
+ggrid_start=1; folds=default_folds; fold_start=1; nitrs=500
 kfolds=5; out_dir=out_default; seed_val=719
 
 ## Runs K-Fold CV on corpus_lines and returns a data.frame of topn of best
@@ -98,8 +98,9 @@ runKfoldTrials <- function(corpus_lines, gamma_grid, corpus_type="blogs",
             exp_results$acc[experiment] <- accuracy
             exp_results$gamma2[experiment] <- gam2
             exp_results$gamma3[experiment] <- gam3
-            out_line <- sprintf("%s%s%s%s%s", gam2, ",",gam3, ",", accuracy)
-            cat(out_line, ",", as.character(Sys.time()), "\n")
+            out_line <- sprintf("%s%s%s%s%s%s%s%s", gam2, ",",gam3, ",",
+                                accuracy, ",",  as.character(Sys.time()), "\n")
+            cat(out_line)  # feedback for during very long set of computations
         }
         # get the topn most accurate predictions
         exp_results <- arrange(exp_results, desc(acc))[1:topn,]
