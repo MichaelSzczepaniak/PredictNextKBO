@@ -52,7 +52,10 @@ getNgramFreqs <- function(ng, dat, ignores=NULL,
 ##                only rows where the ngram column starts with prefixFilter.
 ##                If NULL, returns all the ngram and count rows.
 getNgramTables <- function(ng, linesCorpus, prefixFilter=NULL) {
-    cat("START getNgramTables at", as.character(Sys.time()), "\n")
+    start_msg <- paste0("START getNgramTables building ", ng,
+                        "-gram frequency table at ",
+                        as.character(Sys.time()), "\n")
+    cat(start_msg)
     ngrams <- getNgramFreqs(ng, linesCorpus)
     ngrams_dt <- data.table(ngram=names(ngrams), freq=ngrams)
     if(length(grep('^SOS', ngrams_dt$ngram)) > 0) {
@@ -63,7 +66,10 @@ getNgramTables <- function(ng, linesCorpus, prefixFilter=NULL) {
         ngrams_dt <- ngrams_dt[grep(regex, ngrams_dt$ngram),]
     }
     
-    cat("FINISH getNgramTables at", as.character(Sys.time()), "\n")
+    end_msg <- paste0("*** FINISH building ", ng, "-gram frequency table at ",
+                      as.character(Sys.time()), "***\n")
+    cat(end_msg)
+    
     return(ngrams_dt)
 }
 
