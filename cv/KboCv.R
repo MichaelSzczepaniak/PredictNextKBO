@@ -113,9 +113,10 @@ getRandomNgram <- function(corpus_lines, ng=3, delim="_") {
 ## Returns a character array of trigram_count elements. Each element is an
 ## _ delimited trigram of the form w1_w2_w3 randomly extracted from corp_data.
 ## EACH TRIGRAM IS UNIQUE.
-## corp_data - character array where each element is line of text from a corpus
-##             file such as blogs, news, or twitter
-## trigram_count - the number of randomly selected trigrams to return
+## corp_data - character array where each element is a line of text from a 
+##             corpus file such as blogs, news, or twitter
+## trigram_count - the number of randomly selected trigrams to return from
+##                 corp_data
 getUniqueRandomTrigrams <- function(corp_data, trigram_count) {
     random_trigrams <- vector(mode = "character")
     for(i in 1:trigram_count) {
