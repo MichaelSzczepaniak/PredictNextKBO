@@ -35,6 +35,46 @@ readFolds <- function(fold_paths) {
     return(folds)
 }
 
+## Returns
+makeTrainTest <- function(non_valid_lines, fold, corp_type,
+                          train_fraction=0.8, folds=1:5,
+                          seed_vals=c(7,11,13,17,19,),
+                          ofile_prefix="fold_",
+                          ofile_postfix=c("train.txt", "test.txt"),
+                          out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+                          ) {
+    
+}
+
+makeFoldNgramTables <- function(corp_types=c("blogs", "news", "twitter"),
+                                ng=1:3,
+              train_lines_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+              train_lines_files=c("fold_1train.txt", "fold_2train.txt",
+                                  "fold_3train.txt", "fold_4train.txt",
+                                  "fold_5train.txt"), folds=1:5,
+              out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+              ofile_prefix="fold_", ofile_postfix="grams.csv") {
+    
+}
+
+makePredictTrigrams <- function(corp_types=c("blogs", "news", "twitter"),
+                                npredict=500,
+              test_lines_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+              test_lines_files=c("fold_1test.txt", "fold_2test.txt",
+                                 "fold_3test.txt", "fold_4test.txt",
+                                 "fold_5test.txt"), folds=1:5,
+                    ofile_prefix="fold_", ofile_postfix="predict.txt",
+              out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
+    
+}
+
+trainFold <- function(fold, corp_type, train_data_path, test_data_path,
+                      ngram_tables, predict_words_path,
+                      out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+                      ofile_prefix="fold_", ofile_postfix="cv_results.csv") {
+    
+}
+
 default_folds <- readFolds(fold_paths)
 out_default <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
 topn=3; corpus_type="blogs"
@@ -46,14 +86,14 @@ kfolds=5; out_dir=out_default; seed_val=719
 ## validation fold
 runKfoldTrials <- function(corpus_lines, gamma_grid, corpus_type="blogs",
                            topn=3, ggrid_start=1, folds=default_folds,
-                           fold_start=1, nitrs=200,
-                           kfolds=5, out_dir=out_default, seed_val=719) {
+                           fold_start=1, nitrs=500,
+                           kfolds=5, out_dir=out_default,
+                           new_seeds=TRUE, seed_val=719) {
     best_gammas <- data.frame(vfold=rep(1:kfolds, each=topn),
                               rank=rep(1:topn, kfolds),
                               gamma2=rep(-1, kfolds*topn),
                               gamma3=rep(-1, kfolds*topn),
                               pred_acc=rep(-1, kfolds*topn))
-    set.seed(seed_val)  # set for reproducibility
     out_file <- paste0(out_dir, "cv_", corpus_type, "_", kfolds, "fold_",
                        nitrs, ".csv")
     for(f in fold_start:length(folds)) {
@@ -62,6 +102,7 @@ runKfoldTrials <- function(corpus_lines, gamma_grid, corpus_type="blogs",
         train_data <- corpus_lines[-valid_fold_indices]
         
         # take 80% of training data to build n-gram tables
+        set.seed(getNextSeed(f))  # set for reproducibility
         train_ngrams_indices <- sample(1:length(train_data), 0.8*length(train_data))
         train_ngrams_data <- train_data[train_ngrams_indices]
         train_gammas_data <- train_data[-train_ngrams_indices]
