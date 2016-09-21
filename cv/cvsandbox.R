@@ -8,11 +8,14 @@ source("KboCv.R")
 gamma_grid <- makeEmptyDataGrid(g2_start=0.1, g2_end=1.9, g3_start=0.1,
                                g3_end=1.9, intv=0.1)
 
-corpus_data <- c("https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1",
-                 "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
-                 "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
+corpus_paths <- c("https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1",
+                  "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
+                  "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
 
-corpus_lines <- read_lines(corpus_data[1])
+## only need for dev
+if(!exists('corpus_lines')) {
+    corpus_lines <- read_lines(corpus_paths[1])
+}
 
 # ng_paths=c("https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1",
 #            "https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1",
@@ -24,6 +27,8 @@ fold_paths <- c("D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_1blogs.txt",
                 "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_4blogs.txt",
                 "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5blogs.txt")
 
+## Returns a list of length(fold_paths) items.  Each item in the list is vector
+## of ints that are indices assigned to a cv fold
 readFolds <- function(fold_paths) {
     folds <- vector("list", length(fold_paths))
     for(i in 1:length(fold_paths)) {
@@ -35,14 +40,55 @@ readFolds <- function(fold_paths) {
     return(folds)
 }
 
-## Returns
-makeTrainTest <- function(non_valid_lines, fold, corp_type,
+## Returns a list containing vectors for training and testing sets in the
+## non-validation partition.  The odd numbered lists contain the indices
+## of the lines used for the training set.  The even numbered lists contain
+## the indices of the lines used for testing set.  All of these sets are
+## assumed to be within the non-validation fold/partition.
+##
+## non_valid_lines - int vector, indices of the non-validation partition
+## corp_type - character string, type of corpus: "blogs", "news", "twitter"
+## train_fraction - float betwee 0 and 1 (non-inclusive), fraction of samples
+##                  used for the test set, 
+## folds -
+## seed_vals -
+## ofile_prefix -
+## ofile_postfix -
+## out_dir -
+##
+makeTrainTest <- function(non_valid_lines, corp_type,
                           train_fraction=0.8, folds=1:5,
-                          seed_vals=c(7,11,13,17,19,),
+                          seed_vals=c(7,11,13,17,19),
                           ofile_prefix="fold_",
                           ofile_postfix=c("train.txt", "test.txt"),
-                          out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
-                          ) {
+                     out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
+    fold_count <- length(folds)
+    results <- vector("list", 2*fold_count)
+    ofile_paths <- vector(mode = "character")
+    # dev only, these get passed in #########
+    non_valid_lines <- readFolds(fold_paths)
+    corp_type <- "blogs"
+    train_fraction=0.8
+    folds=1:5
+    seed_vals=c(7,11,13,17,19)
+    ofile_prefix="fold_"
+    ofile_postfix=c("train.txt", "test.txt")
+    out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
+    #########################################
+    
+    for(i in 1:fold_count) {
+        fname <- sprintf("%s%s%s%s%s%s", out_dir, "fold_", i, "train_",
+                         corp_type, ".txt")
+        ofile_paths <- append(ofile_paths, fname)
+        fname <- sprintf("%s%s%s%s%s%s", out_dir, "fold_", i, "test_",
+                         corp_type, ".txt")
+        ofile_paths <- append(ofile_paths, fname)
+    }
+    
+    
+    
+    
+    
     
 }
 
