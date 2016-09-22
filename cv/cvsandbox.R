@@ -1,87 +1,113 @@
 
-rm(list = ls())
+
+
+## only need for dev
+if(!exists('corpus_paths')) {
+    rm(list = ls())
+    corpus_paths <- c("https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1",
+                      "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
+                      "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
+    cat("reading corpus_lines...\n")
+    corpus_lines <- read_lines(corpus_paths[1])
+    
+    fold_paths <- c("D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_1blogs.txt",
+                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_2blogs.txt",
+                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_3blogs.txt",
+                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_4blogs.txt",
+                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5blogs.txt")
+}
+
 source("../predictnextkbo/Katz.R")
 source("KboCv.R")
 
+## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
+## vector of ints that are indices assigned to a cv fold except last item which
+## is the total line count of all the folds
+readFolds <- function(fold_paths) {
+    fold_count <- length(fold_paths)
+    folds <- vector("list", fold_count+1)
+    line_count <- 0
+    for(i in 1:fold_count) {
+        path <- fold_paths[i]
+        fold <- read.csv(path, header=FALSE)
+        line_count <- line_count + nrow(fold)
+        folds[[i]] <- fold$V1
+    }
+    
+    folds[[fold_count + 1]] <- line_count
+    
+    return(folds)
+}
 
 ## Make a test data grid
 gamma_grid <- makeEmptyDataGrid(g2_start=0.1, g2_end=1.9, g3_start=0.1,
                                g3_end=1.9, intv=0.1)
-
-corpus_paths <- c("https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1",
-                  "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
-                  "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
-
-## only need for dev
-if(!exists('corpus_lines')) {
-    corpus_lines <- read_lines(corpus_paths[1])
-}
+## Read folds data
+cat("reading fold data...\n")
+default_folds <- readFolds(fold_paths)
 
 # ng_paths=c("https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1",
 #            "https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1",
 #            "https://www.dropbox.com/s/z0rz707mt3da1h1/en_US.blogs.train.14trigrams.nosins.csv?dl=1")
 
-fold_paths <- c("D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_1blogs.txt",
-                "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_2blogs.txt",
-                "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_3blogs.txt",
-                "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_4blogs.txt",
-                "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5blogs.txt")
-
-## Returns a list of length(fold_paths) items.  Each item in the list is vector
-## of ints that are indices assigned to a cv fold
-readFolds <- function(fold_paths) {
-    folds <- vector("list", length(fold_paths))
-    for(i in 1:length(fold_paths)) {
-        path <- fold_paths[i]
-        fold <- read.csv(path, header=FALSE)
-        folds[[i]] <- fold$V1
-    }
-    
-    return(folds)
-}
 
 ## Returns a list containing vectors for training and testing sets in the
 ## non-validation partition.  The odd numbered lists contain the indices
 ## of the lines used for the training set.  The even numbered lists contain
 ## the indices of the lines used for testing set.  All of these sets are
-## assumed to be within the non-validation fold/partition.
+## assumed to be within the Non-Validation fold/partition.
 ##
-## non_valid_lines - int vector, indices of the non-validation partition
+## folds - list of int vectors of size length(folds), indices of
+##         validation partitions, indices not in this set are futher
+##         segmented in training and testing sets
 ## corp_type - character string, type of corpus: "blogs", "news", "twitter"
 ## train_fraction - float betwee 0 and 1 (non-inclusive), fraction of samples
 ##                  used for the test set, 
-## folds -
-## seed_vals -
-## ofile_prefix -
-## ofile_postfix -
-## out_dir -
-##
-makeTrainTest <- function(non_valid_lines, corp_type,
-                          train_fraction=0.8, folds=1:5,
+## seed_vals - seed values to use for train/test set selections
+## ofile_prefix - string, output file name prefix
+## ofile_postfix - string, output file name postfix
+## out_dir - string, directory to write output files to
+makeTrainTestNV <- function(folds=default_folds, corp_type="blogs", train_fraction=0.8,
                           seed_vals=c(7,11,13,17,19),
                           ofile_prefix="fold_",
                           ofile_postfix=c("train.txt", "test.txt"),
                      out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
-    fold_count <- length(folds)
+    # dev only, these get passed in #########
+    # folds <- readFolds(fold_paths)
+    # corp_type <- "blogs"
+    # train_fraction=0.8
+    # seed_vals=c(7,11,13,17,19)
+    # ofile_prefix="fold_"
+    # ofile_postfix=c("train.txt", "test.txt")
+    # out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
+    #########################################
+    fold_count <- length(folds) - 1  # because last count is total line count
     results <- vector("list", 2*fold_count)
     ofile_paths <- vector(mode = "character")
-    # dev only, these get passed in #########
-    non_valid_lines <- readFolds(fold_paths)
-    corp_type <- "blogs"
-    train_fraction=0.8
-    folds=1:5
-    seed_vals=c(7,11,13,17,19)
-    ofile_prefix="fold_"
-    ofile_postfix=c("train.txt", "test.txt")
-    out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
-    #########################################
-    
     for(i in 1:fold_count) {
+        seed_val <- seed_vals[i]
+        set.seed(seed_val)  # set for reproducibility
+        validn_fold_indices <- folds[[i]]
+        non_validn_fold_indices <- setdiff(1:folds[[fold_count+1]],
+                                           validn_fold_indices)
+        validn_data <- corpus_lines[validn_fold_indices]
+        # Take 80% (train set) of non-validation data to build n-gram tables 
+        # and use the other 20% (test set) to make predicitions on.
+        train_ngrams_indices <-
+            sample(non_validn_fold_indices,
+                   train_fraction * length(non_validn_fold_indices))
+        test_gammas_indices <- setdiff(non_validn_fold_indices,
+                                       train_ngrams_indices)
+        # train_ngrams_data <- corpus_lines[train_ngrams_indices]
+        # test_gammas_data <- corpus_lines[test_gammas_indices]
+        
         fname <- sprintf("%s%s%s%s%s%s", out_dir, "fold_", i, "train_",
                          corp_type, ".txt")
+        write.table(train_ngrams_indices, fname, row.names=FALSE, col.names=FALSE)
         ofile_paths <- append(ofile_paths, fname)
         fname <- sprintf("%s%s%s%s%s%s", out_dir, "fold_", i, "test_",
                          corp_type, ".txt")
+        write.table(test_gammas_indices, fname, row.names=FALSE, col.names=FALSE)
         ofile_paths <- append(ofile_paths, fname)
     }
     
