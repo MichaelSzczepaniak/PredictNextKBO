@@ -84,50 +84,42 @@ makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
     return(df_data_grid)
 }
 
-## Returns an delim (default = _) delimited string of ng words of the form:
-## w1_w2_...wN where N=ng is the number of words to return from a line.
-## A random line is selected from corpus_lines and a random n-gram of size ng
-## is selected from within the random line and returned as a single _ delimited
-## string.
-## corpus_lines - 
+## Returns a character array of trigram_count elements. Each element is an
+## _ delimited trigram of the form w1_w2_w3 randomly extracted from
+## corpus_lines.  EACH TRIGRAM IS UNIQUE.
+## corpus_lines - character array where each element is a line of text from
+##                a corpus file such as blogs, news, or twitter
+## ngram_count - the number of randomly selected ngrams to return from
+##               corpus_lines
 ## ng - number of words in the returned n-gram, default = 3
 ## delim - delimiter used in the returned ngram e.g. if delim and ng are
 ##         their default values, then returned value will be of the form:
 ##         w1_w2_w3
-getRandomNgram <- function(corpus_lines, ng=3, delim="_") {
-    # pick a line at random that has enough words in it
-    random_line <- ""
-    # pick a line that has at least ng number of words in it
-    while (length(str_split(random_line, " ")[[1]]) < ng) {
-        line_index <- sample(1:length(corpus_lines), 1, TRUE)
-        random_line <- corpus_lines[line_index]
-    }
-    # pick a random n-gram from within the line
-    ngram_index <- sample(1:(length(str_split(random_line, " ")[[1]]) -
-                                 ng + 1), 1, TRUE)
-    ngram <- getNgram(random_line, ngram_index, ng, delim)
-    
-    return(ngram)
-}
-
-## Returns a character array of trigram_count elements. Each element is an
-## _ delimited trigram of the form w1_w2_w3 randomly extracted from corp_data.
-## EACH TRIGRAM IS UNIQUE.
-## corp_data - character array where each element is a line of text from a 
-##             corpus file such as blogs, news, or twitter
-## trigram_count - the number of randomly selected trigrams to return from
-##                 corp_data
-getUniqueRandomTrigrams <- function(corp_data, trigram_count) {
-    random_trigrams <- vector(mode = "character")
-    for(i in 1:trigram_count) {
-        trig <- getRandomNgram(corp_data)
-        while (trig %in% random_trigrams) {
-            trig <- getRandomNgram(corp_data)
+## seed_val - 
+getUniqueRandomNgrams <- function(corpus_lines, ngram_count,
+                                  ng=3, delim="_", seed_val=719) {
+    set.seed(seed_val)
+    random_ngrams <- vector(mode = "character")
+    for(i in 1:ngram_count) {
+        ngram <- ""
+        while((nchar(ngram)[1] < 2) || (ngram %in% random_ngrams)) {
+            # cat("ngram", ngram, "is empty or in set already\n")
+            random_line <- ""
+            # pick a line that has at least ng number of words in it
+            while (length(str_split(random_line, " ")[[1]]) < ng) {
+                line_index <- sample(1:length(corpus_lines), 1, TRUE)
+                random_line <- corpus_lines[line_index]
+            }
+            # pick a random n-gram from within the line
+            ngram_index <- sample(1:(length(str_split(random_line, " ")[[1]]) -
+                                         ng + 1), 1, TRUE)
+            ngram <- getNgram(random_line, ngram_index, ng, delim)
         }
-        random_trigrams <- append(random_trigrams, trig)
+        # cat("adding ngram:", ngram)
+        random_ngrams <- append(random_ngrams, ngram)
     }
     
-    return(random_trigrams)
+    return(random_ngrams)
 }
 
 ## Returns string delimited by delimiter (default _) of nw words of the form:
