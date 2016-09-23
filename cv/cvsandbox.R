@@ -67,7 +67,7 @@ default_folds <- readFolds(fold_paths)
 
 
 ## Returns a list of int vectors which are indices of training and testing sets 
-## in the non-validation partition.  The odd numbered lists contain the indices
+## in the Non-Validation partition.  The odd numbered lists contain the indices
 ## of the lines used for the training set.  The even numbered lists contain
 ## the indices of the lines used for testing set.  All of these sets are
 ## assumed to be within the Non-Validation fold/partition.
@@ -124,13 +124,16 @@ makeTrainTestNV <- function(folds=default_folds, corp_type="blogs",
 }
 
 ## Reads in the training set, creates the 1 thru n-gram frequency tables and
-## writes that out to files.
-## corp_data - 
-## ng - int vector specifying the vectors to be created
-## folds - 
-## cv_dir -
-## ofile_prefix - 
-## ofile_postfix - 
+## writes them out to files.
+## corp_data - 2 col dataframe: 1st column, ctype are the corpora type
+##                              2nd column, corp_urls are the urls for the
+##                                          data of each corpora type
+## ng - int vector specifying the n-grams to be created
+## folds - list of int lists which are the output of the readFolds function
+## cv_dir - directory to find cv fold indices data and where n-gram tables
+##          are written to
+## ofile_prefix - prefix of output file names
+## ofile_postfix - postfix of output file names
 makeFoldNgramTables <- function(corp_data=
                                 data.frame(ctype=c("blogs", "news", "twitter"),
                                            corp_url=corpus_urls),
@@ -162,15 +165,46 @@ makeFoldNgramTables <- function(corp_data=
     }
 }
 
-makePredictTrigrams <- function(corp_types=c("blogs", "news", "twitter"),
-                                npredict=500,
+
+corp_type="blogs"; npredict=500; i=1
+corp_urls=corpus_urls
+test_lines_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
+test_lines_files=c("fold_1test_blogs.txt", "fold_2test_blogs.txt",
+                   "fold_3test_blogs.txt", "fold_4test_blogs.txt",
+                   "fold_5test_blogs.txt")
+ofile_prefix="fold_"; ofile_postfix="blogs_predict.txt"
+out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
+
+## Creates and write out the trigrams used to determine prediction accuracy.
+## corp_type - string, corpus data to process: "blogs", "news", "twitter"
+## npredict - # of predictions to make per parameter set (gamma2, gamma3)
+## corp_urls - char vector, urls of where the corpora data lives
+## test_lines_dir - string, local dir where test partion indices live
+## test_lines_files - char vector, file names of test indices
+## ofile_prefix - string, output file prefix
+## ofile_postfix - string, output file postfix
+makePredictTrigrams <- function(corp_type="blogs", npredict=500,
+                                corp_urls=corpus_urls,
               test_lines_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
-              test_lines_files=c("fold_1test.txt", "fold_2test.txt",
-                                 "fold_3test.txt", "fold_4test.txt",
-                                 "fold_5test.txt"), folds=1:5,
-                    ofile_prefix="fold_", ofile_postfix="predict.txt",
+              test_lines_files=c("fold_1test_blogs.txt", "fold_2test_blogs.txt",
+                                 "fold_3test_blogs.txt", "fold_4test_blogs.txt",
+                                 "fold_5test_blogs.txt"),
+                    ofile_prefix="fold_", ofile_postfix="blogs_predict.txt",
               out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
-    
+    fold_count <- length(test_lines_files)
+    for(i in 1:fold_count) {
+        cat("reading test partition indices...\n")
+        fold_indices_name <- paste0(test_lines_dir, test_lines_files[i])
+        test_indices <- read.table(fold_indices_name, sep = "\n")$V1
+        cat("reading corpus lines...\n")
+        corpus_lines <- read_lines(corp_urls[corp_type])
+        corpus_lines <- corpus_lines[test_indices]
+        cat("selecting unique random trigrams...\n")
+        predict_trigrams <- getUniqueRandomNgrams(corpus_lines, npredict)
+        ofile_name <- paste0(out_dir, ofile_prefix, i, ofile_postfix)
+        cat("writing unique random trigrams to", ofile_name, "...\n")
+        writeLines(predict_trigrams, ofile_name)
+    }
 }
 
 trainFold <- function(fold, corp_type, train_data_path, test_data_path,
@@ -184,7 +218,7 @@ default_folds <- readFolds(fold_paths)
 out_default <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
 topn=3; corpus_type="blogs"
 ggrid_start=1; folds=default_folds; fold_start=1; nitrs=500
-kfolds=5; out_dir=out_default; seed_val=719
+kfolds=5; out_dir=out_default; seed_val=719; i=1
 
 ## Runs K-Fold CV on corpus_lines and returns a data.frame of topn of best
 ## pairs of (gamma2, gamma3) with the highest prediction accuracy for each
