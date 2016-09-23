@@ -7,30 +7,43 @@ if(!exists('corpus_urls')) {
     corpus_urls <- c("https://www.dropbox.com/s/9dx3oo1w5uf8n1t/en_US.blogs.train.8posteos.txt?dl=1",
                      "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
                      "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
+    names(corpus_urls) <- c("blogs", "news", "twitter")
     # cat("reading corpus_lines...\n")
     # corpus_lines <- read_lines(corpus_urls[1])
 }
 
 if(!exists('fold_paths')) {
-    fold_paths <- c("D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_1blogs.txt",
-                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_2blogs.txt",
-                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_3blogs.txt",
-                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_4blogs.txt",
-                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5blogs.txt")
+    # Note: These files need to be generated from the makeFolds function in KboCv.R
+    blogs_paths <- c("D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_1blogs.txt",
+                     "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_2blogs.txt",
+                     "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_3blogs.txt",
+                     "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_4blogs.txt",
+                     "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5blogs.txt")
+    news_paths <- c("D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_1news.txt",
+                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_2news.txt",
+                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_3news.txt",
+                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_4news.txt",
+                    "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5news.txt")
+    twitr_paths <- c("D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_1twitter.txt",
+                     "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_2twitter.txt",
+                     "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_3twitter.txt",
+                     "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_4twitter.txt",
+                     "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5twitter.txt")
+    fold_paths <- data.frame(blogs=blogs_paths, news=news_paths, twitter=twitr_paths)
 }
 
 source("../predictnextkbo/Katz.R")
 source("KboCv.R")
 
 ## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
-## vector of ints that are indices assigned to a cv fold except last item which
-## is the total line count of all the folds
-readFolds <- function(fold_paths) {
-    fold_count <- length(fold_paths)
+## vector of ints that are indices assigned to a validation fold except for
+## the last item which is the total line count of all the folds
+readFolds <- function(fold_paths, corp_type='blogs') {
+    fold_count <- nrow(fold_paths)
     folds <- vector("list", fold_count+1)
     line_count <- 0
     for(i in 1:fold_count) {
-        path <- fold_paths[i]
+        path <- fold_paths[i, corp_type]
         fold <- read.csv(path, header=FALSE)
         line_count <- line_count + nrow(fold)
         folds[[i]] <- fold$V1
@@ -75,6 +88,7 @@ makeTrainTestNV <- function(folds=default_folds, corp_type="blogs",
                             ofile_prefix="fold_",
                             ofile_postfix=c("train.txt", "test.txt"),
                      out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
+    corpus_lines <- read_lines(corpus_urls[corp_type])
     fold_count <- length(folds) - 1  # because last count is total line count
     results <- list() #vector("list", 2*fold_count)
     ofile_paths <- vector(mode = "character")
