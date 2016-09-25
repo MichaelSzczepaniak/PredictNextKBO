@@ -207,10 +207,34 @@ makePredictTrigrams <- function(corp_type="blogs", npredict=500,
     }
 }
 
-trainFold <- function(fold, corp_type, train_data_path, test_data_path,
-                      ngram_tables, predict_words_path,
+## Computes the prediction accuracy on a cv fold, writes the results out to a
+## file and returns the passed in gamma_grid with the predacc column filled in.
+## fold - int, fold id, if doing 5-folds CV, valid values are 1 thru 5
+## corp_type - string, corpus id, valid values: "blogs", "news", "twitter"
+## ngram_tables_paths - char vectors, paths to the n-gram tables to be used
+##                      for predictions in this fold
+## predict_words_path - string, path to the file holding the trigrams of which
+##                      the tail words are to be predicted
+## gamma_grid - 3 col dataframe: gamma2, gamma3, predacc. These are the bigram
+##                               discount rates, trigram discount rates, and
+##                               the prediction accuracy respectively
+## out_dir - string, path to the directory to write out put
+## ofile_prefix - string, prefix of the output file name
+## ofile_postfix - string, postfix of the output file name
+trainFold <- function(fold, corp_type, ngram_tables, predict_words_path,
+                      gamma_grid,
                       out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
                       ofile_prefix="fold_", ofile_postfix="cv_results.csv") {
+    # Read n-gram tables
+    unigrams <- read.csv(ngram_tables[1])
+    bigrams <- read.csv(ngram_tables[2])
+    trigrams <- read.csv(ngram_tables[3])
+    # Read trigrams to predict, create dataframe of bigram model inputs and
+    # tail words to predict
+    
+    # For each (gamma2, gamma3) pair, predict the tail words of each bigram
+    # input and tally the successes so we can calculate accuracy
+    
     
 }
 
