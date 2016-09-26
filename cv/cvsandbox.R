@@ -54,13 +54,6 @@ readFolds <- function(fold_paths, corp_type='blogs') {
     return(folds)
 }
 
-## Make a test data grid
-gamma_grid <- makeEmptyDataGrid(g2_start=0.1, g2_end=1.9, g3_start=0.1,
-                               g3_end=1.9, intv=0.1)
-## Read folds data
-cat("reading fold data...\n")
-default_folds <- readFolds(fold_paths)
-
 # ng_paths=c("https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1",
 #            "https://www.dropbox.com/s/6cgqa487xb0srbt/en_US.blogs.train.13bigrams.nosins.csv?dl=1",
 #            "https://www.dropbox.com/s/z0rz707mt3da1h1/en_US.blogs.train.14trigrams.nosins.csv?dl=1")
@@ -173,32 +166,45 @@ makePredictTrigrams <- function(corp_types=c("blogs", "news", "twitter"),
     
 }
 
-trainFold <- function(fold, corp_type, train_data_path, test_data_path,
-                      ngram_tables, predict_words_path,
-                      out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
-                      ofile_prefix="fold_", ofile_postfix="cv_results.csv") {
-    
+corpus_lines <- read_lines(corpus_urls[1])  # blogs default
+if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
+if(!exists('default_folds')) {
+    cat("reading fold data...\n")
+    default_folds <- readFolds(fold_paths)
 }
-
-default_folds <- readFolds(fold_paths)
 out_default <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
-topn=3; corpus_type="blogs"
+corpus_type="blogs"
 ggrid_start=1; folds=default_folds; fold_start=1; nitrs=500
 kfolds=5; out_dir=out_default; seed_val=719
 
-## Runs K-Fold CV on corpus_lines and returns a data.frame of topn of best
-## pairs of (gamma2, gamma3) with the highest prediction accuracy for each
-## validation fold
-runKfoldTrials <- function(corpus_lines, gamma_grid, corpus_type="blogs",
-                           topn=3, ggrid_start=1, folds=default_folds,
-                           fold_start=1, nitrs=500,
-                           kfolds=5, out_dir=out_default,
-                           new_seeds=TRUE, seed_val=719) {
-    best_gammas <- data.frame(vfold=rep(1:kfolds, each=topn),
-                              rank=rep(1:topn, kfolds),
-                              gamma2=rep(-1, kfolds*topn),
-                              gamma3=rep(-1, kfolds*topn),
-                              pred_acc=rep(-1, kfolds*topn))
+## Runs K-Fold CV on corpus_lines and fills in the predacc column of gamma_grid
+## dataframe that is passed in.  Three columns in gamma_grid are:
+## gamma2 - bigram discount
+## gamma3 - trigram discount
+## predacc - prediction accuracy est'd from nitrs predicitons on each
+##           (gamma2, gamma3) pair
+## PARAMETERS:
+## ngram_tables - 
+## predict_words_path - 
+## gamma_grid - 3 columns dataframe as described above
+## ggrid_start - row in gamma_grid to start running trials on
+## nitrs - number of predictions to make with each (gamma2, gamma2) pair
+## itr_start - row in the gamma_grid dataframe to start processing from
+## fold - the fold within folds list to run trials on
+## folds - list containing int vectors of indices to use as validation fold
+## corpus_type - type of corpus: "blogs", "news", "twitter"
+## out_dir - directory to write output to
+## ofile_prefix - prefix to use for the output file name
+## ofile_postfix - postfix to use for the output file name
+## new_seeds - ???
+## seed_val - ???
+trainFold <- function(ngram_tables, predict_words_path,
+                      gamma_grid, ggrid_start=1, nitrs=500, itr_start=1,
+                      fold=1, folds=default_folds, corpus_type="blogs",
+                      out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+                      ofile_prefix="fold_", ofile_postfix="cv_results.csv",
+                      new_seeds=TRUE, seed_val=719) {
+    
     out_file <- paste0(out_dir, "cv_", corpus_type, "_", kfolds, "fold_",
                        nitrs, ".csv")
     for(f in fold_start:length(folds)) {
