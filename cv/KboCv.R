@@ -258,6 +258,29 @@ makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
     return(folds)
 }
 
+exportFoldNgramTables <- 
+    function(ngram_table_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+             inFilePrefix="fold_", folds=1:5, table_type="train_blogs_",
+             ngrams=1:3, inFilePostFix="grams.csv") {
+    outer_folds <- vector("list", length(folds))
+    for(i in folds) {
+        inner_ngrams <- vector("list", length(ngrams))
+        for(j in ngrams) {
+            ng_table_path <- paste0(ngram_table_dir, inFilePrefix, i,
+                                    table_type, j, inFilePostFix)
+            ng_table <- read.csv(ng_table_path)
+            inner_ngrams[[j]] <- ng_table
+        }
+        outer_folds[[i]] <- inner_ngrams
+    }
+    ouiFile <- ""  # TODO
+    save(outFile)
+}
+
+importFoldNgramtables <- function() {
+    
+}
+
 makeHeatMapAccVgammas <- function(gamma_df=gamma_df) {
     library(ggplot2)
     p <- ggplot(data = gamma_df, aes(x=gamma2, y=gamma3, fill=predacc)) + geom_tile()
