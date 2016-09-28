@@ -205,10 +205,10 @@ if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
 if(!exists('default_folds')) {
     cat("reading fold data...\n")
     default_folds <- readFolds(fold_paths)
-
-ggrid_start=1; nitrs=500; itr_start=1; fold=1; folds=default_folds;
-corpus_type="blogs"; out_dir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
-ofile_prefix="fold_"; ofile_postfix="cv_results.csv"; seed_val=719; i=1
+}
+write_freq=100; fold=1; predict_words_path=NULL; ggrid_start=1; itr_start=1
+corpus_type="blogs"; out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
+file_prefix="fold_"; ofile_postfix="cv_results.csv"
 
 ## Runs K-Fold CV on corpus_lines and fills in the predacc column of gamma_grid
 ## dataframe that is passed in.  Three columns in gamma_grid are:
@@ -216,92 +216,98 @@ ofile_prefix="fold_"; ofile_postfix="cv_results.csv"; seed_val=719; i=1
 ## gamma3 - trigram discount
 ## predacc - prediction accuracy est'd from nitrs predicitons on each
 ##           (gamma2, gamma3) pair
+##
+## Precondition: Function assumes that fold_ngrams list is in the workspace.
+##               If fold_ngrams is not in the workspace, it attempts to read
+##               this data from out_dir\foldNgramTables.RData.
+##               If this file can't be found, an error will occur.
+##
 ## PARAMETERS:
-## ngram_tables - 
-## predict_words_path - 
+## ngram_tables - k element outer list: one element per fold. Each list
+##                contains inner list of 3 items:
+##                1st inner list is the unigram frequency table
+##                2nd inner list is the bigram frequency table
+##                3rd inner list is the trigram frequency table
 ## gamma_grid - 3 columns dataframe as described above
-## ggrid_start - row in gamma_grid to start running trials on
-## nitrs - number of predictions to make with each (gamma2, gamma2) pair
-## itr_start - row in the gamma_grid dataframe to start processing from
+## write_freq - frequency in which to write updated calculations to output file
 ## fold - the fold within folds list to run trials on
-## folds - list containing int vectors of indices to use as validation fold
+## predict_words_path - path to the trigrams which are to be predicted as part
+##                      of model training. If NULL (default) this file name is 
+##                      assumed to be of the form:
+##                      fold_<fold><corpus_type>_predict.txt
+##                      and located in the out_dir directory
+## ggrid_start - row in gamma_grid to start running trials on
+## itr_start - row in the gamma_grid dataframe to start processing from
 ## corpus_type - type of corpus: "blogs", "news", "twitter"
 ## out_dir - directory to write output to
 ## ofile_prefix - prefix to use for the output file name
 ## ofile_postfix - postfix to use for the output file name
-## new_seeds - ???
-## seed_val - ???
-trainFold <- function(ngram_tables, predict_words_path,
-                      gamma_grid, ggrid_start=1, nitrs=500, itr_start=1,
-                      fold=1, folds=default_folds, corpus_type="blogs",
+trainFold <- function(gamma_grid, write_freq=100, fold=1,
+                      predict_words_path=NULL, ggrid_start=1, itr_start=1,
+                      corpus_type="blogs",
                       out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
-                      ofile_prefix="fold_", ofile_postfix="cv_results.csv",
-                      new_seeds=TRUE, seed_val=719) {
-    
-    out_file <- paste0(out_dir, "cv_", corpus_type, "_", kfolds, "fold_",
-                       nitrs, ".csv")
-    for(f in fold_start:length(folds)) {
-        valid_fold_indices <- folds[[f]]
-        valid_data <- corpus_lines[valid_fold_indices]
-        train_data <- corpus_lines[-valid_fold_indices]
-        
-        # take 80% of training data to build n-gram tables
-        set.seed(getNextSeed(f))  # set for reproducibility
-        train_ngrams_indices <- sample(1:length(train_data), 0.8*length(train_data))
-        train_ngrams_data <- train_data[train_ngrams_indices]
-        train_gammas_data <- train_data[-train_ngrams_indices]
-        unigs <- getNgramTables(1, train_ngrams_data)  # ~ 1 min for blogs
-        unigs <- filter(unigs, freq > 1)
-        bigrs <- getNgramTables(2, train_ngrams_data)  # ~ 4 mins for blogs
-        bigrs <- filter(bigrs, freq > 1)
-        trigs <- getNgramTables(3, train_ngrams_data)  # ~ 8.5 mins
-        trigs <- filter(trigs, freq > 1)
-        
-        # This is the actual training steps.  Take nitrs trigram samples from
-        # the training setthat weren't used to build n-gram tables and make
-        # predictions using each (gamma2, gamma3) pair in gamma_grid.
-        trigrams_to_predict <- getUniqueRandomTrigrams(train_gammas_data, nitrs)
-        # experiment results:
-        exp_results <- data.frame(gamma2=as.numeric(rep(-1, nrow(gamma_grid))),
-                                  gamma3=as.numeric(rep(-1, nrow(gamma_grid))),
-                                  acc=as.numeric(rep(-1, nrow(gamma_grid))))
-        for(experiment in ggrid_start:nrow(gamma_grid)) {
-            good_predictions <- 0
-            gam2 <- gamma_grid$gamma2[experiment]
-            gam3 <- gamma_grid$gamma3[experiment]
-            # Now try to predict each of the unknown trigram tails with
-            # current (gam2, gam3):
-            for(ttp in trigrams_to_predict) {
-                target_word <- str_split_fixed(ttp, "_", 3)[1,3]
-                bigPre <- paste(str_split_fixed(ttp, "_", 3)[1,1:2],
-                                collapse = "_")
-                top_pred <- getTopPrediction(bigPre, gam2, gam3,
-                                             unigs, bigrs, trigs)
-                good_predictions <- good_predictions + (target_word == top_pred)
-            }
-            accuracy <- good_predictions / nitrs
-            exp_results$acc[experiment] <- accuracy
-            exp_results$gamma2[experiment] <- gam2
-            exp_results$gamma3[experiment] <- gam3
-            out_line <- sprintf("%s%s%s%s%s%s%s%s", gam2, ",",gam3, ",",
-                                accuracy, ",",  as.character(Sys.time()), "\n")
-            cat(out_line)  # feedback for during very long set of computations
-        }
-        # get the topn most accurate predictions
-        exp_results <- arrange(exp_results, desc(acc))[1:topn,]
-        # load topn results
-        start_block <- ((f - 1) * topn) + 1
-        end_block <- f * topn
-        best_gammas$vfold[start_block:end_block] <- f
-        best_gammas$gamma2[start_block:end_block] <- exp_results$gamma2[1:topn]
-        best_gammas$gamma3[start_block:end_block] <- exp_results$gamma3[1:topn]
-        best_gammas$pred_acc[start_block:end_block] <- exp_results$acc[1:topn]
-        
-        write.csv(best_gammas, out_file, row.names = FALSE)
-        cat("results written to:", out_file, "\n")
+                      file_prefix="fold_", ofile_postfix="cv_results.csv") {
+    if(is.null(predict_words_path)) {
+        predict_words_path <- paste0(out_dir, file_prefix, fold,
+                                     corpus_type, "_predict.txt")
     }
+    predict_words <- read_lines(predict_words_path)
+    if(!exists("fold_ngrams")) { 
+        fold_ngrams <- importFoldNgramtables()
+        cat("Fold ngram table data read has completed.\n")
+    }
+    out_file <- paste0(out_dir, "cv_", corpus_type, "_", fold, "fold_",
+                       nitrs, ".csv")
+    exp_results <- data.frame(gamma2=as.numeric(rep(-1, nrow(gamma_grid))),
+                              gamma3=as.numeric(rep(-1, nrow(gamma_grid))),
+                              acc=as.numeric(rep(-1, nrow(gamma_grid))),
+                              predict=as.numeric(rep(-1, nrow(gamma_grid))),
+                              success=as.numeric(rep(-1, nrow(gamma_grid))))
+    # Get ngram tables for this fold.
+    unigs <- fold_ngrams[[fold]][1][[1]]
+    bigrs <- fold_ngrams[[fold]][2][[1]]
+    trigs <- fold_ngrams[[fold]][3][[1]]
+    for(i in ggrid_start:nrow(gamma_grid)) {
+        good_predictions <- 0
+        g2 <- gamma_grid$gamma2[i]
+        g3 <- gamma_grid$gamma3[i]
+        # These are the actual training steps.  Take trigram samples from
+        # the training set that weren't used to build n-gram tables and make
+        # predictions using each (gamma2, gamma3) pair in gamma_grid.
+        for(j in itr_start:length(predict_words)) {
+            ttp <- predict_words[j]  # target to predict
+            target_word <- str_split_fixed(ttp, "_", 3)[1,3]
+            bigPre <- paste(str_split_fixed(ttp, "_", 3)[1,1:2],
+                            collapse = "_")
+            top_pred <- getTopPrediction(bigPre, g2, g3,
+                                         unigs, bigrs, trigs)
+            good_predictions <- good_predictions + (target_word == top_pred)
+            accuracy <- good_predictions / j
+            if(j %% write_freq == 0) {
+                exp_results$gamma2[i] <- g2
+                exp_results$gamma3[i] <- g3
+                exp_results$acc[i] <- accuracy
+                exp_results$predict[i] <- j
+                exp_results$success[i] <- good_predictions
+                write.csv(exp_results, out_file, row.names = FALSE)
+                cat("g2=", g2, ", g3=", g3, "iteration", j,
+                    "update written", "\n")
+            }
+        }
+        exp_results$gamma2[i] <- g2
+        exp_results$gamma3[i] <- g3
+        exp_results$acc[i] <- accuracy
+        exp_results$predict <- j
+        exp_results$success <- good_predictions
+        write.csv(exp_results, out_file, row.names = FALSE)
+        out_line <- sprintf("%s%s%s%s%s%s%s%s", g2, ",",g3, ",",
+                            accuracy, ",",  as.character(Sys.time()), "\n")
+        cat(out_line)  # feedback for during very long set of computations
+    }
+    cat("*** FINAL *** results written to:\n", out_file, "\n",
+        "at ", as.character(Sys.time()))
     
-    return(best_gammas)
+    return(exp_results)
 }
 
 
