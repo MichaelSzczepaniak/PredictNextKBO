@@ -250,27 +250,39 @@ makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
     return(folds)
 }
 
+## Export the ngram frequency tables for each CV fold
+## ngram_table_dir - 
+## in_file_prefix - 
+## folds - 
+## table_type - 
+## ngrams - 
+## in_file_postfix - 
 exportFoldNgramTables <- 
     function(ngram_table_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
-             inFilePrefix="fold_", folds=1:5, table_type="train_blogs_",
-             ngrams=1:3, inFilePostFix="grams.csv") {
-    outer_folds <- vector("list", length(folds))
-    for(i in folds) {
-        inner_ngrams <- vector("list", length(ngrams))
-        for(j in ngrams) {
-            ng_table_path <- paste0(ngram_table_dir, inFilePrefix, i,
-                                    table_type, j, inFilePostFix)
-            ng_table <- read.csv(ng_table_path)
-            inner_ngrams[[j]] <- ng_table
+             in_file_prefix="fold_", folds=1:5, table_type="train_blogs_",
+             ngrams=1:3, in_file_postfix="grams.csv") {
+        fold_ngrams <- vector("list", length(folds))
+        for(i in folds) {
+            inner_ngrams <- vector("list", length(ngrams))
+            for(j in ngrams) {
+                ng_table_path <- paste0(ngram_table_dir, in_file_prefix, i,
+                                        table_type, j, in_file_postfix)
+                ng_table <- read.csv(ng_table_path)
+                inner_ngrams[[j]] <- ng_table
+            }
+            fold_ngrams[[i]] <- inner_ngrams
         }
-        outer_folds[[i]] <- inner_ngrams
+        ofile_path <- paste0(ngram_table_dir, file="foldNgramTables.RData")
+        save(fold_ngrams, file=ofile_path)
     }
-    ouiFile <- ""  # TODO
-    save(outFile)
-}
 
-importFoldNgramtables <- function() {
+importFoldNgramtables <- 
+    function(ngram_table_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
     
+        ofile_path <- paste0(ngram_table_dir, file="foldNgramTables.RData")
+        load(ofile_path)
+        
+        return(fold_ngrams)
 }
 
 makeHeatMapAccVgammas <- function(gamma_df=gamma_df) {
