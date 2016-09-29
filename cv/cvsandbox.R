@@ -295,8 +295,10 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
                 exp_results$predict[i] <- j
                 exp_results$success[i] <- good_predictions
                 write.csv(exp_results, out_file, row.names = FALSE)
-                cat("g2=", g2, ", g3=", g3, "iteration", j,
-                    "update written", as.character(Sys.time()), "\n")
+                console_msg <- paste0("iteration ", j, ",", g2, ",", g3, ",",
+                                      accuracy, ",", as.character(Sys.time()),
+                                      "\n")
+                cat(console_msg)
             }
         }
         exp_results$gamma2[i] <- g2
