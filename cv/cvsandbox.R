@@ -29,7 +29,8 @@ if(!exists('fold_paths')) {
                      "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_3twitter.txt",
                      "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_4twitter.txt",
                      "D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/fold_5twitter.txt")
-    fold_paths <- data.frame(blogs=blogs_paths, news=news_paths, twitter=twitr_paths)
+    fold_paths <- data.frame(blogs=blogs_paths, news=news_paths,
+                             twitter=twitr_paths, stringsAsFactors = FALSE)
 }
 
 source("../predictnextkbo/Katz.R")
@@ -202,13 +203,13 @@ makePredictTrigrams <- function(corp_type="blogs", npredict=500,
 
 corpus_lines <- read_lines(corpus_urls[1])  # blogs default
 if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
-if(!exists('default_folds')) {
-    cat("reading fold data...\n")
-    default_folds <- readFolds(fold_paths)
-}
-write_freq=100; fold=1; predict_words_path=NULL; ggrid_start=1; itr_start=1
-corpus_type="blogs"; out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
-file_prefix="fold_"; ofile_postfix="cv_results.csv"
+# if(!exists('default_folds')) {
+#     cat("reading fold data...\n")
+#     default_folds <- readFolds(fold_paths)
+# }
+# write_freq=100; fold=1; predict_words_path=NULL; ggrid_start=1; itr_start=1
+# corpus_type="blogs"; out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
+# file_prefix="fold_"; ofile_postfix="cv_results.csv"
 
 ## Runs K-Fold CV on corpus_lines and fills in the predacc column of gamma_grid
 ## dataframe that is passed in.  Three columns in gamma_grid are:
@@ -216,6 +217,8 @@ file_prefix="fold_"; ofile_postfix="cv_results.csv"
 ## gamma3 - trigram discount
 ## predacc - prediction accuracy est'd from nitrs predicitons on each
 ##           (gamma2, gamma3) pair
+## Function writes results to: out_dir/cv_<corpus_type>_<fold>fold_<nitrs>.csv
+## E.g out_dir/cv_blogs_1fold_500.csv
 ##
 ## Precondition: Function assumes that fold_ngrams list is in the workspace.
 ##               If fold_ngrams is not in the workspace, it attempts to read
@@ -252,12 +255,14 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
                                      corpus_type, "_predict.txt")
     }
     predict_words <- read_lines(predict_words_path)
+    nitrs <- length(predict_words)
     if(!exists("fold_ngrams")) { 
         fold_ngrams <- importFoldNgramtables()
-        cat("Fold ngram table data read has completed.\n")
+        cat("Fold ngram table data read has completed at",
+            as.character(Sys.time()), "\n")
     }
-    out_file <- paste0(out_dir, "cv_", corpus_type, "_", fold, "fold_",
-                       nitrs, ".csv")
+    out_file <- paste0(out_dir, "cv_", corpus_type, "_", "fold", fold, "_itrs",
+                       nitrs, ".csv")  # e.g. cv_blogs_fold1_itrs500.csv
     exp_results <- data.frame(gamma2=as.numeric(rep(-1, nrow(gamma_grid))),
                               gamma3=as.numeric(rep(-1, nrow(gamma_grid))),
                               acc=as.numeric(rep(-1, nrow(gamma_grid))),
@@ -274,7 +279,7 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
         # These are the actual training steps.  Take trigram samples from
         # the training set that weren't used to build n-gram tables and make
         # predictions using each (gamma2, gamma3) pair in gamma_grid.
-        for(j in itr_start:length(predict_words)) {
+        for(j in itr_start:nitrs) {
             ttp <- predict_words[j]  # target to predict
             target_word <- str_split_fixed(ttp, "_", 3)[1,3]
             bigPre <- paste(str_split_fixed(ttp, "_", 3)[1,1:2],
@@ -291,14 +296,14 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
                 exp_results$success[i] <- good_predictions
                 write.csv(exp_results, out_file, row.names = FALSE)
                 cat("g2=", g2, ", g3=", g3, "iteration", j,
-                    "update written", "\n")
+                    "update written", as.character(Sys.time()), "\n")
             }
         }
         exp_results$gamma2[i] <- g2
         exp_results$gamma3[i] <- g3
         exp_results$acc[i] <- accuracy
-        exp_results$predict <- j
-        exp_results$success <- good_predictions
+        exp_results$predict[i] <- j
+        exp_results$success[i] <- good_predictions
         write.csv(exp_results, out_file, row.names = FALSE)
         out_line <- sprintf("%s%s%s%s%s%s%s%s", g2, ",",g3, ",",
                             accuracy, ",",  as.character(Sys.time()), "\n")
