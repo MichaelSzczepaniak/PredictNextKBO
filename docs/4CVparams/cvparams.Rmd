@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "September 12, 2016 (initial release)"
+date: "September 30, 2016 (initial release)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
@@ -12,12 +12,18 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Introduction
-In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values for the two parameters in the model which were the discount rates at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.  In the final installment of this 4-part series, we'll determine good values for these discount rates using 5-fold cross-validation on the training partitions of each of the corpora: Blogs, New, and Twitter.  After selecting the best looking values, we'll conclude the analysis with an accuracy estimate using the held out test set.
+In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values for the two parameters in the model which were the discount rates at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.  In the final installment of this 4-part series, we'll determine good values for these discount rates using 5-fold cross-validation on the training partitions of the Blogs corpora.  After selecting the best looking values, we'll conclude the analysis with an accuracy estimate using the held out test set.
 
 ## How Does Cross-Validation Work?
-In their book [*An Introduction to Statistical Learning* James, Witten, Hastie, and Tibshirani [1]](http://www-bcf.usc.edu/~gareth/ISL/), this how they describe K-Fold Cross-Validation:
+In their book [*An Introduction to Statistical Learning* [1]](http://www-bcf.usc.edu/~gareth/ISL/) James, Witten, Hastie, and Tibshirani describe K-Fold Cross-Validation as follows:
 
-*This approach involves randomly dividing the set of observations into k groups, or **folds** of approximately equal size.  The first fold is treated as a validation set, and method is fit on the remaining k - 1 folds.*
+*This approach involves randomly dividing the set of observations into k groups, or **folds** of approximately equal size.  The first fold is treated as a validation set, and method is fit on the remaining k - 1 folds.*  
+
+A good way to start understanding this approach is to first visualize breaking the data into k roughly equal partitions.  In our case k=5, so we can use the picture below to illustrate the process.  
+
+<img src="5fold_cv.png" alt="K-Fold Cross Validation" height=242 width=242/>
+
+Start by holding out the white partition 1 (20% of the data) and using all the data in the blue remaining portions to build the unigram, bigram and trigram tables used for the model...
 
 ### Alogrithm for finding the best discount rates
 The following procedure was followed to 
@@ -31,3 +37,57 @@ The following procedure was followed to
 [https://www.youtube.com/watch?v=nZAM5OXrktY](https://www.youtube.com/watch?v=nZAM5OXrktY)  
 [4] Trevor Hastie & Rob Tibshirani on Right & Wrong Ways to do CV (part 3) -  
 [https://www.youtube.com/watch?v=S06JpVoNaA0](https://www.youtube.com/watch?v=S06JpVoNaA0)
+
+### Appendix
+
+```{r eval=FALSE}
+## Returns a list with nfolds items. Each list contains the indices for the 
+## data in each fold. Indices are then written to files: one set of indices
+## per fold.
+## 
+## indices_count - int that are the number of items to take a sample from. If
+##                 sample data is a data frame, this is typically nrows(data).
+## nfolds - number of folds in the data to make
+## write_folds - TRUE if indices for each fold should be written to files
+## fold_indices_file_prefix - start of the output file name
+## fold_indices_file_postfix - end of the output file name
+## out_dir - directory to write the output files if write_folds == TRUE
+## seed_value - seed value for random selects, set for reproducibility
+makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
+                      fold_indices_file_prefix="fold_",
+                      fold_indices_file_postfix="blogs",
+                      fold_indices_file_ext=".txt",
+                      out_dir="./", seed_value=719) {
+    folds <- vector("list", nfolds)
+    inds <- 1:indices_count
+    min_per_fold <- length(inds) / nfolds # min # of samples in each fold
+    for(i in 1:nfolds) {
+        samp_inds = sample(inds, min_per_fold) # get indices for fold
+        folds[[i]] <- samp_inds
+        inds <- setdiff(inds, samp_inds) # remaining after taking for fold
+        if(i == nfolds) {
+            cat("there are ", length(inds), "remaining samples to distribute.\n")
+            for(j in 1:length(inds)) {
+                samp <- sample(inds, 1)
+                folds[[j]] <- c(folds[[j]], samp)
+                inds <- setdiff(inds, samp)
+            }
+        }
+    }
+    # write out the indices in each fold
+    if(write_folds) {
+        for(k in 1:nfolds) {
+            out_file <- sprintf("%s%s%s%s", fold_indices_file_prefix, k,
+                                fold_indices_file_postfix,
+                                fold_indices_file_ext)
+            out_file <- sprintf("%s%s", out_dir, out_file)
+            write.table(folds[[k]], out_file, quote=FALSE, sep="\n",
+                        row.names=FALSE, col.names=FALSE)
+            cat("Finished writing", out_file, "\n")
+        }
+    }
+    
+    return(folds)
+}
+```
+
