@@ -4,6 +4,7 @@
 # if(length(new.packages) > 0) install.packages(new.packages)
 # lapply(libs, require, character.only=TRUE)
 library(dplyr)
+library(dtplyr)
 library(readr)
 library(stringr)
 library(quanteda)

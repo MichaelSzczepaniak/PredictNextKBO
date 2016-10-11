@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "September 30, 2016 (initial release)"
+date: "October xx, 2016 (initial release)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
@@ -12,21 +12,23 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Introduction
-In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values for the two parameters in the model which were the discount rates at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.  In the final installment of this 4-part series, we'll determine good values for these discount rates using 5-fold cross-validation on the training partitions of the Blogs corpora.  After selecting the best looking values, we'll conclude the analysis with an accuracy estimate using the held out test set.
+In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values for the two parameters in the model which were the discount rates at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.  In the final installment of this 4-part series, we'll determine good values for these discount rates using 5-fold cross-validation on the training partitions of the Blogs corpus.  After selecting the best looking values, we'll conclude the analysis with an accuracy estimate using the held out test set.
 
 ## How Does Cross-Validation Work?
 In their book [*An Introduction to Statistical Learning* [1]](http://www-bcf.usc.edu/~gareth/ISL/) James, Witten, Hastie, and Tibshirani describe K-Fold Cross-Validation as follows:
 
-*This approach involves randomly dividing the set of observations into k groups, or **folds** of approximately equal size.  The first fold is treated as a validation set, and method is fit on the remaining k - 1 folds.*  
+*This approach involves randomly dividing the set of observations into k groups, or **folds** of approximately equal size.  The first fold is treated as a validation set, and the method is fit on the remaining k - 1 folds.*  
 
 A good way to start understanding this approach is to first visualize breaking the data into k roughly equal partitions.  In our case k=5, so we can use the picture below to illustrate the process.  
 
 <img src="5fold_cv.png" alt="K-Fold Cross Validation" height=242 width=242/>
 
-Start by holding out the white partition 1 (20% of the data) and using all the data in the blue remaining portions to build the unigram, bigram and trigram tables used for the model...
-
 ### Alogrithm for finding the best discount rates
-The following procedure was followed to 
+The following procedure was followed: Start by holding out the white partition 1 (20% of the overall data) and designate that partition as the **validation set**.  The remaining data is partitioned into two groups: 1) the **training set** and 2) the **test set**.  Think of the training set as the blue area and the test set as the gold area.  The blue data is used to build the model which in addition to the algorithm described in part 3, consists of three n-gram tables: a unigram table, a bigram table, and a trigram table.  We also need to specify two parameters: a bigram discount rate, and a trigram discount rate.  Using all the data shown in blue, we build the n-gram tables.  Then, for each pair of designated discount rates, we select a random trigrams from the gold data, split out the bigram consisting of the first two words (aka bigram prefix), and use this bigram to predict the last word of the original trigram (aka trigram tail).  If the predicted word matches the trigram tail, it's considered a correct prediction.
+
+During this process, we keep track of the number of correct predictions and calculate a training accuracy rate for each pair of bigram and trigram discount rates.  We then select that best bigram/trigram discount rate pair and use it on the validation set (designated in white) to get an estimate for the true (test set) accuracy.
+
+We then repeat these steps holding out partion 2 as the validation set, rebuild the model from the blue data, test against the gold, select the best discount rate pair and use this to predict that validation set.  After completing the process on the fifth and last partion.  The discounts the gave the highest test set accuracy was selected.
 
 ### References
 [1] An Introduction to Statistical Learning -  
