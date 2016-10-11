@@ -218,6 +218,7 @@ makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
                       fold_indices_file_ext=".txt",
                       out_dir="./",
                       seed_value=719) {
+    set.seed(seed_value)
     folds <- vector("list", nfolds)
     inds <- 1:indices_count
     min_per_fold <- length(inds) / nfolds # min # of samples in each fold
