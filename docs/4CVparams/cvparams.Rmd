@@ -24,13 +24,13 @@ A good way to start understanding this approach is to first visualize breaking t
 <img src="5fold_cv.png" alt="K-Fold Cross Validation" height=242 width=242/>
 
 ### Cross-Validation Alogrithm
-The following procedure was followed: Start by creating each of the 5 folds using the **makeFolds** function.  Note all code referred to in this document will are listed in the **Appendix** unless described otherwise.  In each fold there are 3 partitions.  The first partion is the **validation set** shown as the white box (20% of the overall data).  The remaining data is partitioned into two groups: 1) the **training set** (80% of remaining non-validation data) shown as the blue boxes and 2) the **test set** (20% of remaining non-validation data) shown as the gold boxes.  The blue data is used to build the model which in addition to the algorithm described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the **makeFoldNgramTables** function.  We also need to specify two parameters: a bigram discount rate, and a trigram discount rate.  These were the $\gamma_2$ and $\gamma_3$ variables described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model).
+The following procedure was followed: Start by creating each of the 5 folds using the **makeFolds** function.  Note all code referred to in this document will are listed in the **Appendix** unless described otherwise.  In each fold there are 3 partitions.  The first partion is the **validation set** depicted by the white box in each fold (20% of the data in a fold).  The remaining data is partitioned into two groups: 1) the **training set** (80% of remaining non-validation data) depicted as the blue boxes and 2) the **test set** (20% of remaining non-validation data) depicted as the gold boxes.  The blue data is used to build the model which in addition to the algorithm described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the **makeFoldNgramTables** function.  We also need to specify two parameters: a bigram discount rate, and a trigram discount rate.  These were the $\gamma_2$ and $\gamma_3$ variables described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model).
 
-Using all the data shown in blue, we build the n-gram tables.  Then, for each pair of designated discount rates, we select a random trigrams from the gold data, split out the bigram consisting of the first two words (aka bigram prefix), and use this bigram to predict the last word of the original trigram (aka trigram tail).  If the predicted word matches the trigram tail, it's considered a correct prediction.
+Using all the data shown in blue, we build the n-gram tables and select 500 random trigrams from the gold data.  Predictions of the last word (referred to as the **trigram tail**) in the random trigams were made from the first two words (referred to as the **bigram prefix**) for each $(\gamma_2, \gamma_3)$ pair.  If the predicted word matched the trigram tail, the prediction was considered correct and the training accuracy was calculated by dividing the number of correct predictions by the total number of predictions (500).  $(\gamma_2, \gamma_3)$ pairs with the highest training accuracy were used to make 500 predictions on the validation set.
 
-During this process, we keep track of the number of correct predictions and calculate a training accuracy rate for each pair of bigram and trigram discount rates.  We then select that best bigram/trigram discount rate pair and use it on the validation set (designated in white) to get an estimate for the true (test set) accuracy.
+This process was repeated for each fold and the $(\gamma_2, \gamma_3)$ pairs which gave the best accuracy on the validation fold collected were selected.
 
-We then repeat these steps holding out partion 2 as the validation set, rebuild the model from the blue data, test against the gold, select the best discount rate pair and use this to predict that validation set.  After completing the process on the fifth and last partion.  The discounts the gave the highest test set accuracy was selected.
+
 
 ### References
 [1] An Introduction to Statistical Learning -  
@@ -97,7 +97,7 @@ makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
 ```
 ```{r eval=FALSE}
 if(!exists('fold_paths')) {
-    # Note: These files need to be generated from the makeFolds function in KboCv.R
+    # Note: These files need to be generated from the makeFolds function
     blogs_paths <- c("https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1",
                      "https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1",
                      "https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1",
