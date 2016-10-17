@@ -39,6 +39,11 @@ source("KboCv.R")
 ## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
 ## vector of ints that are indices assigned to a validation fold except for
 ## the last item which is the total line count of all the folds
+## fold_paths - a 5 x 3 data frame where each column if a corpus type:
+##              "blogs", "news", or "twitter" and each row is a fold.
+##              Each element is a url to a file which defines the indices
+##              of the validation set for the corpus type and fold
+## corp_type - character string, type of corpus: "blogs", "news", "twitter"
 readFolds <- function(fold_paths, corp_type='blogs') {
     fold_count <- nrow(fold_paths)
     folds <- vector("list", fold_count+1)
@@ -220,10 +225,14 @@ if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
 ## Function writes results to: out_dir/cv_<corpus_type>_<fold>fold_<nitrs>.csv
 ## E.g out_dir/cv_blogs_1fold_500.csv
 ##
-## Precondition: Function assumes that fold_ngrams list is in the workspace.
-##               If fold_ngrams is not in the workspace, it attempts to read
-##               this data from out_dir\foldNgramTables.RData.
-##               If this file can't be found, an error will occur.
+## Precondition: 1) Function assumes that fold_ngrams list is in the workspace.
+##                  If fold_ngrams is not in the workspace, it attempts to read
+##                  this data from out_dir/foldNgramTables.RData.
+##                  If this file can't be found, an error will occur.
+##               2) If the path to the predict trigrams is not supplied, 
+##                  function attempts to read this data from
+##                  out_dir/fold_xy_predict.txt where x is the fold #: 1-5 and 
+##                  y is the corpus type e.g. 'blogs', 'news', or 'twitter'
 ##
 ## PARAMETERS:
 ## ngram_tables - k element outer list: one element per fold. Each list

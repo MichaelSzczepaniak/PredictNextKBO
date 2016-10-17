@@ -251,23 +251,32 @@ makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
     return(folds)
 }
 
-## Export the ngram frequency tables for each CV fold
-## ngram_table_dir - 
-## in_file_prefix - 
-## folds - 
-## table_type - 
-## ngrams - 
-## in_file_postfix - 
+## Exports ngram frequency tables for a series of CV folds as an RData object.
+##
+## Precondition: n-gram tables are assumed to have file names of the form:
+##               fold_<fold><table_type><ngram>grams.csv
+##
+## ngram_table_dir - path to the dir containing n-gram tables for each fold.
+##                   This dir is also were output is written.
+## in_file_prefix - char vector representing the first part of the name for
+##                  n-gram tables used for each cv fold, default="fold_"
+## folds - vector of ints representing the folds in the cv, default=1:5
+## table_type - char vector representing the type of corpus in which n-grams
+##              are being constructed, valid values: "train_blogs_",
+##              "train_news_", and "train_twitter_"
+## ngrams - vector of ints representing the n-gram tables to be exported,
+##          default 1:3 (unigram, bigram, trigram)
+## in_file_suffix - suffix of the n-gram table to import
 exportFoldNgramTables <- 
     function(ngram_table_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
              in_file_prefix="fold_", folds=1:5, table_type="train_blogs_",
-             ngrams=1:3, in_file_postfix="grams.csv") {
+             ngrams=1:3, in_file_suffix="grams.csv") {
         fold_ngrams <- vector("list", length(folds))
         for(i in folds) {
             inner_ngrams <- vector("list", length(ngrams))
             for(j in ngrams) {
                 ng_table_path <- paste0(ngram_table_dir, in_file_prefix, i,
-                                        table_type, j, in_file_postfix)
+                                        table_type, j, in_file_suffix)
                 ng_table <- read.csv(ng_table_path)
                 inner_ngrams[[j]] <- ng_table
             }
