@@ -132,12 +132,21 @@ $(document).ready(function () {
 <p>In their book <a href="http://www-bcf.usc.edu/~gareth/ISL/"><em>An Introduction to Statistical Learning</em> [1]</a> James, Witten, Hastie, and Tibshirani describe K-Fold Cross-Validation as follows:</p>
 <p><em>This approach involves randomly dividing the set of observations into k groups, or <strong>folds</strong> of approximately equal size. The first fold is treated as a validation set, and the method is fit on the remaining k - 1 folds.</em></p>
 <p>A good way to start understanding this approach is to first visualize breaking the data into k roughly equal partitions. In our case k=5, so we can use the picture below to illustrate the process.</p>
-<p><img src="data:image/png;base64,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" alt="K-Fold Cross Validation" height="242" width="242/"></p>
+<p><img src="data:image/png;base64,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" alt="K-Fold Cross Validation" height="242" width="242/"></p>
 <div id="cross-validation-alogrithm" class="section level3">
 <h3>Cross-Validation Alogrithm</h3>
-<p>The following procedure was followed: Start by creating each of the 5 folds using the <strong>makeFolds</strong> function. Note all code referred to in this document will are listed in the <strong>Appendix</strong> unless described otherwise. In each fold there are 3 partitions. The first partion is the <strong>validation set</strong> depicted by the white box in each fold (20% of the data in a fold). The remaining data is partitioned into two groups: 1) the <strong>training set</strong> (80% of remaining non-validation data) depicted as the blue boxes and 2) the <strong>test set</strong> (20% of remaining non-validation data) depicted as the gold boxes. The blue data is used to build the model which in addition to the algorithm described in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Part 3</a>, consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the <strong>makeFoldNgramTables</strong> function. We also need to specify two parameters: a bigram discount rate, and a trigram discount rate. These were the <span class="math inline">\(\gamma_2\)</span> and <span class="math inline">\(\gamma_3\)</span> variables described in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Part 3</a>.</p>
+<p>Note all code referred to in this document is listed in the <strong>Appendix</strong>.</p>
+<p>The following procedure was followed: Start by creating each of the 5 folds using the <strong>makeFolds</strong> function. In each fold there are 3 partitions. The first partion is the <strong>validation set</strong> depicted by the white box in each fold (20% of the data in a fold). The remaining data is partitioned into two groups: 1) the <strong>training set</strong> (80% of remaining non-validation data) depicted as the blue boxes and 2) the <strong>test set</strong> (20% of remaining non-validation data) depicted as the gold boxes. The blue data is used to build the model which in addition to the algorithm described in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Part 3</a>, consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the <strong>makeFoldNgramTables</strong> function. We also need to specify two parameters: a bigram discount rate, and a trigram discount rate. These were the <span class="math inline">\(\gamma_2\)</span> and <span class="math inline">\(\gamma_3\)</span> variables described in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Part 3</a>.</p>
 <p>Using all the data shown in blue, we build the n-gram tables and select 500 random trigrams from the gold data. Predictions of the last word (referred to as the <strong>trigram tail</strong>) in the random trigams were made from the first two words (referred to as the <strong>bigram prefix</strong>) for each <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pair. If the predicted word matched the trigram tail, the prediction was considered correct and the training accuracy was calculated by dividing the number of correct predictions by the total number of predictions (500). <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pairs with the highest training accuracy were used to make 500 predictions on the validation set.</p>
 <p>This process was repeated for each fold and the <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pairs which gave the best accuracy on the validation fold collected were selected.</p>
+</div>
+<div id="setting-up-the-cv-trials" class="section level3">
+<h3>Setting up the CV Trials</h3>
+<p>TODO</p>
+</div>
+<div id="running-the-cv-trials" class="section level3">
+<h3>Running the CV Trials</h3>
+<p>TODO</p>
 </div>
 <div id="references" class="section level3">
 <h3>References</h3>
@@ -159,7 +168,7 @@ $(document).ready(function () {
 ## indices_count - int that are the number of items to take a sample from. If
 ##                 sample data is a data frame, this is typically nrows(data).
 ## nfolds - number of folds in the data to make
-## write_folds - TRUE if indices for each fold should be written to files
+## write_folds - boolean, TRUE if indices for each fold should be written to files
 ## fold_indices_file_prefix - start of the output file name
 ## fold_indices_file_postfix - end of the output file name
 ## out_dir - directory to write the output files if write_folds == TRUE
@@ -222,6 +231,30 @@ makeFolds &lt;- function(indices_count, nfolds=5, write_folds=TRUE,
                              twitter=twitr_paths, stringsAsFactors = FALSE)
 }
 
+## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
+## vector of ints that are indices assigned to a validation fold except for
+## the last item which is the total line count of all the folds
+## fold_paths - a 5 x 3 data frame where each column if a corpus type:
+##              &quot;blogs&quot;, &quot;news&quot;, or &quot;twitter&quot; and each row is a fold.
+##              Each element is a url to a file which defines the indices
+##              of the validation set for the corpus type and fold
+## corp_type - character string, type of corpus: &quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;
+readFolds &lt;- function(fold_paths, corp_type='blogs') {
+    fold_count &lt;- nrow(fold_paths)
+    folds &lt;- vector(&quot;list&quot;, fold_count+1)
+    line_count &lt;- 0
+    for(i in 1:fold_count) {
+        path &lt;- fold_paths[i, corp_type]
+        fold &lt;- read.csv(path, header=FALSE)
+        line_count &lt;- line_count + nrow(fold)
+        folds[[i]] &lt;- fold$V1
+    }
+    
+    folds[[fold_count + 1]] &lt;- line_count
+    
+    return(folds)
+}
+
 if(!exists('default_folds')) {
     cat(&quot;reading fold data...\n&quot;)
     default_folds &lt;- readFolds(fold_paths)
@@ -235,10 +268,77 @@ if(!exists('corpus_urls')) {
     names(corpus_urls) &lt;- c(&quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;)
 }
 
-## Reads in the training set, creates the 1 thru n-gram frequency tables and
-## writes them out to files.
-## corp_data - 2 col dataframe: 1st column, ctype are the corpora type
-##                              2nd column, corp_urls are the urls for the
+## Returns a list of int vectors which are indices of training and testing sets 
+## in the Non-Validation partition.  The odd numbered lists contain the indices
+## of the lines used for the training set.  The even numbered lists contain
+## the indices of the lines used for testing set.  All of these sets are
+## assumed to be within the Non-Validation fold/partition.
+##
+## folds - list of int vectors of size length(folds), indices of
+##         validation partitions, indices not in this set are futher
+##         segmented in training and testing sets
+## corp_type - character string, type of corpus: &quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;
+## train_fraction - float betwee 0 and 1 (non-inclusive), fraction of samples
+##                  used for the test set, 
+## seed_vals - seed values to use for train/test set selections
+## ofile_prefix - string, output file name prefix
+## ofile_postfix - string, output file name postfix
+## out_dir - string, directory to write output files to
+makeTrainTestNV &lt;- function(folds=default_folds, corp_type=&quot;blogs&quot;,
+                            train_fraction=0.8,
+                            seed_vals=c(7,11,13,17,19),
+                            ofile_prefix=&quot;fold_&quot;,
+                            ofile_postfix=c(&quot;train.txt&quot;, &quot;test.txt&quot;),
+                     out_dir=&quot;D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/&quot;) {
+    corpus_lines &lt;- read_lines(corpus_urls[corp_type])
+    fold_count &lt;- length(folds) - 1  # because last count is total line count
+    results &lt;- list() #vector(&quot;list&quot;, 2*fold_count)
+    ofile_paths &lt;- vector(mode = &quot;character&quot;)
+    for(i in 1:fold_count) {
+        seed_val &lt;- seed_vals[i]
+        set.seed(seed_val)  # set for reproducibility
+        validn_fold_indices &lt;- folds[[i]]
+        non_validn_fold_indices &lt;- setdiff(1:folds[[fold_count+1]],
+                                           validn_fold_indices)
+        validn_data &lt;- corpus_lines[validn_fold_indices]
+        # Take 80% (train set) of non-validation data to build n-gram tables 
+        # and use the other 20% (test set) to make predicitions on.
+        train_ngrams_indices &lt;-
+            sample(non_validn_fold_indices,
+                   train_fraction * length(non_validn_fold_indices))
+        test_gammas_indices &lt;- setdiff(non_validn_fold_indices,
+                                       train_ngrams_indices)
+        
+        name_prefix &lt;- sprintf(&quot;%s%s%s%s&quot;,&quot;fold_&quot;, i, &quot;train_&quot;, corp_type)
+        fname &lt;- sprintf(&quot;%s%s%s&quot;, out_dir, name_prefix, &quot;.txt&quot;)
+        results[[name_prefix]] &lt;- train_ngrams_indices
+        write.table(train_ngrams_indices, fname, row.names=FALSE, col.names=FALSE)
+        ofile_paths &lt;- append(ofile_paths, fname)
+        
+        name_prefix &lt;- sprintf(&quot;%s%s%s%s&quot;,&quot;fold_&quot;, i, &quot;test_&quot;, corp_type)
+        fname &lt;- sprintf(&quot;%s%s%s&quot;, out_dir, name_prefix, &quot;.txt&quot;)
+        results[[name_prefix]] &lt;- test_gammas_indices
+        write.table(test_gammas_indices, fname, row.names=FALSE, col.names=FALSE)
+        ofile_paths &lt;- append(ofile_paths, fname)
+    }
+    
+    return(results)
+}
+
+## Creates the 1 thru ng (n-gram) frequency tables for the training portion of each non-validation
+## partition for each fold in the cv. Results are written to files named using the following
+## format: fold_&lt;fold number&gt;&lt;corpus_type&gt;&lt;ngram&gt;grams.csv where:
+##         fold number - valid values: 1:5, corpus_type  - valid values: &quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;
+##         ngram - valid values: 1:3
+##         e.g. fold_1train_blogs_1grams.csv
+##
+## Precondition - Files containing the indices for the training and test lines for
+##                for the non-validation partition of each fold have been created
+##                (using the makeTrainTestNV function)
+##
+## corp_data - 2 col dataframe: 1st column, ctype are the corpora types
+##                                          (blogs, news, twitter)
+##                              2nd column, corp_urls are the urls to the
 ##                                          data of each corpora type
 ## ng - int vector specifying the n-grams to be created
 ## folds - list of int lists which are the output of the readFolds function
@@ -267,6 +367,7 @@ makeFoldNgramTables &lt;- function(corp_data=
                 fpath &lt;- sprintf(&quot;%s%s&quot;, cv_dir, fname)
                 cat(&quot;Start table&quot;, fname, &quot;building @ time:&quot;,
                     as.character(Sys.time()), &quot;\n&quot;)
+                # geNgramTables defined in http://rpubs.com/mszczepaniak/predictkbo3model
                 ngram_table &lt;- getNgramTables(g, train_fold)
                 ngram_table &lt;- filter(ngram_table, freq &gt; 1) # remove singletons
                 write.csv(ngram_table, fpath, row.names = FALSE)
@@ -275,6 +376,206 @@ makeFoldNgramTables &lt;- function(corp_data=
             }
         }
     }
+}</code></pre>
+<pre class="r"><code>## Exports ngram frequency tables for a series of CV folds as an RData object.
+##
+## Precondition: n-gram tables are assumed to have file names of the form:
+##               fold_&lt;fold&gt;&lt;table_type&gt;&lt;ngram&gt;grams.csv
+##
+## ngram_table_dir - path to the dir containing n-gram tables for each fold.
+##                   This dir is also were output is written.
+## in_file_prefix - char vector representing the first part of the name for
+##                  n-gram tables used for each cv fold, default=&quot;fold_&quot;
+## folds - vector of ints representing the folds in the cv, default=1:5
+## table_type - char vector representing the type of corpus in which n-grams
+##              are being constructed, valid values: &quot;train_blogs_&quot;,
+##              &quot;train_news_&quot;, and &quot;train_twitter_&quot;
+## ngrams - vector of ints representing the n-gram tables to be exported,
+##          default 1:3 (unigram, bigram, trigram)
+## in_file_suffix - suffix of the n-gram table to import
+exportFoldNgramTables &lt;- 
+    function(ngram_table_dir=&quot;D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/&quot;,
+             in_file_prefix=&quot;fold_&quot;, folds=1:5, table_type=&quot;train_blogs_&quot;,
+             ngrams=1:3, in_file_suffix=&quot;grams.csv&quot;) {
+        fold_ngrams &lt;- vector(&quot;list&quot;, length(folds))
+        for(i in folds) {
+            inner_ngrams &lt;- vector(&quot;list&quot;, length(ngrams))
+            for(j in ngrams) {
+                ng_table_path &lt;- paste0(ngram_table_dir, in_file_prefix, i,
+                                        table_type, j, in_file_suffix)
+                ng_table &lt;- read.csv(ng_table_path)
+                inner_ngrams[[j]] &lt;- ng_table
+            }
+            fold_ngrams[[i]] &lt;- inner_ngrams
+        }
+        ofile_path &lt;- paste0(ngram_table_dir, file=&quot;foldNgramTables.RData&quot;)
+        save(fold_ngrams, file=ofile_path)
+    }
+
+## Loads and returns a list of lists with 5 outer list elements corresponding
+## to a CV fold number and 3 inner list elements which contain the unigram (1),
+## bigram (index 2) and trigram (index 3) tables for a particular fold.
+importFoldNgramtables &lt;- 
+    function(ngram_table_dir=&quot;D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/&quot;) {
+    
+        ofile_path &lt;- paste0(ngram_table_dir, file=&quot;foldNgramTables.RData&quot;)
+        load(ofile_path)
+        
+        return(fold_ngrams)
+}</code></pre>
+<pre class="r"><code>## Returns a single word character vector which has the highest probability of
+## completing the trigram starting with the two words defined in the bigram
+## prefix parameter bigPre based on the KBO Trigram alogrithm.
+##
+## bigPre - last 2 words of user input separated by an _ e.g. sell_the
+##          This is also referred to as the bigram prefix in code futher
+##          downstream.
+## gamma2 - bigram discount rate
+## gamma3 - trigram discount rate
+## unigrams - 2 column data.frame: ngram - a unigram in the corpus of interest
+##                                 freq - count of this unigram in the corpus
+## bigrams - 2 column data.frame: ngram - a bigram in the corpus of interest
+##                                freq - count of this bigram in the corpus
+## trigrams - 2 column data.frame: ngram - a trigram in the corpus of interest
+##                                 freq - count of this trigram in the corpus
+getTopPrediction &lt;- function(bigPre, gamma2, gamma3,
+                             unigrams, bigrams, trigrams) {
+    obs_trigs &lt;- getObsTrigs(bigPre, trigrams)
+    unobs_trig_tails &lt;- getUnobsTrigTails(obs_trigs$ngram, unigrams)
+    bo_bigrams &lt;- getBoBigrams(bigPre, unobs_trig_tails)
+    # separate bigrams which use eqn 10 and those that use 16
+    obs_bo_bigrams &lt;- getObsBoBigrams(bigPre, unobs_trig_tails, bigrams)
+    unobs_bo_bigrams &lt;- getUnobsBoBigrams(bigPre, unobs_trig_tails,
+                                          obs_bo_bigrams)
+    # calc obs'd bigram prob's from eqn 10
+    qbo_obs_bigrams &lt;- getObsBigProbs(obs_bo_bigrams, unigrams, gamma2)
+    # calc alpha_big &amp; unobs'd bigram prob's from eqn 16
+    unig &lt;- str_split(bigPre, &quot;_&quot;)[[1]][2]
+    unig &lt;- unigrams[unigrams$ngram == unig,]
+    alpha_big &lt;- getAlphaBigram(unig, bigrams, gamma2)
+    qbo_unobs_bigrams &lt;- getQboUnobsBigrams(unobs_bo_bigrams, unigrams, alpha_big)
+    # calc trigram probabilities - start with observed trigrams: eqn 12
+    qbo_obs_trigrams &lt;- getObsTriProbs(obs_trigs, bigrams, bigPre, gamma3)
+    # finally, calc trigram unobserved probabilities: eqn 17
+    bigram &lt;- bigrams[bigrams$ngram %in% bigPre, ]
+    alpha_trig &lt;- getAlphaTrigram(obs_trigs, bigram, gamma3)
+    qbo_unobs_trigrams &lt;- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
+                                           qbo_unobs_bigrams, alpha_trig)
+    qbo_trigrams &lt;- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
+    qbo_trigrams &lt;- qbo_trigrams[order(-qbo_trigrams$prob), ]
+    predicted_word &lt;- qbo_trigrams[1]$ngram
+    predicted_word &lt;- str_split(predicted_word, &quot;_&quot;)[[1]][3]
+    
+    return(predicted_word)
+}
+
+## Runs K-Fold CV on corpus_lines and fills in the predacc column of gamma_grid
+## dataframe that is passed in.  Three columns in gamma_grid are:
+## gamma2 - bigram discount
+## gamma3 - trigram discount
+## predacc - prediction accuracy est'd from nitrs predicitons on each
+##           (gamma2, gamma3) pair
+## Function writes results to: out_dir/cv_&lt;corpus_type&gt;_&lt;fold&gt;fold_&lt;nitrs&gt;.csv
+## E.g out_dir/cv_blogs_1fold_500.csv
+##
+## Precondition: 1) Function assumes that fold_ngrams list is in the workspace.
+##                  If fold_ngrams is not in the workspace, it attempts to read
+##                  this data from out_dir/foldNgramTables.RData.
+##                  If this file can't be found, an error will occur.
+##               2) If the path to the predict trigrams is not supplied, 
+##                  function attempts to read this data from
+##                  out_dir/fold_xy_predict.txt where x is the fold #: 1-5 and 
+##                  y is the corpus type e.g. 'blogs', 'news', or 'twitter'
+##
+## PARAMETERS:
+## ngram_tables - k element outer list: one element per fold. Each list
+##                contains inner list of 3 items:
+##                1st inner list is the unigram frequency table
+##                2nd inner list is the bigram frequency table
+##                3rd inner list is the trigram frequency table
+## gamma_grid - 3 columns dataframe as described above
+## write_freq - frequency in which to write updated calculations to output file
+## fold - the fold within folds list to run trials on
+## predict_words_path - path to the trigrams which are to be predicted as part
+##                      of model training. If NULL (default) this file name is 
+##                      assumed to be of the form:
+##                      fold_&lt;fold&gt;&lt;corpus_type&gt;_predict.txt
+##                      and located in the out_dir directory
+## ggrid_start - row in gamma_grid to start running trials on
+## itr_start - row in the gamma_grid dataframe to start processing from
+## corpus_type - type of corpus: &quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;
+## out_dir - directory to write output to
+## ofile_prefix - prefix to use for the output file name
+## ofile_postfix - postfix to use for the output file name
+trainFold &lt;- function(gamma_grid, write_freq=100, fold=1,
+                      predict_words_path=NULL, ggrid_start=1, itr_start=1,
+                      corpus_type=&quot;blogs&quot;, out_dir,
+                      file_prefix=&quot;fold_&quot;, ofile_postfix=&quot;cv_results.csv&quot;) {
+    if(is.null(predict_words_path)) {
+        predict_words_path &lt;- paste0(out_dir, file_prefix, fold,
+                                     corpus_type, &quot;_predict.txt&quot;)
+    }
+    predict_words &lt;- read_lines(predict_words_path)
+    nitrs &lt;- length(predict_words)
+    if(!exists(&quot;fold_ngrams&quot;)) { 
+        fold_ngrams &lt;- importFoldNgramtables()
+        cat(&quot;Fold ngram table data read has completed at&quot;,
+            as.character(Sys.time()), &quot;\n&quot;)
+    }
+    out_file &lt;- paste0(out_dir, &quot;cv_&quot;, corpus_type, &quot;_&quot;, &quot;fold&quot;, fold, &quot;_itrs&quot;,
+                       nitrs, &quot;.csv&quot;)  # e.g. cv_blogs_fold1_itrs500.csv
+    exp_results &lt;- data.frame(gamma2=as.numeric(rep(-1, nrow(gamma_grid))),
+                              gamma3=as.numeric(rep(-1, nrow(gamma_grid))),
+                              acc=as.numeric(rep(-1, nrow(gamma_grid))),
+                              predict=as.numeric(rep(-1, nrow(gamma_grid))),
+                              success=as.numeric(rep(-1, nrow(gamma_grid))))
+    # Get ngram tables for this fold.
+    unigs &lt;- fold_ngrams[[fold]][1][[1]]
+    bigrs &lt;- fold_ngrams[[fold]][2][[1]]
+    trigs &lt;- fold_ngrams[[fold]][3][[1]]
+    for(i in ggrid_start:nrow(gamma_grid)) {
+        good_predictions &lt;- 0
+        g2 &lt;- gamma_grid$gamma2[i]
+        g3 &lt;- gamma_grid$gamma3[i]
+        # These are the actual training steps.  Take trigram samples from
+        # the training set that weren't used to build n-gram tables and make
+        # predictions using each (gamma2, gamma3) pair in gamma_grid.
+        for(j in itr_start:nitrs) {
+            ttp &lt;- predict_words[j]  # target to predict
+            target_word &lt;- str_split_fixed(ttp, &quot;_&quot;, 3)[1,3]
+            bigPre &lt;- paste(str_split_fixed(ttp, &quot;_&quot;, 3)[1,1:2],
+                            collapse = &quot;_&quot;)
+            top_pred &lt;- getTopPrediction(bigPre, g2, g3,
+                                         unigs, bigrs, trigs)
+            good_predictions &lt;- good_predictions + (target_word == top_pred)
+            accuracy &lt;- good_predictions / j
+            if(j %% write_freq == 0) {
+                exp_results$gamma2[i] &lt;- g2
+                exp_results$gamma3[i] &lt;- g3
+                exp_results$acc[i] &lt;- accuracy
+                exp_results$predict[i] &lt;- j
+                exp_results$success[i] &lt;- good_predictions
+                write.csv(exp_results, out_file, row.names = FALSE)
+                console_msg &lt;- paste0(&quot;iteration &quot;, j, &quot;,&quot;, g2, &quot;,&quot;, g3, &quot;,&quot;,
+                                      accuracy, &quot;,&quot;, as.character(Sys.time()),
+                                      &quot;\n&quot;)
+                cat(console_msg)
+            }
+        }
+        exp_results$gamma2[i] &lt;- g2
+        exp_results$gamma3[i] &lt;- g3
+        exp_results$acc[i] &lt;- accuracy
+        exp_results$predict[i] &lt;- j
+        exp_results$success[i] &lt;- good_predictions
+        write.csv(exp_results, out_file, row.names = FALSE)
+        out_line &lt;- sprintf(&quot;%s%s%s%s%s%s%s%s&quot;, g2, &quot;,&quot;,g3, &quot;,&quot;,
+                            accuracy, &quot;,&quot;,  as.character(Sys.time()), &quot;\n&quot;)
+        cat(out_line)  # feedback for during very long set of computations
+    }
+    cat(&quot;*** FINAL *** results written to:\n&quot;, out_file, &quot;\n&quot;,
+        &quot;at &quot;, as.character(Sys.time()))
+    
+    return(exp_results)
 }</code></pre>
 </div>
 </div>

@@ -21,16 +21,24 @@ In their book [*An Introduction to Statistical Learning* [1]](http://www-bcf.usc
 
 A good way to start understanding this approach is to first visualize breaking the data into k roughly equal partitions.  In our case k=5, so we can use the picture below to illustrate the process.  
 
-<img src="5fold_cv.png" alt="K-Fold Cross Validation" height=242 width=242/>
+<img src="5fold_cv2.png" alt="K-Fold Cross Validation" height=242 width=242/>
 
 ### Cross-Validation Alogrithm
-The following procedure was followed: Start by creating each of the 5 folds using the **makeFolds** function.  Note all code referred to in this document will are listed in the **Appendix** unless described otherwise.  In each fold there are 3 partitions.  The first partion is the **validation set** depicted by the white box in each fold (20% of the data in a fold).  The remaining data is partitioned into two groups: 1) the **training set** (80% of remaining non-validation data) depicted as the blue boxes and 2) the **test set** (20% of remaining non-validation data) depicted as the gold boxes.  The blue data is used to build the model which in addition to the algorithm described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the **makeFoldNgramTables** function.  We also need to specify two parameters: a bigram discount rate, and a trigram discount rate.  These were the $\gamma_2$ and $\gamma_3$ variables described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model).
+Note all code referred to in this document is listed in the **Appendix**.
+
+The following procedure was followed:  Start by creating each of the 5 folds using the **makeFolds** function.  In each fold there are 3 partitions.  The first partion is the **validation set** depicted by the white box in each fold (20% of the data in a fold).  The remaining data is partitioned into two groups: 1) the **training set** (80% of remaining non-validation data) depicted as the blue boxes and 2) the **test set** (20% of remaining non-validation data) depicted as the gold boxes.  The blue data is used to build the model which in addition to the algorithm described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the **makeFoldNgramTables** function.  We also need to specify two parameters: a bigram discount rate, and a trigram discount rate.  These were the $\gamma_2$ and $\gamma_3$ variables described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model).
 
 Using all the data shown in blue, we build the n-gram tables and select 500 random trigrams from the gold data.  Predictions of the last word (referred to as the **trigram tail**) in the random trigams were made from the first two words (referred to as the **bigram prefix**) for each $(\gamma_2, \gamma_3)$ pair.  If the predicted word matched the trigram tail, the prediction was considered correct and the training accuracy was calculated by dividing the number of correct predictions by the total number of predictions (500).  $(\gamma_2, \gamma_3)$ pairs with the highest training accuracy were used to make 500 predictions on the validation set.
 
 This process was repeated for each fold and the $(\gamma_2, \gamma_3)$ pairs which gave the best accuracy on the validation fold collected were selected.
 
+### Setting up the CV Trials
 
+TODO
+
+### Running the CV Trials
+
+TODO
 
 ### References
 [1] An Introduction to Statistical Learning -  
@@ -52,7 +60,7 @@ This process was repeated for each fold and the $(\gamma_2, \gamma_3)$ pairs whi
 ## indices_count - int that are the number of items to take a sample from. If
 ##                 sample data is a data frame, this is typically nrows(data).
 ## nfolds - number of folds in the data to make
-## write_folds - TRUE if indices for each fold should be written to files
+## write_folds - boolean, TRUE if indices for each fold should be written to files
 ## fold_indices_file_prefix - start of the output file name
 ## fold_indices_file_postfix - end of the output file name
 ## out_dir - directory to write the output files if write_folds == TRUE
@@ -117,6 +125,30 @@ if(!exists('fold_paths')) {
                              twitter=twitr_paths, stringsAsFactors = FALSE)
 }
 
+## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
+## vector of ints that are indices assigned to a validation fold except for
+## the last item which is the total line count of all the folds
+## fold_paths - a 5 x 3 data frame where each column if a corpus type:
+##              "blogs", "news", or "twitter" and each row is a fold.
+##              Each element is a url to a file which defines the indices
+##              of the validation set for the corpus type and fold
+## corp_type - character string, type of corpus: "blogs", "news", "twitter"
+readFolds <- function(fold_paths, corp_type='blogs') {
+    fold_count <- nrow(fold_paths)
+    folds <- vector("list", fold_count+1)
+    line_count <- 0
+    for(i in 1:fold_count) {
+        path <- fold_paths[i, corp_type]
+        fold <- read.csv(path, header=FALSE)
+        line_count <- line_count + nrow(fold)
+        folds[[i]] <- fold$V1
+    }
+    
+    folds[[fold_count + 1]] <- line_count
+    
+    return(folds)
+}
+
 if(!exists('default_folds')) {
     cat("reading fold data...\n")
     default_folds <- readFolds(fold_paths)
@@ -130,10 +162,77 @@ if(!exists('corpus_urls')) {
     names(corpus_urls) <- c("blogs", "news", "twitter")
 }
 
-## Reads in the training set, creates the 1 thru n-gram frequency tables and
-## writes them out to files.
-## corp_data - 2 col dataframe: 1st column, ctype are the corpora type
-##                              2nd column, corp_urls are the urls for the
+## Returns a list of int vectors which are indices of training and testing sets 
+## in the Non-Validation partition.  The odd numbered lists contain the indices
+## of the lines used for the training set.  The even numbered lists contain
+## the indices of the lines used for testing set.  All of these sets are
+## assumed to be within the Non-Validation fold/partition.
+##
+## folds - list of int vectors of size length(folds), indices of
+##         validation partitions, indices not in this set are futher
+##         segmented in training and testing sets
+## corp_type - character string, type of corpus: "blogs", "news", "twitter"
+## train_fraction - float betwee 0 and 1 (non-inclusive), fraction of samples
+##                  used for the test set, 
+## seed_vals - seed values to use for train/test set selections
+## ofile_prefix - string, output file name prefix
+## ofile_postfix - string, output file name postfix
+## out_dir - string, directory to write output files to
+makeTrainTestNV <- function(folds=default_folds, corp_type="blogs",
+                            train_fraction=0.8,
+                            seed_vals=c(7,11,13,17,19),
+                            ofile_prefix="fold_",
+                            ofile_postfix=c("train.txt", "test.txt"),
+                     out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
+    corpus_lines <- read_lines(corpus_urls[corp_type])
+    fold_count <- length(folds) - 1  # because last count is total line count
+    results <- list() #vector("list", 2*fold_count)
+    ofile_paths <- vector(mode = "character")
+    for(i in 1:fold_count) {
+        seed_val <- seed_vals[i]
+        set.seed(seed_val)  # set for reproducibility
+        validn_fold_indices <- folds[[i]]
+        non_validn_fold_indices <- setdiff(1:folds[[fold_count+1]],
+                                           validn_fold_indices)
+        validn_data <- corpus_lines[validn_fold_indices]
+        # Take 80% (train set) of non-validation data to build n-gram tables 
+        # and use the other 20% (test set) to make predicitions on.
+        train_ngrams_indices <-
+            sample(non_validn_fold_indices,
+                   train_fraction * length(non_validn_fold_indices))
+        test_gammas_indices <- setdiff(non_validn_fold_indices,
+                                       train_ngrams_indices)
+        
+        name_prefix <- sprintf("%s%s%s%s","fold_", i, "train_", corp_type)
+        fname <- sprintf("%s%s%s", out_dir, name_prefix, ".txt")
+        results[[name_prefix]] <- train_ngrams_indices
+        write.table(train_ngrams_indices, fname, row.names=FALSE, col.names=FALSE)
+        ofile_paths <- append(ofile_paths, fname)
+        
+        name_prefix <- sprintf("%s%s%s%s","fold_", i, "test_", corp_type)
+        fname <- sprintf("%s%s%s", out_dir, name_prefix, ".txt")
+        results[[name_prefix]] <- test_gammas_indices
+        write.table(test_gammas_indices, fname, row.names=FALSE, col.names=FALSE)
+        ofile_paths <- append(ofile_paths, fname)
+    }
+    
+    return(results)
+}
+
+## Creates the 1 thru ng (n-gram) frequency tables for the training portion of each non-validation
+## partition for each fold in the cv. Results are written to files named using the following
+## format: fold_<fold number><corpus_type><ngram>grams.csv where:
+##         fold number - valid values: 1:5, corpus_type  - valid values: "blogs", "news", "twitter"
+##         ngram - valid values: 1:3
+##         e.g. fold_1train_blogs_1grams.csv
+##
+## Precondition - Files containing the indices for the training and test lines for
+##                for the non-validation partition of each fold have been created
+##                (using the makeTrainTestNV function)
+##
+## corp_data - 2 col dataframe: 1st column, ctype are the corpora types
+##                                          (blogs, news, twitter)
+##                              2nd column, corp_urls are the urls to the
 ##                                          data of each corpora type
 ## ng - int vector specifying the n-grams to be created
 ## folds - list of int lists which are the output of the readFolds function
@@ -162,6 +261,7 @@ makeFoldNgramTables <- function(corp_data=
                 fpath <- sprintf("%s%s", cv_dir, fname)
                 cat("Start table", fname, "building @ time:",
                     as.character(Sys.time()), "\n")
+                # geNgramTables defined in http://rpubs.com/mszczepaniak/predictkbo3model
                 ngram_table <- getNgramTables(g, train_fold)
                 ngram_table <- filter(ngram_table, freq > 1) # remove singletons
                 write.csv(ngram_table, fpath, row.names = FALSE)
@@ -170,6 +270,216 @@ makeFoldNgramTables <- function(corp_data=
             }
         }
     }
+}
+```
+
+```{r eval=FALSE}
+
+```
+
+```{r eval=FALSE}
+## Exports ngram frequency tables for a series of CV folds as an RData object.
+##
+## Precondition: n-gram tables are assumed to have file names of the form:
+##               fold_<fold><table_type><ngram>grams.csv
+##
+## ngram_table_dir - path to the dir containing n-gram tables for each fold.
+##                   This dir is also were output is written.
+## in_file_prefix - char vector representing the first part of the name for
+##                  n-gram tables used for each cv fold, default="fold_"
+## folds - vector of ints representing the folds in the cv, default=1:5
+## table_type - char vector representing the type of corpus in which n-grams
+##              are being constructed, valid values: "train_blogs_",
+##              "train_news_", and "train_twitter_"
+## ngrams - vector of ints representing the n-gram tables to be exported,
+##          default 1:3 (unigram, bigram, trigram)
+## in_file_suffix - suffix of the n-gram table to import
+exportFoldNgramTables <- 
+    function(ngram_table_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+             in_file_prefix="fold_", folds=1:5, table_type="train_blogs_",
+             ngrams=1:3, in_file_suffix="grams.csv") {
+        fold_ngrams <- vector("list", length(folds))
+        for(i in folds) {
+            inner_ngrams <- vector("list", length(ngrams))
+            for(j in ngrams) {
+                ng_table_path <- paste0(ngram_table_dir, in_file_prefix, i,
+                                        table_type, j, in_file_suffix)
+                ng_table <- read.csv(ng_table_path)
+                inner_ngrams[[j]] <- ng_table
+            }
+            fold_ngrams[[i]] <- inner_ngrams
+        }
+        ofile_path <- paste0(ngram_table_dir, file="foldNgramTables.RData")
+        save(fold_ngrams, file=ofile_path)
+    }
+
+## Loads and returns a list of lists with 5 outer list elements corresponding
+## to a CV fold number and 3 inner list elements which contain the unigram (1),
+## bigram (index 2) and trigram (index 3) tables for a particular fold.
+importFoldNgramtables <- 
+    function(ngram_table_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
+    
+        ofile_path <- paste0(ngram_table_dir, file="foldNgramTables.RData")
+        load(ofile_path)
+        
+        return(fold_ngrams)
+}
+```
+
+```{r eval=FALSE}
+## Returns a single word character vector which has the highest probability of
+## completing the trigram starting with the two words defined in the bigram
+## prefix parameter bigPre based on the KBO Trigram alogrithm.
+##
+## bigPre - last 2 words of user input separated by an _ e.g. sell_the
+##          This is also referred to as the bigram prefix in code futher
+##          downstream.
+## gamma2 - bigram discount rate
+## gamma3 - trigram discount rate
+## unigrams - 2 column data.frame: ngram - a unigram in the corpus of interest
+##                                 freq - count of this unigram in the corpus
+## bigrams - 2 column data.frame: ngram - a bigram in the corpus of interest
+##                                freq - count of this bigram in the corpus
+## trigrams - 2 column data.frame: ngram - a trigram in the corpus of interest
+##                                 freq - count of this trigram in the corpus
+getTopPrediction <- function(bigPre, gamma2, gamma3,
+                             unigrams, bigrams, trigrams) {
+    obs_trigs <- getObsTrigs(bigPre, trigrams)
+    unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
+    bo_bigrams <- getBoBigrams(bigPre, unobs_trig_tails)
+    # separate bigrams which use eqn 10 and those that use 16
+    obs_bo_bigrams <- getObsBoBigrams(bigPre, unobs_trig_tails, bigrams)
+    unobs_bo_bigrams <- getUnobsBoBigrams(bigPre, unobs_trig_tails,
+                                          obs_bo_bigrams)
+    # calc obs'd bigram prob's from eqn 10
+    qbo_obs_bigrams <- getObsBigProbs(obs_bo_bigrams, unigrams, gamma2)
+    # calc alpha_big & unobs'd bigram prob's from eqn 16
+    unig <- str_split(bigPre, "_")[[1]][2]
+    unig <- unigrams[unigrams$ngram == unig,]
+    alpha_big <- getAlphaBigram(unig, bigrams, gamma2)
+    qbo_unobs_bigrams <- getQboUnobsBigrams(unobs_bo_bigrams, unigrams, alpha_big)
+    # calc trigram probabilities - start with observed trigrams: eqn 12
+    qbo_obs_trigrams <- getObsTriProbs(obs_trigs, bigrams, bigPre, gamma3)
+    # finally, calc trigram unobserved probabilities: eqn 17
+    bigram <- bigrams[bigrams$ngram %in% bigPre, ]
+    alpha_trig <- getAlphaTrigram(obs_trigs, bigram, gamma3)
+    qbo_unobs_trigrams <- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
+                                           qbo_unobs_bigrams, alpha_trig)
+    qbo_trigrams <- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
+    qbo_trigrams <- qbo_trigrams[order(-qbo_trigrams$prob), ]
+    predicted_word <- qbo_trigrams[1]$ngram
+    predicted_word <- str_split(predicted_word, "_")[[1]][3]
+    
+    return(predicted_word)
+}
+
+## Runs K-Fold CV on corpus_lines and fills in the predacc column of gamma_grid
+## dataframe that is passed in.  Three columns in gamma_grid are:
+## gamma2 - bigram discount
+## gamma3 - trigram discount
+## predacc - prediction accuracy est'd from nitrs predicitons on each
+##           (gamma2, gamma3) pair
+## Function writes results to: out_dir/cv_<corpus_type>_<fold>fold_<nitrs>.csv
+## E.g out_dir/cv_blogs_1fold_500.csv
+##
+## Precondition: 1) Function assumes that fold_ngrams list is in the workspace.
+##                  If fold_ngrams is not in the workspace, it attempts to read
+##                  this data from out_dir/foldNgramTables.RData.
+##                  If this file can't be found, an error will occur.
+##               2) If the path to the predict trigrams is not supplied, 
+##                  function attempts to read this data from
+##                  out_dir/fold_xy_predict.txt where x is the fold #: 1-5 and 
+##                  y is the corpus type e.g. 'blogs', 'news', or 'twitter'
+##
+## PARAMETERS:
+## ngram_tables - k element outer list: one element per fold. Each list
+##                contains inner list of 3 items:
+##                1st inner list is the unigram frequency table
+##                2nd inner list is the bigram frequency table
+##                3rd inner list is the trigram frequency table
+## gamma_grid - 3 columns dataframe as described above
+## write_freq - frequency in which to write updated calculations to output file
+## fold - the fold within folds list to run trials on
+## predict_words_path - path to the trigrams which are to be predicted as part
+##                      of model training. If NULL (default) this file name is 
+##                      assumed to be of the form:
+##                      fold_<fold><corpus_type>_predict.txt
+##                      and located in the out_dir directory
+## ggrid_start - row in gamma_grid to start running trials on
+## itr_start - row in the gamma_grid dataframe to start processing from
+## corpus_type - type of corpus: "blogs", "news", "twitter"
+## out_dir - directory to write output to
+## ofile_prefix - prefix to use for the output file name
+## ofile_postfix - postfix to use for the output file name
+trainFold <- function(gamma_grid, write_freq=100, fold=1,
+                      predict_words_path=NULL, ggrid_start=1, itr_start=1,
+                      corpus_type="blogs", out_dir,
+                      file_prefix="fold_", ofile_postfix="cv_results.csv") {
+    if(is.null(predict_words_path)) {
+        predict_words_path <- paste0(out_dir, file_prefix, fold,
+                                     corpus_type, "_predict.txt")
+    }
+    predict_words <- read_lines(predict_words_path)
+    nitrs <- length(predict_words)
+    if(!exists("fold_ngrams")) { 
+        fold_ngrams <- importFoldNgramtables()
+        cat("Fold ngram table data read has completed at",
+            as.character(Sys.time()), "\n")
+    }
+    out_file <- paste0(out_dir, "cv_", corpus_type, "_", "fold", fold, "_itrs",
+                       nitrs, ".csv")  # e.g. cv_blogs_fold1_itrs500.csv
+    exp_results <- data.frame(gamma2=as.numeric(rep(-1, nrow(gamma_grid))),
+                              gamma3=as.numeric(rep(-1, nrow(gamma_grid))),
+                              acc=as.numeric(rep(-1, nrow(gamma_grid))),
+                              predict=as.numeric(rep(-1, nrow(gamma_grid))),
+                              success=as.numeric(rep(-1, nrow(gamma_grid))))
+    # Get ngram tables for this fold.
+    unigs <- fold_ngrams[[fold]][1][[1]]
+    bigrs <- fold_ngrams[[fold]][2][[1]]
+    trigs <- fold_ngrams[[fold]][3][[1]]
+    for(i in ggrid_start:nrow(gamma_grid)) {
+        good_predictions <- 0
+        g2 <- gamma_grid$gamma2[i]
+        g3 <- gamma_grid$gamma3[i]
+        # These are the actual training steps.  Take trigram samples from
+        # the training set that weren't used to build n-gram tables and make
+        # predictions using each (gamma2, gamma3) pair in gamma_grid.
+        for(j in itr_start:nitrs) {
+            ttp <- predict_words[j]  # target to predict
+            target_word <- str_split_fixed(ttp, "_", 3)[1,3]
+            bigPre <- paste(str_split_fixed(ttp, "_", 3)[1,1:2],
+                            collapse = "_")
+            top_pred <- getTopPrediction(bigPre, g2, g3,
+                                         unigs, bigrs, trigs)
+            good_predictions <- good_predictions + (target_word == top_pred)
+            accuracy <- good_predictions / j
+            if(j %% write_freq == 0) {
+                exp_results$gamma2[i] <- g2
+                exp_results$gamma3[i] <- g3
+                exp_results$acc[i] <- accuracy
+                exp_results$predict[i] <- j
+                exp_results$success[i] <- good_predictions
+                write.csv(exp_results, out_file, row.names = FALSE)
+                console_msg <- paste0("iteration ", j, ",", g2, ",", g3, ",",
+                                      accuracy, ",", as.character(Sys.time()),
+                                      "\n")
+                cat(console_msg)
+            }
+        }
+        exp_results$gamma2[i] <- g2
+        exp_results$gamma3[i] <- g3
+        exp_results$acc[i] <- accuracy
+        exp_results$predict[i] <- j
+        exp_results$success[i] <- good_predictions
+        write.csv(exp_results, out_file, row.names = FALSE)
+        out_line <- sprintf("%s%s%s%s%s%s%s%s", g2, ",",g3, ",",
+                            accuracy, ",",  as.character(Sys.time()), "\n")
+        cat(out_line)  # feedback for during very long set of computations
+    }
+    cat("*** FINAL *** results written to:\n", out_file, "\n",
+        "at ", as.character(Sys.time()))
+    
+    return(exp_results)
 }
 ```
 
