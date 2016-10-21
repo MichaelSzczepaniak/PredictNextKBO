@@ -326,4 +326,27 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
     return(exp_results)
 }
 
+# store the paths to fold results files
+f1 <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
+f2 <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
+f3 <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
+f4 <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
+f5 <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
 
+f1xyz <- f1
+# http://stackoverflow.com/questions/7531868
+names(f1xyz)[names(f1xyz) == 'gamma2'] <- 'x'
+
+## Converts a dataframe of xyz values to a matrix which can be consumed by
+## the r base graphic function contour
+convertDfToContourMatrix <- function(df, xname, yname, zname) {
+    
+}
+g2_name <- seq(.1, 1.9, .1)
+g3_name <- seq(.1, 1.9, .1)
+mat3d <- matrix(-1, nrow = length(g2_name), ncol = length(g3_name))
+for(i in 1:length(g2_name)) {
+    for(j in 1:length(g3_name)) {
+        
+    }
+}

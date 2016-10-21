@@ -336,19 +336,10 @@ make3dAccVgammas <- function(df=gamma_df) {
 }
 
 
+f1 <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
+f2 <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
+f3 <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
+f4 <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
+f5 <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
 
 
-## heat map experimentation
-# http://www.sthda.com/english/wiki/ggplot2-quick-correlation-matrix-heatmap-r-software-and-data-visualization
-
-# mydata <- mtcars[, c(1,3,4,5,6,7)]
-# # create data to make heat map from
-# cormat <- round(cor(mydata),2)
-# library(reshape2)
-# melted_cormat <- melt(cormat)
-# library(ggplot2)
-# p <- ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) + geom_tile()
-# p <- p + scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
-#                               midpoint = 0, limit = c(-1,1), space = "Lab", 
-#                               name="Pearson\nCorrelation")
-# p
