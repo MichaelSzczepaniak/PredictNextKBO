@@ -357,7 +357,6 @@ convertDfToContourMatrix <- function(df, xname, yname, zname) {
 }
 
 
-
 # xgrid1 <- sort(unique(f1$gamma2))
 # ygrid1 <- sort(unique(f1$gamma3))
 # cmat1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
@@ -369,3 +368,15 @@ createContour <- function(data) {
     cmat <- convertDfToContourMatrix(data, 'gamma2', 'gamma3', 'acc')
     contour(x=xgrid, y=ygrid, cmat, xlab='gamma2', ylab='gamma3')
 }
+
+cm1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
+cm2 <- convertDfToContourMatrix(f2, 'gamma2', 'gamma3', 'acc')
+cm3 <- convertDfToContourMatrix(f3, 'gamma2', 'gamma3', 'acc')
+cm4 <- convertDfToContourMatrix(f4, 'gamma2', 'gamma3', 'acc')
+cm5 <- convertDfToContourMatrix(f5, 'gamma2', 'gamma3', 'acc')
+
+comp_mat <- cm1+cm2+cm3+cm4+cm5
+xgrid <- sort(unique(f1$gamma2))  # could use any of the 5 fold results
+ygrid <- sort(unique(f1$gamma3))
+contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3')
+
