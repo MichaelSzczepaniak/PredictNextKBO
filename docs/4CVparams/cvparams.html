@@ -135,10 +135,114 @@ $(document).ready(function () {
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAeQAAAHkCAIAAABgzMuuAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAV5UlEQVR4nO3dX2yU553o8RkzBhqdQEI4HOeEtlZlpzkElYtW3dYUmVWjXQFqw/aiUq/s6uyx9+KopuJUrdRK5Ky4QbsXJjeRaSsTbaOoXalNW4HZaqta2+BFaBdBY1KITWogIeZPYuRExI0dZi8Gxh4bZjgn3Tzvb+bzuXrGdqSfHo+/eZmZ933zxWIxl8sNDw/nuLsjR45MTk6mniK7rl69umbNmmXLlqUeJKOuXr26evXq5cuXpx4ko+xPdWvWrPn2t7+de/fdd1tbW1MPA8Bd5fP53DPPPJN6DABqaPKve4DsKyx8sHPnzk2bNqUaJZtOnjz585//vLT+6GOfWf/JT6edJ2vOnfyXK+d/X1rbn6WuXnxl/MRvSutVa//745u/lHaerPH8qW76zTdOv/iL0roi1k8++WR3d3eCiTLs4MGD5Viv/+SnP7/zb9LOkzVvT10u/7HZn6VOv/iL+Vg/9LD9WcTzp7qLZ/6tHOumtKMAcC/EGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAshkrP/2f+Tz+Xx+1Vd+nXoSgGzIYqx/ffL11CMAZEsGY/23//tnb6eeASBbshbrX39l1Z4zqYcAyJpC6gHm/forq55wTA1wJ+ljrdEANWXsZZD7/+qfi//8V/enHgMgY9LH+os/nS6WTf/0i6nnAcig9LEGoCaxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAANLf1muJL/50uph6BoBscWQNEIBYAwQg1gABiDVABHv27CmvBwcHi1QaHBxM+NsBKHFkXcOFCxdSjwAg1gARiHUNH/vYx1KPAJDFk2Kya8/2FU/tWJF6imz56+dmfjjyXmltf5ayP9XZn+qGx+b+vP9Gae3IGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBItizZ0/qEQCowZE1QABNW7duTT0DALUUi8XvfOc7LS0tqQcB4M42bNiQLxaLqccAoAavWQMEINYAAYg1QABiDRCAWAMEINYAAYg1QABiDRCAWAMEUMjlcr/73e/27NkzNTWVepjsKhQKGzdufOCBB1IPkkXvvPPO6OjozMxM6kEyam5u7s0331y9evXKlStTz5JF9ude7N27N3fq1KnUYwBQw7LJyckzZ86kHgOAapq8+gGQfYWFDz674+sf39iRapRsOj86cvzQYGnd1dXV3d2ddJzMOXLkyL59+0rrx7/w5Q2bv5R2nqxZ+Pz5rx/75Nav/Z+082SN/anu6oWzw8//fWldEesHW1o/+thnUoyUXdPXLpXXra2t7tWwyMTERHm96qGHPX8WWfj8WfGR/2J/FrE/985H9wACEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArDNrqDe/yOb946mHAhIR6wwa3785n89vP7D46yO72vP5fO9QipmAtMQ6a8b3b27fNVLlBw5s12toPGKdLeP7u+ZL3dE/Vpx3uKf8Uwe2yzU0GLHOlKG/K6e653DxaF/bgu9tGyiO9XfcenDgBbWGhiLWWTL0wu3XqXsOD2xb+v22vu/dPrwefcWbjdBIxDpDxl8ZvbXq2XmHVOdyuVz7hlvH1iMvj30oMwHZUEg9APPa+o4W+1IPAWSSI+tYxl6+9Zp2x4b2tJMAHyqxDmX+Re2Nj7ZV/Umgvoh1IOP7995qdUf/t+7yojZQn8Q6igUny3T0P9vnuBoai1iHsPC0xp7DR6UaGo5YZ19lqYt3+gA2UO98dC/bKq4UotTQuMQ6w4Z65y+919E/5tUPaGBeBsmo8f2b50u95DohQKMR6yxa+OJHR/+YFz8AL4NkjvcTgaUcWWfMUK9SA0uJdaYM9W4vn6M4ptRAmVhnyPzp5Lfvt1iFe8VAQxHr7Bg/9JNq914EGplYZ0f58qcAi/k0SHZsGygWB1IPAWSTI2uAAMQaIACxBghArAECEGuAAMQaIACxBgig4nPW508f++ONt1ONkk2TfzideoQw3nj1pRO/ei71FNmy8PnzztQV+7OI/anu+pWL8w86OzvTTRLMd7/73SKVBgcHU/9aoCE0TU1NpZ4hjNHR0dQjZM6ZM2dSjwANoWnFihWpZwhj7dq1qUfInIcffjj1CNAQCvfdd1/5wWP/ralllbccK0xO3zxz+WZpvX79+rTDZNDq1avL69aHmlrXeP5UOHv5/Temi6W1/VnK/lR3/d3iydfeL60r3mD89l+s6P5cc4qRsuvgsdmv/8O7qaeIoevPmp/a4R9qFf76uZkfjrxXWtufpexPdcNjc3/ef6O09v8xgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiCAitt6nb18c3hsLtUo2XT29g0Yqen8W54/i01Ozz9/7M9S9qe6k68t6E9nZ2e6SQC4J02FQqH2TwGQ1s9+9rPUIwBQQ75YLH7jG994/vnn5+a8WnRXTU1N69ata2lpST1IFl27dm1yctLz527m5ubee++9QqGwfPny1LNkkf25F0888US+WCymHgOAGnx0DyAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiCAQi6X27t37/e///3p6enUw2TU3Nzc7OxsoVBobm5OPUtGFQqFlpaWtWvXph4ki6anpy9dujQzM5N6kIx6//33Z2dnm5qanG5+N4VC4Wtf+1rut7/9bepJAKhh2aVLl86dO5d6DACqafKvM4Dsq7jzwF/+z//7+Be+nGqUbDr94i/+6Yd7Suv1n/z0V7/zg7TzZM3C/enq6uru7k46TuYcOXJk3759pfXnn+z9/M6/STtP1vj7qu7imX/7x33/q7R2mxj+ZFpbW7du3Zp6imyZmJhIPQJ1wkf3AAIQa4AAxBogALEGCECsAQIQa4AAxBogALEGCECsAQIQa4AAxBogALEGCECsAQIQa4AAxBogALEGCECsAQIQa4AAxBogALEGCECsAQIQa4AAxBogALEGCECsAQIQa4AAxBogALEGCECsCWt8/+Z8pc37x1MPBf9JxJqIhnrz+Xz7rpFFXx7Z1a7Y1CmxJpyh3vz2A3f/9siudr2m/og1wQz1zpe653BxgcM9t78+suvvhtJMB/9ZxJpYhl64neqew8WBbQu/tW1gvtcHXlBr6otYE0q51R3939q29Nvbdt6u9egrXgmhrhRSDwD/L7YNFIsDd//2+Cujt1YbH237UAaCD4kja+rI+KGf3PqASMeG9rSjwJ+YI2vqxYIPiXT0P9vnwJr64sia0BacGDNf6rGjUk3dEWvqTMdXdyg1dUisqTMju9rz+V4f3KPeiDWhtfUdLZ8UM9bfcfvLB7Y7iZE6I9bUjba+o/PBHtnVJdfUE7GmrrT1PVvO9U8OqTX1Q6ypM22Pbry1Gnl5LOkk8Kck1tSb9g0dtX8IohFrIhnqvf2p6rt/3mPsZWcxUofEmkjmj5rveqGm+cvyuTwI9USsiaRtx1fLn/a44yWrF1ztumfnHS7LB1GJNaG09X2vfMnq7YteDBnfv3n+FjJ3voQqhCXWBLNtYP6OMLkD2xfcLnfBPRldyYm6I9aEs21g4cmKS/UcLrqSE3VHrImodJb5gkPsko7+sWJx0c2+oD64njVx1bhtDNQTR9YAAYg1QABiDRBAxWvW508f++ONt1ONkk2TfzhdXr8zdeXEr55LOEwGLdwfqnvj1Zc8fxbx91Xd9SsX5x9s2bIl3STUld27dxepNDg4mPrXQp1ounr1auoZqBPnzp1LPULmnD17NvUI1ImmBx98MPUM1IlHHnkk9QiZ84lPfCL1CNSJwvLly8sPdm4qbHpkWcJpMuiXL82euHiztN7aXuhstz8VTr3+/gun5krrtWvXph0mg5qbm8trz5+l/H1Vd/6tmwePzZbWFW8wPvmp5u7PNd/pP2lcr10vnrj4Xmnd2b7sqR0r0s6TNQePzZZjTXWeP0v5+6pueGyuHGsf3QMIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAqi4rdfZyzeHx9yiqcLk9M3y+vxb9mexs5fn92diYmJ4eDjdLFl05syZ8trzZyl/X9WdfG1+f3KdnZ3pJgHgnjStXLky9QwA1HLq1KnUIwBQQ75YLP74xz9+5plnUk+SXTMzM1euXFm7du19992Xepbs2rhx49q1a1NPkUXXr18fHR2dm/Nq7J2V/r4eeOCBVatWpZ4lu3bu3JkvFoupxwCgBh/dAwhArAECEGuAAMQaIIBCLpfr7+9/+umnp6amUg+TUbOzs3Nzc4VCobm5OfUsWWR/aioUCuvWrVu3bl3qQbJoenr60qVLMzMzqQfJro985CNdXV2548ePp54EgBqWXbhw4dy5c6nHAKCaJv/6AMi+iqvufXbH1z++sSPVKNn070eeffXUi6X141/48obNX0o7T9bYn+rOj44cPzRYWnd1dXV3dycdJ3OOHDmyb9++0trzZ6mrF84OP//3pXVFrB9saf3oY59JMVJ2/f5fD5XXqx562P4sYn+qm752qbxubW3dunVrulmyaGJiorz2/KnOR/cAAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKyhMQz15vP5fD7fO5R6Ev6/iDU0gqHe7QdSz8AHItZQ/6S6Dog11DuprgtiDfVNquuEWEMdG9+/efuBXC7X0d/fk3oWPhixhro1vr9r10gul+vof7bv0dTD8AGJNdSp26nuOXy0ry31MHxgYg11aT7VA9tSz8KfglhDHZLq+iPWUHekuh6JNdQZqa5PYg11RarrlVhDHRnqbd81kst19I9Jdb0Ra6gbt05W7Oh/1mf16o9YQ50Y37+3dF75yK72/BLlc84PbL/9JRdLDUWsAQIQa4AAxBrqRFvf0eLdHb59Iaeew7e/5D3IUMQaIACxBghArAECEGuAAMQaIIBC6gGAD8O2gWJxIPUQfACOrAECEGuAAMQaIICK16zPnz72xxtvpxolm958/Vx5/carL5341XMJh8kg+1Pd5B9Opx4hDM+fpa5fuTj/YMuWLekmgQaye/fuKqeDN6bBwcHUv5YwmqamplLPAA1hdHQ09QiZc/Hixdo/RC6Xy+Wa7r///tQzQENobW1NPULmtLS0pB4hjMLy5cvLD3ZuKmx6ZFnCaTLoly/Nnrh4s7Te2l7obLc/FexPdadef/+FU3OltTAt1dzcXF57/ix1/q2bB4/NltYVbzA++anm7s813+k/aVyvXS+euPhead3ZvuypHSvSzpM19qe6g8dmy7GmOs+fpYbH5sqx9tE9gADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiCAitt6nb18c3jMLYgqTE7fLK/Pv2V/FrM/1Z29PL8/ExMTw8PD6WbJojNnzpTXnj9LnXxt/vmT6+zsTDcJAPekaeXKlalnAKCWU6dOpR4BgBryxWLxBz/4wY9+9KPUk2TXjRs3rly5smbNmlWrVqWeJYvsz71Yv359W1tb6imy6Nq1a6Ojo6mnyLonnngiXywWU48BQA0+ugcQgFgDBCDWAAGINUAAhVwu19/f//TTT09NTaUeJqNmZ2fn5uYKhUJzc3PqWbLI/lQ3Nzc3Nze3bNky+3M3hUJh3bp169atSz1IRrW0tHR1deWOHz+eehIAalh24cKFc+fOpR4DgGqaZmZmUs8AQA0VV9377I6vf3xjR6pRsunfjzz76qkXS+vHv/DlDZu/lHaerLE/1dmf6s6Pjhw/NFhad3V1dXd3Jx0nc06ePPnNb36ztK6I9YMtrR997DMpRsqu3//rofJ61UMP259F7E919qe66WuXyuvW1tatW7emmyXrfHQPIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGuAAMQaIACxBghArAECEGugYY3v35yvbfP+8dSD5sQaaGBjL4+kHuGeiTVAAIXUAwAkMv7KaGnR0T92tK8t7TC1OLIGCECsgUZVfsl646MZP6zOiTVAx4b21CPUJtZAgyq/ZB2CWAONbuOjbbncUG8GP1y9gFgDjW507+Z8fvuBiq+N7GrP5/O9Q4lGWkqsgQZVfn9xZORu58Yc2J6ZXos1QK6jf6w4b6y/o/ydA9uzkWuxBhpT+f3FnsPFYuU5MW19RxcE+8DeLLx+LdZAY2rrO1o6jh7YdudvP3s71yM/OZS+1mINcEdtO756u9Yvj6UdJSfWALWNvpL80FqsAWrJwPnoYg00ovI5MFXOfsnU5a7FGmhE7Rtqvns49MLt82R6dt7xPcgPlVgDjWjBu4e7uu5wcD2+f/P2LLVarIHG1Nb3vZ5by5Fd7ZUnKg715tt33X4JpKP/WxlotVgDjWrbwOGe8oMD2xdcxWnBdUJ6DmfkHjJiDTSsbQPFBb1eoqN/7C5nzCQg1kAj2zaw6FogJT2Hi4vPQU/MDXOBhtfWd7TYl3qIGhxZAwQg1gABiDVAAGINEIBYAwQg1gABiDVAAGINEEDFSTHnTx/74423U42STW++fq68fuPVl0786rmEw2SQ/anO/lQ3+YfTqUeIY8uWLalHAMjt3r27SKXf/OY35f1pmpqaSvjrASgZHR1NPUKmNd1///2pZwDIrV+/PvUImVZYvnx5+cHOTYVNjyxLOE0G/fKl2RMXb5bWW9sLne32p4L9qc7+VHfq9fdfODVXWot1dRVvMD75qebuzzWnGiWbXrtePHHxvdK6s33ZUztWpJ0na+xPdfanuoPHZsuxpjof3QMIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAhBrgADEGiAAsQYIQKwBAqi4rdfZyzeHx9xip8Lk9M3y+vxb9mcx+1Od/anu7OX5/ZmYmBgeHk43SxadPHly/kFnZ2e6SQC4J00rV65MPQMAtRw/fjz1CADU8B/G+swD0DPOzgAAAABJRU5ErkJggg==" alt="K-Fold Cross Validation" height="242" width="242/"></p>
 <div id="cross-validation-alogrithm" class="section level3">
 <h3>Cross-Validation Alogrithm</h3>
-<p>Note all code referred to in this document is listed in the <strong>Appendix</strong>.</p>
-<p>The following procedure was followed: Start by creating each of the 5 folds using the <strong>makeFolds</strong> function. In each fold there are 3 partitions. The first partion is the <strong>validation set</strong> depicted by the white box in each fold (20% of the data in a fold). The remaining data is partitioned into two groups: 1) the <strong>training set</strong> (80% of remaining non-validation data) depicted as the blue boxes and 2) the <strong>test set</strong> (20% of remaining non-validation data) depicted as the gold boxes. The blue data is used to build the model which in addition to the algorithm described in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Part 3</a>, consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the <strong>makeFoldNgramTables</strong> function. We also need to specify two parameters: a bigram discount rate, and a trigram discount rate. These were the <span class="math inline">\(\gamma_2\)</span> and <span class="math inline">\(\gamma_3\)</span> variables described in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Part 3</a>.</p>
-<p>Using all the data shown in blue, we build the n-gram tables and select 500 random trigrams from the gold data. Predictions of the last word (referred to as the <strong>trigram tail</strong>) in the random trigams were made from the first two words (referred to as the <strong>bigram prefix</strong>) for each <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pair. If the predicted word matched the trigram tail, the prediction was considered correct and the training accuracy was calculated by dividing the number of correct predictions by the total number of predictions (500). <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pairs with the highest training accuracy were used to make 500 predictions on the validation set.</p>
+<p>Note: Unless mentioned otherwise, all code referred to in this document is listed in the <strong>Appendix</strong>.</p>
+<div id="step-1---make-the-folds" class="section level4">
+<h4>Step 1 - Make the Folds</h4>
+<p>Each fold is represented as one of the five rows shown in the picture above. Random indices for lines in the <strong>blogs</strong> corpus were selected using the <strong>makeFolds</strong> function and resulted in the following files:</p>
+<p><a href="https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1">fold_1blogs.txt</a><br />
+<a href="https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1">fold_2blogs.txt</a><br />
+<a href="https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1">fold_3blogs.txt</a><br />
+<a href="https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1">fold_4blogs.txt</a><br />
+<a href="https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1">fold_5blogs.txt</a></p>
+</div>
+<div id="step-2---partition-the-folds" class="section level4">
+<h4>Step 2 - Partition the Folds</h4>
+<p>In each fold there are 3 partitions. The first partion is the <strong>validation set</strong> depicted by the white box in each fold (20% of the data in a fold). The indices for the vaildation partion were generated using the <strong>readFolds</strong> function.</p>
+<p>The remaining data non-validation data is partitioned into two groups: 1) the <strong>training set</strong> (80% of the non-validation data) depicted as the blue boxes and 2) the <strong>test set</strong> (20% of the non-validation data) depicted as the gold boxes. These partitions were created from the indices generated using the <strong>makeTrainTestNV</strong> function. The resulting files are listed in the table below.</p>
+<table style="width:44%;">
+<colgroup>
+<col width="8%"></col>
+<col width="18%"></col>
+<col width="18%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Fold</th>
+<th align="right">Blogs Training Set</th>
+<th align="right">Blogs Test Set</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right"><a href="https://www.dropbox.com/s/n4cne11vjodd6lg/fold_1train_blogs.txt?dl=1">fold_1train_blogs.txt</a></td>
+<td align="right"><a href="https://www.dropbox.com/s/ezlxnaxwfb7df4x/fold_1test_blogs.txt?dl=1">fold_1test_blogs.txt</a></td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right"><a href="https://www.dropbox.com/s/0dmqnxdk6liwne4/fold_2train_blogs.txt?dl=0">fold_2train_blogs.txt</a></td>
+<td align="right"><a href="https://www.dropbox.com/s/y6ixs9rqyc2ovpl/fold_2test_blogs.txt?dl=1">fold_2test_blogs.txt</a></td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right"><a href="https://www.dropbox.com/s/0aqfxf6al4wvgjm/fold_3train_blogs.txt?dl=1">fold_3train_blogs.txt</a></td>
+<td align="right"><a href="https://www.dropbox.com/s/u1x7vlv4n2xh147/fold_3test_blogs.txt?dl=1">fold_3test_blogs.txt</a></td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right"><a href="https://www.dropbox.com/s/yszu99pc80xcmg8/fold_4train_blogs.txt?dl=1">fold_4train_blogs.txt</a></td>
+<td align="right"><a href="https://www.dropbox.com/s/8zndrfw113ork6a/fold_4test_blogs.txt?dl=1">fold_4test_blogs.txt</a></td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right"><a href="https://www.dropbox.com/s/g9sji96yg5j9n8d/fold_5train_blogs.txt?dl=1">fold_5train_blogs.txt</a></td>
+<td align="right"><a href="https://www.dropbox.com/s/b55ckj6n5engwcy/fold_5test_blogs.txt?dl=1">fold_5test_blogs.txt</a></td>
+</tr>
+</tbody>
+</table>
+<p>The blue data is used to build the model which in addition to the algorithm described in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Part 3</a>, consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the <strong>makeFoldNgramTables</strong> function. The n-gram frequency tables used for each fold are listed in the table below.</p>
+<table style="width:76%;">
+<colgroup>
+<col width="8%"></col>
+<col width="23%"></col>
+<col width="22%"></col>
+<col width="22%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Fold</th>
+<th align="right">Unigram Table</th>
+<th align="right">Bigram Table</th>
+<th align="right">Trigram Table</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right"><a href="https://www.dropbox.com/s/89xmp86kcq4imbt/fold_1train_blogs_1grams.csv?dl=1">fold_1train_blogs_1grams.csv</a></td>
+<td align="right"><a href>fold_1train_blogs_2grams.csv</a></td>
+<td align="right"><a href>fold_1train_blogs_3grams.csv</a></td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right"><a href>fold_2train_blogs_1grams.csv</a></td>
+<td align="right"><a href>fold_2train_blogs_2grams.csv</a></td>
+<td align="right"><a href>fold_2train_blogs_3grams.csv</a></td>
+</tr>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right"><a href>fold_3train_blogs_1grams.csv</a></td>
+<td align="right"><a href>fold_3train_blogs_2grams.csv</a></td>
+<td align="right"><a href>fold_3train_blogs_3grams.csv</a></td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right"><a href>fold_4train_blogs_1grams.csv</a></td>
+<td align="right"><a href>fold_4train_blogs_2grams.csv</a></td>
+<td align="right"><a href>fold_4train_blogs_3grams.csv</a></td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right"><a href>fold_5train_blogs_1grams.csv</a></td>
+<td align="right"><a href>fold_5train_blogs_2grams.csv</a></td>
+<td align="right"><a href>fold_5train_blogs_3grams.csv</a></td>
+</tr>
+</tbody>
+</table>
+<p>We also need to specify two parameters: a bigram discount rate, and a trigram discount rate. These were the <span class="math inline">\(\gamma_2\)</span> and <span class="math inline">\(\gamma_3\)</span> variables described in <a href="http://rpubs.com/mszczepaniak/predictkbo3model">Part 3</a>.</p>
+<p>Using all the training data (shown in blue), we build the n-gram tables and select 500 random trigrams from the gold data. Predictions of the last word (referred to as the <strong>trigram tail</strong>) in the random trigams were made from the first two words (referred to as the <strong>bigram prefix</strong>) for each <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pair. If the predicted word matched the trigram tail, the prediction was considered correct and the training accuracy was calculated by dividing the number of correct predictions by the total number of predictions (500). The <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pairs with the highest training accuracy were then used to make 500 predictions on the validation set.</p>
 <p>This process was repeated for each fold and the <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pairs which gave the best accuracy on the validation fold collected were selected.</p>
+</div>
 </div>
 <div id="setting-up-the-cv-trials" class="section level3">
 <h3>Setting up the CV Trials</h3>
@@ -277,7 +381,7 @@ makeFolds &lt;- function(indices_count, nfolds=5, write_folds=TRUE,
 ## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
 ## vector of ints that are indices assigned to a validation fold except for
 ## the last item which is the total line count of all the folds
-## fold_paths - a 5 x 3 data frame where each column if a corpus type:
+## fold_paths - a 5 x 3 data frame where each column is a corpus type:
 ##              &quot;blogs&quot;, &quot;news&quot;, or &quot;twitter&quot; and each row is a fold.
 ##              Each element is a url to a file which defines the indices
 ##              of the validation set for the corpus type and fold
@@ -311,22 +415,30 @@ if(!exists('corpus_urls')) {
     names(corpus_urls) &lt;- c(&quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;)
 }
 
-## Returns a list of int vectors which are indices of training and testing sets 
-## in the Non-Validation partition.  The odd numbered lists contain the indices
-## of the lines used for the training set.  The even numbered lists contain
-## the indices of the lines used for testing set.  All of these sets are
-## assumed to be within the Non-Validation fold/partition.
-##
-## folds - list of int vectors of size length(folds), indices of
-##         validation partitions, indices not in this set are futher
-##         segmented in training and testing sets
+## Returns a named list of int vectors which are indices of training and  
+## testing sets in the Non-Validation partition.  The odd numbered lists 
+## contain the indices of the lines used for the training set.  Each set of 
+## training fold indices are named in the following manner:
+## fold_xtrain_y where x is an integer 1 to number of folds and
+##                     y is one of the corpus types: blogs, news, twitter
+## The even numbered lists contain the indices of the lines used for testing
+## set.  Each set of testing fold indices are named in the following manner:
+## fold_xtest_y where x is an integer 1 to number of folds and
+##                    y is one of the corpus types: blogs, news, twitter
+## The function writes out both training and test set indices to text files
+## using the naming convention described above with a .txt extension.
+## 
+## PARAMETERS:
+## folds - list of int vectors of size length(folds) which are indices of the
+##         lines for each validation partition. Indices not in this set are 
+##         further segmented into training and testing sets
 ## corp_type - character string, type of corpus: &quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;
 ## train_fraction - float betwee 0 and 1 (non-inclusive), fraction of samples
 ##                  used for the test set, 
 ## seed_vals - seed values to use for train/test set selections
 ## ofile_prefix - string, output file name prefix
 ## ofile_postfix - string, output file name postfix
-## out_dir - string, directory to write output files to
+## out_dir - string, directory to write output files
 makeTrainTestNV &lt;- function(folds=default_folds, corp_type=&quot;blogs&quot;,
                             train_fraction=0.8,
                             seed_vals=c(7,11,13,17,19),

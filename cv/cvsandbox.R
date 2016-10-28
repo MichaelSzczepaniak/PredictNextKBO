@@ -39,7 +39,7 @@ source("KboCv.R")
 ## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
 ## vector of ints that are indices assigned to a validation fold except for
 ## the last item which is the total line count of all the folds
-## fold_paths - a 5 x 3 data frame where each column if a corpus type:
+## fold_paths - a 5 x 3 data frame where each column is a corpus type:
 ##              "blogs", "news", or "twitter" and each row is a fold.
 ##              Each element is a url to a file which defines the indices
 ##              of the validation set for the corpus type and fold
@@ -65,22 +65,30 @@ readFolds <- function(fold_paths, corp_type='blogs') {
 #            "https://www.dropbox.com/s/z0rz707mt3da1h1/en_US.blogs.train.14trigrams.nosins.csv?dl=1")
 
 
-## Returns a list of int vectors which are indices of training and testing sets 
-## in the Non-Validation partition.  The odd numbered lists contain the indices
-## of the lines used for the training set.  The even numbered lists contain
-## the indices of the lines used for testing set.  All of these sets are
-## assumed to be within the Non-Validation fold/partition.
-##
-## folds - list of int vectors of size length(folds), indices of
-##         validation partitions, indices not in this set are futher
-##         segmented in training and testing sets
+## Returns a named list of int vectors which are indices of training and  
+## testing sets in the Non-Validation partition.  The odd numbered lists 
+## contain the indices of the lines used for the training set.  Each set of 
+## training fold indices are named in the following manner:
+## fold_xtrain_y where x is an integer 1 to number of folds and
+##                     y is one of the corpus types: blogs, news, twitter
+## The even numbered lists contain the indices of the lines used for testing
+## set.  Each set of testing fold indices are named in the following manner:
+## fold_xtest_y where x is an integer 1 to number of folds and
+##                    y is one of the corpus types: blogs, news, twitter
+## The function writes out both training and test set indices to text files
+## using the naming convention described above with a .txt extension.
+## 
+## PARAMETERS:
+## folds - list of int vectors of size length(folds) which are indices of the
+##         lines for each validation partition. Indices not in this set are 
+##         further segmented into training and testing sets
 ## corp_type - character string, type of corpus: "blogs", "news", "twitter"
 ## train_fraction - float betwee 0 and 1 (non-inclusive), fraction of samples
 ##                  used for the test set, 
 ## seed_vals - seed values to use for train/test set selections
 ## ofile_prefix - string, output file name prefix
 ## ofile_postfix - string, output file name postfix
-## out_dir - string, directory to write output files to
+## out_dir - string, directory to write output files
 makeTrainTestNV <- function(folds=default_folds, corp_type="blogs",
                             train_fraction=0.8,
                             seed_vals=c(7,11,13,17,19),
@@ -89,8 +97,7 @@ makeTrainTestNV <- function(folds=default_folds, corp_type="blogs",
                      out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
     corpus_lines <- read_lines(corpus_urls[corp_type])
     fold_count <- length(folds) - 1  # because last count is total line count
-    results <- list() #vector("list", 2*fold_count)
-    ofile_paths <- vector(mode = "character")
+    results <- list()
     for(i in 1:fold_count) {
         seed_val <- seed_vals[i]
         set.seed(seed_val)  # set for reproducibility
@@ -105,18 +112,16 @@ makeTrainTestNV <- function(folds=default_folds, corp_type="blogs",
                    train_fraction * length(non_validn_fold_indices))
         test_gammas_indices <- setdiff(non_validn_fold_indices,
                                        train_ngrams_indices)
-        
+        # Write out indices for the non-valildation training set
         name_prefix <- sprintf("%s%s%s%s","fold_", i, "train_", corp_type)
         fname <- sprintf("%s%s%s", out_dir, name_prefix, ".txt")
         results[[name_prefix]] <- train_ngrams_indices
         write.table(train_ngrams_indices, fname, row.names=FALSE, col.names=FALSE)
-        ofile_paths <- append(ofile_paths, fname)
-        
+        # Write out indices for the non-valildation test set
         name_prefix <- sprintf("%s%s%s%s","fold_", i, "test_", corp_type)
         fname <- sprintf("%s%s%s", out_dir, name_prefix, ".txt")
         results[[name_prefix]] <- test_gammas_indices
         write.table(test_gammas_indices, fname, row.names=FALSE, col.names=FALSE)
-        ofile_paths <- append(ofile_paths, fname)
     }
     
     return(results)
