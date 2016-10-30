@@ -50,7 +50,9 @@ Fold | Blogs Training Set | Blogs Test Set
 4    | [fold_4train_blogs.txt](https://www.dropbox.com/s/yszu99pc80xcmg8/fold_4train_blogs.txt?dl=1) | [fold_4test_blogs.txt](https://www.dropbox.com/s/8zndrfw113ork6a/fold_4test_blogs.txt?dl=1)
 5    | [fold_5train_blogs.txt](https://www.dropbox.com/s/g9sji96yg5j9n8d/fold_5train_blogs.txt?dl=1) | [fold_5test_blogs.txt](https://www.dropbox.com/s/b55ckj6n5engwcy/fold_5test_blogs.txt?dl=1)
 
-The blue data is used to build the model which in addition to the algorithm described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the **makeFoldNgramTables** function.  The n-gram frequency tables used for each fold are listed in the table below.
+#### Step 3 - Create the N-Gram Frequency Tables for Each Folds Training Set
+
+The training data (depicted in blue) is used to build the model which in addition to the algorithm described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the **makeFoldNgramTables** function and written to files using the **exportFoldNgramTables** function.  The results of running these two functions are the n-gram frequency tables used for each fold which are listed in the table below.
 
 Fold | Unigram Table | Bigram Table | Trigram Table
 -----|---------------:|--------------:|--------------:
@@ -60,21 +62,39 @@ Fold | Unigram Table | Bigram Table | Trigram Table
 4    | [fold_4train_blogs_1grams.csv]() | [fold_4train_blogs_2grams.csv]() | [fold_4train_blogs_3grams.csv]() 
 5    | [fold_5train_blogs_1grams.csv]() | [fold_5train_blogs_2grams.csv]() | [fold_5train_blogs_3grams.csv]() 
 
-We also need to specify two parameters: a bigram discount rate, and a trigram discount rate.  These were the $\gamma_2$ and $\gamma_3$ variables described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model).
+#### Step 4 - Select the $(\gamma_2, \gamma_3)$ Values to Run Against the Test Set
 
-Using all the training data (shown in blue), we build the n-gram tables and select 500 random trigrams from the gold data.  Predictions of the last word (referred to as the **trigram tail**) in the random trigams were made from the first two words (referred to as the **bigram prefix**) for each $(\gamma_2, \gamma_3)$ pair.  If the predicted word matched the trigram tail, the prediction was considered correct and the training accuracy was calculated by dividing the number of correct predictions by the total number of predictions (500).  The $(\gamma_2, \gamma_3)$ pairs with the highest training accuracy were then used to make 500 predictions on the validation set.
+In addition to the n-gram tables, we also need to specify two parameters: a bigram discount rate, and a trigram discount rate.  These were the $\gamma_2$ and $\gamma_3$ variables described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model).  We vary each discount rate from 0.1 to 1.9 in steps of 0.1.  This gives us a 19 x 19 = 361 combinations to train over.
+
+#### Step 5 - Build the Set of Bigrams to Use as Model Inputs
+
+To assess the accuracy of the model, we need to give it a set of bigrams, have the model predict the words that follow each and then deterimine how accurate the predictions were.  We do this by selecting 500 random trigrams from the test set (depicted in gold), parsing out the first two words to use as input to the prediction model and then using the last word to determine if the model predicted accurately or not.  The random trigrams for each fold were created and written to files using the **makePredictTrigrams** function and these trigrams are in files which are listed in the table below.
+
+Fold | Blogs Prediction Trigrams |
+-----|-----------:|-----------:
+1    | [fold_1blogs_predict.txt](https://www.dropbox.com/s/ow47mbpakiuhk0l/fold_1blogs_predict.txt?dl=1)
+2    | [fold_2blogs_predict.txt]()
+3    | [fold_3blogs_predict.txt]()
+4    | [fold_4blogs_predict.txt]()
+5    | [fold_5blogs_predict.txt]()
+
+#### Step 6 - Run the Model to Predict the Tail Words of Each Folds Set of Random Trigrams
+
+For each fold, we select a pair of discount rates $(\gamma_2, \gamma_3)$, make 500 predictions, and count the number of accurate predictions.  We then select another pair of the 361 combinations of $(\gamma_2, \gamma_3)$, make another 500 predictions, and assess the accuracy.  This process is repeated until all combinations of $(\gamma_2, \gamma_3)$ pairs have been run.  Running 500 predictions for each of the 361 combinations of $(\gamma_2, \gamma_3)$ in each of the 5 folds was a very time consuming process which is why only the results for the **Blogs** corpus are being reported here.  The results for each fold were written to the files listed in the table below.
+
+Fold | Blogs Prediction Results |
+-----|-----------:|
+1    | [cv_blogs_fold1_itrs500.csv](https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1)
+2    | [cv_blogs_fold2_itrs500.csv]()
+3    | [cv_blogs_fold3_itrs500.csv]()
+4    | [cv_blogs_fold4_itrs500.csv]()
+5    | [cv_blogs_fold5_itrs500.csv]()
+
+g all the training data (shown in blue), we build the n-gram tables and select 500 random trigrams from the gold data.  Predictions of the last word (referred to as the **trigram tail**) in the random trigams were made from the first two words (referred to as the **bigram prefix**) for each $(\gamma_2, \gamma_3)$ pair.  If the predicted word matched the trigram tail, the prediction was considered correct and the training accuracy was calculated by dividing the number of correct predictions by the total number of predictions (500).  The $(\gamma_2, \gamma_3)$ pairs with the highest training accuracy were then used to make 500 predictions on the validation set.
 
 This process was repeated for each fold and the $(\gamma_2, \gamma_3)$ pairs which gave the best accuracy on the validation fold collected were selected.
 
-### Setting up the CV Trials
 
-TODO
-
-### Running the CV Trials
-
-TODO
-
-### CV Results
 
 ```{r}
 f1 <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
@@ -359,11 +379,6 @@ makeFoldNgramTables <- function(corp_data=
     }
 }
 ```
-
-```{r eval=FALSE}
-
-```
-
 ```{r eval=FALSE}
 ## Exports ngram frequency tables for a series of CV folds as an RData object.
 ##
