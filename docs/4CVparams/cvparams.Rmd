@@ -23,7 +23,7 @@ A good way to start understanding this approach is to first visualize breaking t
 
 <img src="5fold_cv2.png" alt="K-Fold Cross Validation" height=242 width=242/>
 
-### Cross-Validation Alogrithm
+### Training The Model
 Note: Unless mentioned otherwise, all code referred to in this document is listed in the **Appendix**.
 
 #### Step 1 - Make the Folds
@@ -80,19 +80,31 @@ Fold | Blogs Prediction Trigrams |
 
 #### Step 6 - Run the Model to Predict the Tail Words of Each Folds Set of Random Trigrams
 
-For each fold, we select a pair of discount rates $(\gamma_2, \gamma_3)$, make 500 predictions, and count the number of accurate predictions.  We then select another pair of the 361 combinations of $(\gamma_2, \gamma_3)$, make another 500 predictions, and assess the accuracy.  This process is repeated until all combinations of $(\gamma_2, \gamma_3)$ pairs have been run.  Running 500 predictions for each of the 361 combinations of $(\gamma_2, \gamma_3)$ in each of the 5 folds was a very time consuming process which is why only the results for the **Blogs** corpus are being reported here.  The results for each fold were written to the files listed in the table below.
+For each fold, we select a pair of discount rates $(\gamma_2, \gamma_3)$, make 500 predictions, and count the number of accurate predictions.  We then select another pair of the 361 combinations of $(\gamma_2, \gamma_3)$, make another 500 predictions, and assess the accuracy.  The function **trainFold** repeats this process for a single fold until all combinations of $(\gamma_2, \gamma_3)$ pairs have been run.  Running 500 predictions for each of the 361 combinations of $(\gamma_2, \gamma_3)$ in each of the 5 folds was a very time consuming process which is why only the results for the **Blogs** corpus are being reported here.  The results for each fold were written to the files listed in the table below.
 
-Fold | Blogs Prediction Results |
------|-----------:|
-1    | [cv_blogs_fold1_itrs500.csv](https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1)
-2    | [cv_blogs_fold2_itrs500.csv]()
-3    | [cv_blogs_fold3_itrs500.csv]()
-4    | [cv_blogs_fold4_itrs500.csv]()
-5    | [cv_blogs_fold5_itrs500.csv]()
+Fold | Blogs Results Files | Best Train Accuracy | $(\gamma_2, \gamma_3)$ count 
+-----|--------------------:|--------------:|-----------------------------:|
+1    | [cv_blogs_fold1_itrs500.csv](https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1) | 0.196 | 24
+2    | [cv_blogs_fold2_itrs500.csv]() | 0.184 | 152
+3    | [cv_blogs_fold3_itrs500.csv]() | 0.184 | 90
+4    | [cv_blogs_fold4_itrs500.csv]() | 0.216 | 19
+5    | [cv_blogs_fold5_itrs500.csv]() | 0.212 | 82
 
-g all the training data (shown in blue), we build the n-gram tables and select 500 random trigrams from the gold data.  Predictions of the last word (referred to as the **trigram tail**) in the random trigams were made from the first two words (referred to as the **bigram prefix**) for each $(\gamma_2, \gamma_3)$ pair.  If the predicted word matched the trigram tail, the prediction was considered correct and the training accuracy was calculated by dividing the number of correct predictions by the total number of predictions (500).  The $(\gamma_2, \gamma_3)$ pairs with the highest training accuracy were then used to make 500 predictions on the validation set.
+#### Step 7 - Run the Best $(\gamma_2, \gamma_3)$ Values Against the Validation Set
 
-This process was repeated for each fold and the $(\gamma_2, \gamma_3)$ pairs which gave the best accuracy on the validation fold collected were selected.
+From the table in **Step 6**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the test set.  Each of these pairs were obtained by running the **getBestDiscountPairs** function and then written to the files listed in the **Best Blog Training** column of the table below.  These best training pairs were then run against the validation set by running the **getValidationResults** function and the highest accuracy was found to be the values reported in the **Best Validation Accuracy** column of the table below.
+
+Fold | Best Blog Training | Best Validation Accuracy | $(\gamma_2, \gamma_3)$ count
+-----|-------------------:|--------------:|-----------------------------:|
+1    | [fold1_best_train.csv]() | TBD | TBD
+2    | [fold2_best_train.csv]() | TBD | TBD
+3    | [fold3_best_train.csv]() | TBD | TBD
+4    | [fold4_best_train.csv]() | TBD | TBD
+5    | [fold5_best_train.csv]() | TBD | TBD
+
+### Selecting the Best Discount Pair
+
+As we observed in **Step 6**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set...
 
 
 
@@ -475,8 +487,8 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
     return(predicted_word)
 }
 
-## Runs K-Fold CV on corpus_lines and fills in the predacc column of gamma_grid
-## dataframe that is passed in.  Three columns in gamma_grid are:
+## Trains the model on corpus_lines and fills in the predacc column of the
+## gamma_grid dataframe that is passed in.  Three columns in gamma_grid are:
 ## gamma2 - bigram discount
 ## gamma3 - trigram discount
 ## predacc - prediction accuracy est'd from nitrs predicitons on each
@@ -515,7 +527,8 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
 ## ofile_postfix - postfix to use for the output file name
 trainFold <- function(gamma_grid, write_freq=100, fold=1,
                       predict_words_path=NULL, ggrid_start=1, itr_start=1,
-                      corpus_type="blogs", out_dir,
+                      corpus_type="blogs",
+                      out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
                       file_prefix="fold_", ofile_postfix="cv_results.csv") {
     if(is.null(predict_words_path)) {
         predict_words_path <- paste0(out_dir, file_prefix, fold,
@@ -583,5 +596,42 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
     
     return(exp_results)
 }
+```
+```{r eval=FALSE}
+## Returns a list of dataframes with the best prediction accuracy and writes these
+## filtered dataframes to a file foldx_best_train.csv where x is the fold number.
+## result_file_paths - character vector of file paths of results files. Each results
+##                     is required to have the following 5 columns:
+##                     gamma2, gamma3, acc, predict, success
+getBestDiscountPairs <- function(result_file_paths=NULL) {
+    result_files_list = list()
+    if(is.null(result_file_paths)) {
+        result_files_list[[1]] <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
+        result_files_list[[2]] <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
+        result_files_list[[3]] <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
+        result_files_list[[4]] <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
+        result_files_list[[5]] <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
+    } else {
+        for(i in 1:length(result_file_paths)) {
+            result_files_list[[i]] <- read.csv(result_file_paths[i])
+        }
+    }
+    #
+    results <- list()
+    for(i in 1:length(result_files_list)) {
+        df <- arrange(result_files_list[[i]], desc(acc))
+        best_acc <- df$acc[1]
+        df <- filter(df, acc==best_acc)
+        out_file <- sprintf("%s%s%s", "fold", i, "_best_train.csv")
+        write.csv(df, out_file, row.names = FALSE)
+        results[[i]] <- df
+    }
+    
+    return(results)
+}
+
+```
+```{r eval=FALSE}
+
 ```
 

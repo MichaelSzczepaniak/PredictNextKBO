@@ -221,8 +221,8 @@ if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
 # corpus_type="blogs"; out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
 # file_prefix="fold_"; ofile_postfix="cv_results.csv"
 
-## Runs K-Fold CV on corpus_lines and fills in the predacc column of gamma_grid
-## dataframe that is passed in.  Three columns in gamma_grid are:
+## Trains the model on corpus_lines and fills in the acc column of the
+## gamma_grid dataframe that is passed in.  Three columns in gamma_grid are:
 ## gamma2 - bigram discount
 ## gamma3 - trigram discount
 ## predacc - prediction accuracy est'd from nitrs predicitons on each
@@ -329,6 +329,21 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
         "at ", as.character(Sys.time()))
     
     return(exp_results)
+}
+
+getValidationResults <- function(folds=1:5,
+                                 results_prefix='fold',
+                                 results_suffix='_best_train.csv',
+                                 paths_best_training=NULL,
+                                 ) {
+    if(is.null(paths_best_training)) {
+        paths_best_training = vector(mode="characer", length=5)
+        paths_best_training[1] = "https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1"
+        paths_best_training[2] = "https://www.dropbox.com/s/gos25qrdjhvqght/fold2_best_train.csv?dl=1"
+        paths_best_training[3] = "https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1"
+        paths_best_training[4] = "https://www.dropbox.com/s/492kt8jfnf03v85/fold4_best_train.csv?dl=1"
+        paths_best_training[5] = "https://www.dropbox.com/s/ul23lcb8ln80gdd/fold5_best_train.csv?dl=1"
+    }
 }
 
 # store the paths to fold results files
