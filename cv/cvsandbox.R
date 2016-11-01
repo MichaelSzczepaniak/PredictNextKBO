@@ -221,8 +221,17 @@ if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
 # corpus_type="blogs"; out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
 # file_prefix="fold_"; ofile_postfix="cv_results.csv"
 
-## Trains the model on corpus_lines and fills in the acc column of the
-## gamma_grid dataframe that is passed in.  Three columns in gamma_grid are:
+## Trains the word prediction model on a corpus of text.  Function makes a copy
+## of the gamma_grid dataframe which is passed in, changes the name of the
+## predacc column to acc, reads in a set of _ delimited trigrams, parses those
+## trigrams into the bigram prefixes and trigram tails, and then for every 
+## pair of (gamma2, gamma3) discounts in gamma_grid, makes prediction using the
+## bigram prefixes as inputs.  The accuracy of each prediction is determined
+## by comparing the output of the model with the trigram tail associated with
+## bigram prefix which was used as input.
+## 
+## gamma_grid dataframe that is passed in and return a dataframe with the
+## populated .  Three columns in gamma_grid are:
 ## gamma2 - bigram discount
 ## gamma3 - trigram discount
 ## predacc - prediction accuracy est'd from nitrs predicitons on each
@@ -240,11 +249,6 @@ if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
 ##                  y is the corpus type e.g. 'blogs', 'news', or 'twitter'
 ##
 ## PARAMETERS:
-## ngram_tables - k element outer list: one element per fold. Each list
-##                contains inner list of 3 items:
-##                1st inner list is the unigram frequency table
-##                2nd inner list is the bigram frequency table
-##                3rd inner list is the trigram frequency table
 ## gamma_grid - 3 columns dataframe as described above
 ## write_freq - frequency in which to write updated calculations to output file
 ## fold - the fold within folds list to run trials on
@@ -282,10 +286,15 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
                               acc=as.numeric(rep(-1, nrow(gamma_grid))),
                               predict=as.numeric(rep(-1, nrow(gamma_grid))),
                               success=as.numeric(rep(-1, nrow(gamma_grid))))
-    # Get ngram tables for this fold.
-    unigs <- fold_ngrams[[fold]][1][[1]]
-    bigrs <- fold_ngrams[[fold]][2][[1]]
-    trigs <- fold_ngrams[[fold]][3][[1]]
+    # Get ngram tables for this fold.  The fold_ngrams list has the following
+    # structure: k element outer list: one element per fold. Each list
+    #            contains inner list of 3 items:
+    #            1st inner list is the unigram frequency table
+    #            2nd inner list is the bigram frequency table
+    #            3rd inner list is the trigram frequency table
+    unigs <- fold_ngrams[[fold]][[1]]
+    bigrs <- fold_ngrams[[fold]][[2]]
+    trigs <- fold_ngrams[[fold]][[3]]
     for(i in ggrid_start:nrow(gamma_grid)) {
         good_predictions <- 0
         g2 <- gamma_grid$gamma2[i]
@@ -334,10 +343,10 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
 getValidationResults <- function(folds=1:5,
                                  results_prefix='fold',
                                  results_suffix='_best_train.csv',
-                                 paths_best_training=NULL,
+                                 paths_best_training=NULL
                                  ) {
     if(is.null(paths_best_training)) {
-        paths_best_training = vector(mode="characer", length=5)
+        paths_best_training = vector(mode="character", length=5)
         paths_best_training[1] = "https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1"
         paths_best_training[2] = "https://www.dropbox.com/s/gos25qrdjhvqght/fold2_best_train.csv?dl=1"
         paths_best_training[3] = "https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1"
