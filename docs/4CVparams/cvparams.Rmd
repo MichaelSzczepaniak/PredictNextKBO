@@ -543,15 +543,21 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
 ## corpus_type - type of corpus: "blogs", "news", "twitter"
 ## out_dir - directory to write output to
 ## ofile_prefix - prefix to use for the output file name
-## ofile_postfix - postfix to use for the output file name
+## validation - If TRUE, tells function to get predict words from validation
+##              set.  If FALSE (default), predict words are assumed to be
+##              obtained from the fold training set
 trainFold <- function(gamma_grid, write_freq=100, fold=1,
                       predict_words_path=NULL, ggrid_start=1, itr_start=1,
                       corpus_type="blogs",
                       out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
-                      file_prefix="fold_", ofile_postfix="cv_results.csv") {
-    if(is.null(predict_words_path)) {
+                      file_prefix="fold_", validation=FALSE) {
+    if(is.null(predict_words_path) && !validation) {
         predict_words_path <- paste0(out_dir, file_prefix, fold,
                                      corpus_type, "_predict.txt")
+    } else {
+        cat("Using validation predict words...\n")
+        predict_words_path <- paste0(out_dir, file_prefix, fold,
+                                     "valid_predict.txt")
     }
     predict_words <- read_lines(predict_words_path)
     nitrs <- length(predict_words)
@@ -560,8 +566,15 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
         cat("Fold ngram table data read has completed at",
             as.character(Sys.time()), "\n")
     }
-    out_file <- paste0(out_dir, "cv_", corpus_type, "_", "fold", fold, "_itrs",
-                       nitrs, ".csv")  # e.g. cv_blogs_fold1_itrs500.csv
+    out_file = ""
+    if(validation) {
+        out_file <- paste0(out_dir, "validation/cv_", corpus_type, "_", "fold", fold, "_itrs",
+                           nitrs, ".csv")  # e.g. /validation/cv_blogs_fold1_itrs500.csv
+    } else {
+        out_file <- paste0(out_dir, "cv_", corpus_type, "_", "fold", fold, "_itrs",
+                           nitrs, ".csv")  # e.g. cv_blogs_fold1_itrs500.csv
+    }
+    
     exp_results <- data.frame(gamma2=as.numeric(rep(-1, nrow(gamma_grid))),
                               gamma3=as.numeric(rep(-1, nrow(gamma_grid))),
                               acc=as.numeric(rep(-1, nrow(gamma_grid))),
@@ -613,7 +626,7 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
         write.csv(exp_results, out_file, row.names = FALSE)
         out_line <- sprintf("%s%s%s%s%s%s%s%s", g2, ",",g3, ",",
                             accuracy, ",",  as.character(Sys.time()), "\n")
-        cat(out_line)  # feedback during very long set of computations
+        cat(out_line)  # feedback for during very long set of computations
     }
     cat("*** FINAL *** results written to:\n", out_file, "\n",
         "at ", as.character(Sys.time()))

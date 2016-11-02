@@ -263,7 +263,9 @@ if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
 ## corpus_type - type of corpus: "blogs", "news", "twitter"
 ## out_dir - directory to write output to
 ## ofile_prefix - prefix to use for the output file name
-## 
+## validation - If TRUE, tells function to get predict words from validation
+##              set.  If FALSE (default), predict words are assumed to be
+##              obtained from the fold training set
 trainFold <- function(gamma_grid, write_freq=100, fold=1,
                       predict_words_path=NULL, ggrid_start=1, itr_start=1,
                       corpus_type="blogs",
