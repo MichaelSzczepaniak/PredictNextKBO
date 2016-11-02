@@ -26,85 +26,65 @@ A good way to start understanding this approach is to first visualize breaking t
 ### Training The Model
 Note: Unless mentioned otherwise, all code referred to in this document is listed in the **Appendix**.
 
-#### Step 1 - Make the Folds
+#### Step 1 - Make and Partition the Folds
 
-Each fold is represented as one of the five rows shown in the picture above.  Random indices for lines in the **blogs** corpus were selected using the **makeFolds** function and resulted in the following files:
+Each fold is represented as one of the five rows shown in the picture above.  Random indices for lines in the **blogs** corpus were selected using the **makeFolds** function to create each of the folds in the data.  Within each fold there are 3 partitions.  The **validation partition** was created using the **readFolds** function and is depicted by the white box in each fold (20% of the data in a fold).  The remaining non-validation data is subdivided into two groups: 1) the **training set** (80% of the non-validation data) depicted as the blue boxes and 2) the **test set** (20% of the non-validation data) depicted as the gold boxes.  These non-validation partitions were created from the indices generated using the **makeTrainTestNV** function.  The resulting data files for each of the fold partitions are listed in the table below.
 
-[fold_1blogs.txt](https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1)  
-[fold_2blogs.txt](https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1)  
-[fold_3blogs.txt](https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1)  
-[fold_4blogs.txt](https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1)  
-[fold_5blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1)  
+Fold | Blogs Validation Set | Blogs Training Set | Blogs Test Set
+-----|---------------:|--------------:|--------------:
+1    | [fold_1blogs.txt](https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1) | [fold_1train_blogs.txt](https://www.dropbox.com/s/n4cne11vjodd6lg/fold_1train_blogs.txt?dl=1) | [fold_1test_blogs.txt](https://www.dropbox.com/s/ezlxnaxwfb7df4x/fold_1test_blogs.txt?dl=1) 
+2    | [fold_2blogs.txt](https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1)   | [fold_2train_blogs.txt](https://www.dropbox.com/s/0dmqnxdk6liwne4/fold_2train_blogs.txt?dl=0) | [fold_2test_blogs.txt](https://www.dropbox.com/s/y6ixs9rqyc2ovpl/fold_2test_blogs.txt?dl=1) 
+3    | [fold_3blogs.txt](https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1) | [fold_3train_blogs.txt](https://www.dropbox.com/s/0aqfxf6al4wvgjm/fold_3train_blogs.txt?dl=1) | [fold_3test_blogs.txt](https://www.dropbox.com/s/u1x7vlv4n2xh147/fold_3test_blogs.txt?dl=1) 
+4    | [fold_4blogs.txt](https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1) | [fold_4train_blogs.txt](https://www.dropbox.com/s/yszu99pc80xcmg8/fold_4train_blogs.txt?dl=1) | [fold_4test_blogs.txt](https://www.dropbox.com/s/8zndrfw113ork6a/fold_4test_blogs.txt?dl=1) 
+5    | [fold_5blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) | [fold_5train_blogs.txt](https://www.dropbox.com/s/g9sji96yg5j9n8d/fold_5train_blogs.txt?dl=1) | [fold_5test_blogs.txt](https://www.dropbox.com/s/b55ckj6n5engwcy/fold_5test_blogs.txt?dl=1) 
 
-#### Step 2 - Partition the Folds
-
-In each fold there are 3 partitions.  The first partion is the **validation set** depicted by the white box in each fold (20% of the data in a fold).  The indices for the vaildation partion were generated using the **readFolds** function.
-
-The remaining data non-validation data is partitioned into two groups: 1) the **training set** (80% of the non-validation data) depicted as the blue boxes and 2) the **test set** (20% of the non-validation data) depicted as the gold boxes.  These partitions were created from the indices generated using the **makeTrainTestNV** function.  The resulting files are listed in the table below.
-
-Fold | Blogs Training Set | Blogs Test Set
------|-----------:|-----------:
-1    | [fold_1train_blogs.txt](https://www.dropbox.com/s/n4cne11vjodd6lg/fold_1train_blogs.txt?dl=1) | [fold_1test_blogs.txt](https://www.dropbox.com/s/ezlxnaxwfb7df4x/fold_1test_blogs.txt?dl=1)
-2    | [fold_2train_blogs.txt](https://www.dropbox.com/s/0dmqnxdk6liwne4/fold_2train_blogs.txt?dl=0) | [fold_2test_blogs.txt](https://www.dropbox.com/s/y6ixs9rqyc2ovpl/fold_2test_blogs.txt?dl=1)
-3    | [fold_3train_blogs.txt](https://www.dropbox.com/s/0aqfxf6al4wvgjm/fold_3train_blogs.txt?dl=1) | [fold_3test_blogs.txt](https://www.dropbox.com/s/u1x7vlv4n2xh147/fold_3test_blogs.txt?dl=1)
-4    | [fold_4train_blogs.txt](https://www.dropbox.com/s/yszu99pc80xcmg8/fold_4train_blogs.txt?dl=1) | [fold_4test_blogs.txt](https://www.dropbox.com/s/8zndrfw113ork6a/fold_4test_blogs.txt?dl=1)
-5    | [fold_5train_blogs.txt](https://www.dropbox.com/s/g9sji96yg5j9n8d/fold_5train_blogs.txt?dl=1) | [fold_5test_blogs.txt](https://www.dropbox.com/s/b55ckj6n5engwcy/fold_5test_blogs.txt?dl=1)
-
-#### Step 3 - Create the N-Gram Frequency Tables for Each Folds Training Set
+#### Step 2 - Create the N-Gram Frequency Tables for Each Folds Training Set
 
 The training data (depicted in blue) is used to build the model which in addition to the algorithm described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), consists of three n-gram tables: a unigram table, a bigram table, and a trigram table which were created using the **makeFoldNgramTables** function and written to files using the **exportFoldNgramTables** function.  The results of running these two functions are the n-gram frequency tables used for each fold which are listed in the table below.
 
 Fold | Unigram Table | Bigram Table | Trigram Table
 -----|---------------:|--------------:|--------------:
-1    | [fold_1train_blogs_1grams.csv](https://www.dropbox.com/s/89xmp86kcq4imbt/fold_1train_blogs_1grams.csv?dl=1) | [fold_1train_blogs_2grams.csv]() | [fold_1train_blogs_3grams.csv]() 
-2    | [fold_2train_blogs_1grams.csv]() | [fold_2train_blogs_2grams.csv]() | [fold_2train_blogs_3grams.csv]() 
-3    | [fold_3train_blogs_1grams.csv]() | [fold_3train_blogs_2grams.csv]() | [fold_3train_blogs_3grams.csv]() 
-4    | [fold_4train_blogs_1grams.csv]() | [fold_4train_blogs_2grams.csv]() | [fold_4train_blogs_3grams.csv]() 
-5    | [fold_5train_blogs_1grams.csv]() | [fold_5train_blogs_2grams.csv]() | [fold_5train_blogs_3grams.csv]() 
+1    | [fold_1train_blogs_1grams.csv](https://www.dropbox.com/s/89xmp86kcq4imbt/fold_1train_blogs_1grams.csv?dl=1) | [fold_1train_blogs_2grams.csv](https://www.dropbox.com/s/v138wq8qqodytlx/fold_1train_blogs_2grams.csv?dl=1) | [fold_1train_blogs_3grams.csv](https://www.dropbox.com/s/s1wy7wpcabwnid6/fold_1train_blogs_3grams.csv?dl=1) 
+2    | [fold_2train_blogs_1grams.csv](https://www.dropbox.com/s/ulonwdefqlkvadi/fold_2train_blogs_1grams.csv?dl=1) | [fold_2train_blogs_2grams.csv](https://www.dropbox.com/s/8ne5w2pqijxvedu/fold_2train_blogs_2grams.csv?dl=1) | [fold_2train_blogs_3grams.csv](https://www.dropbox.com/s/981lj96d9uze1mu/fold_2train_blogs_3grams.csv?dl=1) 
+3    | [fold_3train_blogs_1grams.csv](https://www.dropbox.com/s/gylc3tve3xkllse/fold_3train_blogs_1grams.csv?dl=1) | [fold_3train_blogs_2grams.csv](https://www.dropbox.com/s/aa5upx8lkhgrr4p/fold_3train_blogs_2grams.csv?dl=1) | [fold_3train_blogs_3grams.csv](https://www.dropbox.com/s/2opa05btgdbwny5/fold_3train_blogs_3grams.csv?dl=1) 
+4    | [fold_4train_blogs_1grams.csv](https://www.dropbox.com/s/rrhn331argltkoq/fold_4train_blogs_1grams.csv?dl=1) | [fold_4train_blogs_2grams.csv](https://www.dropbox.com/s/9jju7m3dbj944jh/fold_4train_blogs_2grams.csv?dl=1) | [fold_4train_blogs_3grams.csv](https://www.dropbox.com/s/wkjqndg7hluulyi/fold_4train_blogs_3grams.csv?dl=1) 
+5    | [fold_5train_blogs_1grams.csv](https://www.dropbox.com/s/3iv0licjiu1g1t4/fold_5train_blogs_1grams.csv?dl=1) | [fold_5train_blogs_2grams.csv](https://www.dropbox.com/s/znmtr4qsk49yysb/fold_5train_blogs_2grams.csv?dl=1) | [fold_5train_blogs_3grams.csv](https://www.dropbox.com/s/euo1dxrn8iu6b68/fold_5train_blogs_3grams.csv?dl=1) 
 
-#### Step 4 - Select the $(\gamma_2, \gamma_3)$ Values to Run Against the Test Set
+#### Step 3 - Select the $(\gamma_2, \gamma_3)$ Values to Run Against the Test Set
 
 In addition to the n-gram tables, we also need to specify two parameters: a bigram discount rate, and a trigram discount rate.  These were the $\gamma_2$ and $\gamma_3$ variables described in [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model).  We vary each discount rate from 0.1 to 1.9 in steps of 0.1.  This gives us a 19 x 19 = 361 combinations to train over.
 
-#### Step 5 - Build the Set of Bigrams to Use as Model Inputs
+#### Step 4 - Build Model Inputs and Run Model to Make Predictions
 
-To assess the accuracy of the model, we need to give it a set of bigrams, have the model predict the words that follow each and then deterimine how accurate the predictions were.  We do this by selecting 500 random trigrams from the test set (depicted in gold), parsing out the first two words to use as input to the prediction model and then using the last word to determine if the model predicted accurately or not.  The random trigrams for each fold were created and written to files using the **makePredictTrigrams** function and these trigrams are in files which are listed in the table below.
+To assess the accuracy of the model, we need to give it a set of bigrams, have the model predict the words that follow each bigram input, and then deterimine how accurate the predictions were.  We do this by selecting 500 random trigrams from the test set (depicted in gold), parsing out the first two words to use as input to the prediction model and then using the last word to determine if the model predicted accurately or not.  The random trigrams for each fold were created and written to files using the **makePredictTrigrams** function and these trigrams are in files which are listed in the **Blogs Prediction Trigrams** column in table shown below.
 
-Fold | Blogs Prediction Trigrams |
------|-----------:|-----------:
-1    | [fold_1blogs_predict.txt](https://www.dropbox.com/s/ow47mbpakiuhk0l/fold_1blogs_predict.txt?dl=1)
-2    | [fold_2blogs_predict.txt]()
-3    | [fold_3blogs_predict.txt]()
-4    | [fold_4blogs_predict.txt]()
-5    | [fold_5blogs_predict.txt]()
+For each fold, a pair of discount rates $(\gamma_2, \gamma_3)$ is selected, 500 predictions are made, and the number of accurate predictions are tallied.  We then select another pair of the 361 combinations of $(\gamma_2, \gamma_3)$, make another 500 predictions, and assess the accuracy.  The function **trainFold** repeats this process for a single fold until all combinations of $(\gamma_2, \gamma_3)$ pairs have been run.  Running 500 predictions for each of the 361 combinations of $(\gamma_2, \gamma_3)$ in each of the 5 folds was a very time consuming process which is why only the results for the **Blogs** corpus are being reported here.  The results for each fold were written to the files listed in the table below.
 
-#### Step 6 - Run the Model to Predict the Tail Words of Each Folds Set of Random Trigrams
+Fold | Blogs Prediction Trigrams | Blogs Results Files | Best Train Accuracy | $(\gamma_2, \gamma_3)$ count 
+-----|-----------:|--------------------:|--------------:|-------------:
+1    | [fold_1blogs_predict.txt](https://www.dropbox.com/s/ow47mbpakiuhk0l/fold_1blogs_predict.txt?dl=1) | [cv_blogs_fold1_itrs500.csv](https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1) | 0.196 | 24
+2    | [fold_2blogs_predict.txt]() | [cv_blogs_fold2_itrs500.csv]() | 0.184 | 152
+3    | [fold_3blogs_predict.txt]() | [cv_blogs_fold3_itrs500.csv]() | 0.184 | 90
+4    | [fold_4blogs_predict.txt]() | [cv_blogs_fold4_itrs500.csv]() | 0.216 | 19
+5    | [fold_5blogs_predict.txt]() | [cv_blogs_fold5_itrs500.csv]() | 0.212 | 82
 
-For each fold, we select a pair of discount rates $(\gamma_2, \gamma_3)$, make 500 predictions, and count the number of accurate predictions.  We then select another pair of the 361 combinations of $(\gamma_2, \gamma_3)$, make another 500 predictions, and assess the accuracy.  The function **trainFold** repeats this process for a single fold until all combinations of $(\gamma_2, \gamma_3)$ pairs have been run.  Running 500 predictions for each of the 361 combinations of $(\gamma_2, \gamma_3)$ in each of the 5 folds was a very time consuming process which is why only the results for the **Blogs** corpus are being reported here.  The results for each fold were written to the files listed in the table below.
+#### Step 5 - Run the Best $(\gamma_2, \gamma_3)$ Values Against the Validation Set
 
-Fold | Blogs Results Files | Best Train Accuracy | $(\gamma_2, \gamma_3)$ count 
------|--------------------:|--------------:|-----------------------------:|
-1    | [cv_blogs_fold1_itrs500.csv](https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1) | 0.196 | 24
-2    | [cv_blogs_fold2_itrs500.csv]() | 0.184 | 152
-3    | [cv_blogs_fold3_itrs500.csv]() | 0.184 | 90
-4    | [cv_blogs_fold4_itrs500.csv]() | 0.216 | 19
-5    | [cv_blogs_fold5_itrs500.csv]() | 0.212 | 82
+This step first requires generating the prediction trigrams from the validation partition as described in the previous step except using the *validation set** of each fold instead of the non-validation training set.
 
-#### Step 7 - Run the Best $(\gamma_2, \gamma_3)$ Values Against the Validation Set
+From the table in **Step 4**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the non-validation test set.  Each of these pairs were obtained by running the **getBestDiscountPairs** function and then written to the files listed in the **Best Blog Training** column of the table below.  These best training pairs were then run against the validation set by running the **getValidationResults** function and the highest accuracy was found to be the values reported in the **Best Validation Accuracy** column of the table below.
 
-From the table in **Step 6**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the test set.  Each of these pairs were obtained by running the **getBestDiscountPairs** function and then written to the files listed in the **Best Blog Training** column of the table below.  These best training pairs were then run against the validation set by running the **getValidationResults** function and the highest accuracy was found to be the values reported in the **Best Validation Accuracy** column of the table below.
-
-Fold | Best Blog Training | Best Validation Accuracy | $(\gamma_2, \gamma_3)$ count
------|-------------------:|--------------:|-----------------------------:|
-1    | [fold1_best_train.csv]() | TBD | TBD
-2    | [fold2_best_train.csv]() | TBD | TBD
-3    | [fold3_best_train.csv]() | TBD | TBD
-4    | [fold4_best_train.csv]() | TBD | TBD
-5    | [fold5_best_train.csv]() | TBD | TBD
+Fold | Blogs Validation Prediction Trigrams | Best Blogs Training | Best Validation Accuracy | $(\gamma_2, \gamma_3)$ count
+-----|-----------:|-----------:|-----------:
+1    | [fold_1valid_predict.txt](https://www.dropbox.com/s/9hml06iwp4w9up5/fold_1valid_predict.txt?dl=1) | [fold1_best_train.csv](https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1) | TBD | TBD
+2    | [fold_2valid_predict.txt]() | [fold2_best_train.csv]() | TBD | TBD
+3    | [fold_3valid_predict.txt]() | [fold3_best_train.csv]() | TBD | TBD
+4    | [fold_4valid_predict.txt]() | [fold4_best_train.csv]() | TBD | TBD
+5    | [fold_5valid_predict.txt]() | [fold5_best_train.csv]() | TBD | TBD
 
 ### Selecting the Best Discount Pair
 
-As we observed in **Step 6**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set...
+As we observed in **Step 4**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set...
 
 
 
@@ -439,6 +419,41 @@ importFoldNgramtables <-
         return(fold_ngrams)
 }
 ```
+```{r eval=FALSE}
+## Creates and write out n lists of random trigrams which can be used to
+## determine prediction accuracy.  PARAMETERS:
+## corp_type - string, corpus data to process: "blogs", "news", "twitter"
+## npredict - # of predictions to make per parameter set (gamma2, gamma3)
+## corp_urls - char vector, urls of where the corpora data files lives
+## test_lines_dir - string, local dir where test partion indices live
+## test_lines_files - char vector, paths to test partion indices files 
+## ofile_prefix - string, output file prefix
+## ofile_postfix - string, output file postfix
+makePredictTrigrams <- function(corp_type="blogs", npredict=500,
+                                corp_urls=corpus_urls,
+              test_lines_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+              test_lines_files=c("fold_1test_blogs.txt", "fold_2test_blogs.txt",
+                                 "fold_3test_blogs.txt", "fold_4test_blogs.txt",
+                                 "fold_5test_blogs.txt"),
+                    ofile_prefix="fold_", ofile_postfix="blogs_predict.txt",
+              out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
+    fold_count <- length(test_lines_files)
+    for(i in 1:fold_count) {
+        cat("reading test partition indices...\n")
+        fold_indices_name <- paste0(test_lines_dir, test_lines_files[i])
+        test_indices <- read.table(fold_indices_name, sep = "\n")$V1
+        cat("reading corpus lines...\n")
+        corpus_lines <- read_lines(corp_urls[corp_type])
+        corpus_lines <- corpus_lines[test_indices]
+        cat("selecting unique random trigrams...\n")
+        predict_trigrams <- getUniqueRandomNgrams(corpus_lines, npredict)
+        ofile_name <- paste0(out_dir, ofile_prefix, i, ofile_postfix)
+        cat("writing unique random trigrams to", ofile_name, "...\n")
+        writeLines(predict_trigrams, ofile_name)
+    }
+}
+
+```
 
 ```{r eval=FALSE}
 ## Returns a single word character vector which has the highest probability of
@@ -487,8 +502,17 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
     return(predicted_word)
 }
 
-## Trains the model on corpus_lines and fills in the predacc column of the
-## gamma_grid dataframe that is passed in.  Three columns in gamma_grid are:
+## Trains the word prediction model on a corpus of text.  Function makes a copy
+## of the gamma_grid dataframe which is passed in, changes the name of the
+## predacc column to acc, reads in a set of _ delimited trigrams, parses those
+## trigrams into the bigram prefixes and trigram tails, and then for every 
+## pair of (gamma2, gamma3) discounts in gamma_grid, makes prediction using the
+## bigram prefixes as inputs.  The accuracy of each prediction is determined
+## by comparing the output of the model with the trigram tail associated with
+## bigram prefix which was used as input.
+## 
+## gamma_grid dataframe that is passed in and return a dataframe with the
+## populated .  Three columns in gamma_grid are:
 ## gamma2 - bigram discount
 ## gamma3 - trigram discount
 ## predacc - prediction accuracy est'd from nitrs predicitons on each
@@ -506,11 +530,6 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
 ##                  y is the corpus type e.g. 'blogs', 'news', or 'twitter'
 ##
 ## PARAMETERS:
-## ngram_tables - k element outer list: one element per fold. Each list
-##                contains inner list of 3 items:
-##                1st inner list is the unigram frequency table
-##                2nd inner list is the bigram frequency table
-##                3rd inner list is the trigram frequency table
 ## gamma_grid - 3 columns dataframe as described above
 ## write_freq - frequency in which to write updated calculations to output file
 ## fold - the fold within folds list to run trials on
@@ -548,10 +567,15 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
                               acc=as.numeric(rep(-1, nrow(gamma_grid))),
                               predict=as.numeric(rep(-1, nrow(gamma_grid))),
                               success=as.numeric(rep(-1, nrow(gamma_grid))))
-    # Get ngram tables for this fold.
-    unigs <- fold_ngrams[[fold]][1][[1]]
-    bigrs <- fold_ngrams[[fold]][2][[1]]
-    trigs <- fold_ngrams[[fold]][3][[1]]
+    # Get ngram tables for this fold.  The fold_ngrams list has the following
+    # structure: k element outer list: one element per fold. Each list
+    #            contains inner list of 3 items:
+    #            1st inner list is the unigram frequency table
+    #            2nd inner list is the bigram frequency table
+    #            3rd inner list is the trigram frequency table
+    unigs <- fold_ngrams[[fold]][[1]]
+    bigrs <- fold_ngrams[[fold]][[2]]
+    trigs <- fold_ngrams[[fold]][[3]]
     for(i in ggrid_start:nrow(gamma_grid)) {
         good_predictions <- 0
         g2 <- gamma_grid$gamma2[i]
@@ -589,7 +613,7 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
         write.csv(exp_results, out_file, row.names = FALSE)
         out_line <- sprintf("%s%s%s%s%s%s%s%s", g2, ",",g3, ",",
                             accuracy, ",",  as.character(Sys.time()), "\n")
-        cat(out_line)  # feedback for during very long set of computations
+        cat(out_line)  # feedback during very long set of computations
     }
     cat("*** FINAL *** results written to:\n", out_file, "\n",
         "at ", as.character(Sys.time()))
@@ -606,11 +630,16 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
 getBestDiscountPairs <- function(result_file_paths=NULL) {
     result_files_list = list()
     if(is.null(result_file_paths)) {
-        result_files_list[[1]] <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
-        result_files_list[[2]] <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
-        result_files_list[[3]] <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
-        result_files_list[[4]] <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
-        result_files_list[[5]] <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
+        result_files_list[[1]] <-
+            read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
+        result_files_list[[2]] <-
+            read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
+        result_files_list[[3]] <-
+            read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
+        result_files_list[[4]] <-
+            read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
+        result_files_list[[5]] <-
+            read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
     } else {
         for(i in 1:length(result_file_paths)) {
             result_files_list[[i]] <- read.csv(result_file_paths[i])

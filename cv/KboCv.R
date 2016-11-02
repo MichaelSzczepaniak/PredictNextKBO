@@ -247,7 +247,7 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
         write.csv(exp_results, out_file, row.names = FALSE)
         out_line <- sprintf("%s%s%s%s%s%s%s%s", g2, ",",g3, ",",
                             accuracy, ",",  as.character(Sys.time()), "\n")
-        cat(out_line)  # feedback for during very long set of computations
+        cat(out_line)  # feedback during very long set of computations
     }
     cat("*** FINAL *** results written to:\n", out_file, "\n",
         "at ", as.character(Sys.time()))

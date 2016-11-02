@@ -179,12 +179,13 @@ test_lines_files=c("fold_1test_blogs.txt", "fold_2test_blogs.txt",
 ofile_prefix="fold_"; ofile_postfix="blogs_predict.txt"
 out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/"
 
-## Creates and write out the trigrams used to determine prediction accuracy.
+## Creates and write out n lists of random trigrams which can be used to
+## determine prediction accuracy.  PARAMETERS:
 ## corp_type - string, corpus data to process: "blogs", "news", "twitter"
 ## npredict - # of predictions to make per parameter set (gamma2, gamma3)
-## corp_urls - char vector, urls of where the corpora data lives
+## corp_urls - char vector, urls of where the corpora data files lives
 ## test_lines_dir - string, local dir where test partion indices live
-## test_lines_files - char vector, file names of test indices
+## test_lines_files - char vector, paths to test partion indices files 
 ## ofile_prefix - string, output file prefix
 ## ofile_postfix - string, output file postfix
 makePredictTrigrams <- function(corp_type="blogs", npredict=500,
@@ -262,15 +263,19 @@ if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
 ## corpus_type - type of corpus: "blogs", "news", "twitter"
 ## out_dir - directory to write output to
 ## ofile_prefix - prefix to use for the output file name
-## ofile_postfix - postfix to use for the output file name
+## 
 trainFold <- function(gamma_grid, write_freq=100, fold=1,
                       predict_words_path=NULL, ggrid_start=1, itr_start=1,
                       corpus_type="blogs",
                       out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
-                      file_prefix="fold_", ofile_postfix="cv_results.csv") {
-    if(is.null(predict_words_path)) {
+                      file_prefix="fold_", validation=FALSE) {
+    if(is.null(predict_words_path) && !validation) {
         predict_words_path <- paste0(out_dir, file_prefix, fold,
                                      corpus_type, "_predict.txt")
+    } else {
+        cat("Using validation predict words...\n")
+        predict_words_path <- paste0(out_dir, file_prefix, fold,
+                                     "valid_predict.txt")
     }
     predict_words <- read_lines(predict_words_path)
     nitrs <- length(predict_words)
@@ -279,8 +284,15 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
         cat("Fold ngram table data read has completed at",
             as.character(Sys.time()), "\n")
     }
-    out_file <- paste0(out_dir, "cv_", corpus_type, "_", "fold", fold, "_itrs",
-                       nitrs, ".csv")  # e.g. cv_blogs_fold1_itrs500.csv
+    out_file = ""
+    if(validation) {
+        out_file <- paste0(out_dir, "validation/cv_", corpus_type, "_", "fold", fold, "_itrs",
+                           nitrs, ".csv")  # e.g. /validation/cv_blogs_fold1_itrs500.csv
+    } else {
+        out_file <- paste0(out_dir, "cv_", corpus_type, "_", "fold", fold, "_itrs",
+                           nitrs, ".csv")  # e.g. cv_blogs_fold1_itrs500.csv
+    }
+    
     exp_results <- data.frame(gamma2=as.numeric(rep(-1, nrow(gamma_grid))),
                               gamma3=as.numeric(rep(-1, nrow(gamma_grid))),
                               acc=as.numeric(rep(-1, nrow(gamma_grid))),
@@ -340,11 +352,8 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
     return(exp_results)
 }
 
-getValidationResults <- function(folds=1:5,
-                                 results_prefix='fold',
-                                 results_suffix='_best_train.csv',
-                                 paths_best_training=NULL
-                                 ) {
+getValidationResults <- function(paths_best_training=NULL) {
+    # Load paths to best discount parameters for each fold found in training
     if(is.null(paths_best_training)) {
         paths_best_training = vector(mode="character", length=5)
         paths_best_training[1] = "https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1"
@@ -352,6 +361,20 @@ getValidationResults <- function(folds=1:5,
         paths_best_training[3] = "https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1"
         paths_best_training[4] = "https://www.dropbox.com/s/492kt8jfnf03v85/fold4_best_train.csv?dl=1"
         paths_best_training[5] = "https://www.dropbox.com/s/ul23lcb8ln80gdd/fold5_best_train.csv?dl=1"
+    }
+    # Generate the inputs to the prediction model from the validation sets
+    makePredictTrigrams(corp_type="blogs", npredict=500, corp_urls=corpus_urls,
+                        test_lines_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+                        test_lines_files=c("fold_1blogs.txt", "fold_2blogs.txt",
+                                           "fold_3blogs.txt", "fold_4blogs.txt",
+                                           "fold_5blogs.txt"),
+                        ofile_prefix="fold_", ofile_postfix="valid_predict.txt",
+                        out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/")
+    for(fold in 1:length(paths_best_training)) {
+        gg <- read.csv(paths_best_training[fold])
+        gg_results <- trainFold(gg, 100, fold,
+                                out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/",
+                                validation=TRUE)
     }
 }
 
@@ -391,21 +414,44 @@ convertDfToContourMatrix <- function(df, xname, yname, zname) {
 # cmat1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
 # contour(x=xgrid1, y=ygrid1, cmat1, xlab='gamma2', ylab='gamma3')
 
-createContour <- function(data) {
-    xgrid <- sort(unique(data$gamma2))
-    ygrid <- sort(unique(data$gamma3))
-    cmat <- convertDfToContourMatrix(data, 'gamma2', 'gamma3', 'acc')
-    contour(x=xgrid, y=ygrid, cmat, xlab='gamma2', ylab='gamma3')
+# createContour <- function(data) {
+#     xgrid <- sort(unique(data$gamma2))
+#     ygrid <- sort(unique(data$gamma3))
+#     cmat <- convertDfToContourMatrix(data, 'gamma2', 'gamma3', 'acc')
+#     contour(x=xgrid, y=ygrid, cmat, xlab='gamma2', ylab='gamma3')
+# }
+# 
+# cm1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
+# cm2 <- convertDfToContourMatrix(f2, 'gamma2', 'gamma3', 'acc')
+# cm3 <- convertDfToContourMatrix(f3, 'gamma2', 'gamma3', 'acc')
+# cm4 <- convertDfToContourMatrix(f4, 'gamma2', 'gamma3', 'acc')
+# cm5 <- convertDfToContourMatrix(f5, 'gamma2', 'gamma3', 'acc')
+
+# comp_mat <- cm1+cm2+cm3+cm4+cm5
+# xgrid <- sort(unique(f1$gamma2))  # could use any of the 5 fold results
+# ygrid <- sort(unique(f1$gamma3))
+# contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3')
+
+## Convince myself that:
+## fold_1blogs.txt       - validation indices
+## fold_1train_blogs.txt - training indices in the non-validation partition
+## fold_1test_blogs.txt  - testing indices in the non-validation partition
+testConsistency <- function() {
+    f1_valid_path <- "https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1"
+    f1_train_path <- "https://www.dropbox.com/s/n4cne11vjodd6lg/fold_1train_blogs.txt?dl=1"
+    f1_test_path <- "https://www.dropbox.com/s/ezlxnaxwfb7df4x/fold_1test_blogs.txt?dl=1"
+    
+    f1_valid_indices <- read.table(f1_valid_path, sep = "\n")$V1
+    f1_train_indices <- read.table(f1_train_path, sep = "\n")$V1
+    f1_test_indices <- read.table(f1_test_path, sep = "\n")$V1
+    
+    inter1 <- intersect(f1_valid_indices, f1_train_indices) # empty, check
+    inter2 <- intersect(f1_valid_indices, f1_test_indices)  # empty, check
+    inter3 <- intersect(f1_train_indices, f1_test_indices)  # empty, check
+    all_indices <- union(f1_valid_indices, f1_train_indices)
+    all_indices <- union(all_indices, f1_test_indices)
+    all_indices <- sort(all_indices)
+    
+    return(all_indices)  # length(all_indices) >> [1] 1689507 check!
 }
-
-cm1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
-cm2 <- convertDfToContourMatrix(f2, 'gamma2', 'gamma3', 'acc')
-cm3 <- convertDfToContourMatrix(f3, 'gamma2', 'gamma3', 'acc')
-cm4 <- convertDfToContourMatrix(f4, 'gamma2', 'gamma3', 'acc')
-cm5 <- convertDfToContourMatrix(f5, 'gamma2', 'gamma3', 'acc')
-
-comp_mat <- cm1+cm2+cm3+cm4+cm5
-xgrid <- sort(unique(f1$gamma2))  # could use any of the 5 fold results
-ygrid <- sort(unique(f1$gamma3))
-contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3')
 
