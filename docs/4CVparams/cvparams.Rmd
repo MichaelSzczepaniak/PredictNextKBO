@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "November 5, 2016 (initial release)"
+date: "November 4, 2016 (draft)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
@@ -75,16 +75,24 @@ This step first requires generating the prediction trigrams from the validation 
 From the table in **Step 4**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the non-validation test set.  Each of these pairs were obtained by running the **getBestDiscountPairs** function and then written to the files listed in the **Best Blog Training** column of the table below.  These best training pairs were then run against the validation set by running the **getValidationResults** function and the highest accuracy was found to be the values reported in the **Best Validation Accuracy** column of the table below.
 
 Fold | Blogs Validation Prediction Trigrams | Best Blogs Training | Best Validation Accuracy | $(\gamma_2, \gamma_3)$ count
------|-----------:|-----------:|-----------:
-1    | [fold_1valid_predict.txt](https://www.dropbox.com/s/9hml06iwp4w9up5/fold_1valid_predict.txt?dl=1) | [fold1_best_train.csv](https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1) | TBD | TBD
-2    | [fold_2valid_predict.txt]() | [fold2_best_train.csv]() | TBD | TBD
-3    | [fold_3valid_predict.txt]() | [fold3_best_train.csv]() | TBD | TBD
-4    | [fold_4valid_predict.txt]() | [fold4_best_train.csv]() | TBD | TBD
-5    | [fold_5valid_predict.txt]() | [fold5_best_train.csv]() | TBD | TBD
+-----|-----------:|-----------:|-----------:|-----------:
+1    | [fold_1valid_predict.txt](https://www.dropbox.com/s/9hml06iwp4w9up5/fold_1valid_predict.txt?dl=1) | [fold1_best_train.csv](https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1) | 0.164 | 24
+2    | [fold_2valid_predict.txt](https://www.dropbox.com/s/kp0tqlpmphl7ooc/fold_2valid_predict.txt?dl=1) | [fold2_best_train.csv](https://www.dropbox.com/s/gos25qrdjhvqght/fold2_best_train.csv?dl=1) | 0.178 | TBD
+3    | [fold_3valid_predict.txt](https://www.dropbox.com/s/ixjh28hfy3yjs53/fold_3valid_predict.txt?dl=1) | [fold3_best_train.csv](https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1) | TBD | TBD
+4    | [fold_4valid_predict.txt](https://www.dropbox.com/s/upjgml1wf3im2x3/fold_4valid_predict.txt?dl=1) | [fold4_best_train.csv](https://www.dropbox.com/s/492kt8jfnf03v85/fold4_best_train.csv?dl=1) | TBD | TBD
+5    | [fold_5valid_predict.txt](https://www.dropbox.com/s/ducfh5ju5v80yyd/fold_5valid_predict.txt?dl=1) | [fold5_best_train.csv](https://www.dropbox.com/s/ul23lcb8ln80gdd/fold5_best_train.csv?dl=1) | TBD | TBD
 
 ### Selecting the Best Discount Pair
 
-As we observed in **Step 4**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set...
+As we observed in **Step 4**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set in **Step 5**.
+
+```{r}
+library(ggplot2)
+df <- read.csv('https://www.dropbox.com/s/v2c62fxgnxpfde8/partial_data.csv?dl=1')
+ggplot(data = df, aes(x = gamma2, y = gamma3)) + stat_sum()
+
+
+```
 
 
 
