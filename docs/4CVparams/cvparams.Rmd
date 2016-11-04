@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "October xx, 2016 (initial release)"
+date: "November 5, 2016 (initial release)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
@@ -33,7 +33,7 @@ Each fold is represented as one of the five rows shown in the picture above.  Ra
 Fold | Blogs Validation Set | Blogs Training Set | Blogs Test Set
 -----|---------------:|--------------:|--------------:
 1    | [fold_1blogs.txt](https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1) | [fold_1train_blogs.txt](https://www.dropbox.com/s/n4cne11vjodd6lg/fold_1train_blogs.txt?dl=1) | [fold_1test_blogs.txt](https://www.dropbox.com/s/ezlxnaxwfb7df4x/fold_1test_blogs.txt?dl=1) 
-2    | [fold_2blogs.txt](https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1)   | [fold_2train_blogs.txt](https://www.dropbox.com/s/0dmqnxdk6liwne4/fold_2train_blogs.txt?dl=0) | [fold_2test_blogs.txt](https://www.dropbox.com/s/y6ixs9rqyc2ovpl/fold_2test_blogs.txt?dl=1) 
+2    | [fold_2blogs.txt](https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1)   | [fold_2train_blogs.txt](https://www.dropbox.com/s/0dmqnxdk6liwne4/fold_2train_blogs.txt?dl=1) | [fold_2test_blogs.txt](https://www.dropbox.com/s/y6ixs9rqyc2ovpl/fold_2test_blogs.txt?dl=1) 
 3    | [fold_3blogs.txt](https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1) | [fold_3train_blogs.txt](https://www.dropbox.com/s/0aqfxf6al4wvgjm/fold_3train_blogs.txt?dl=1) | [fold_3test_blogs.txt](https://www.dropbox.com/s/u1x7vlv4n2xh147/fold_3test_blogs.txt?dl=1) 
 4    | [fold_4blogs.txt](https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1) | [fold_4train_blogs.txt](https://www.dropbox.com/s/yszu99pc80xcmg8/fold_4train_blogs.txt?dl=1) | [fold_4test_blogs.txt](https://www.dropbox.com/s/8zndrfw113ork6a/fold_4test_blogs.txt?dl=1) 
 5    | [fold_5blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) | [fold_5train_blogs.txt](https://www.dropbox.com/s/g9sji96yg5j9n8d/fold_5train_blogs.txt?dl=1) | [fold_5test_blogs.txt](https://www.dropbox.com/s/b55ckj6n5engwcy/fold_5test_blogs.txt?dl=1) 
@@ -63,10 +63,10 @@ For each fold, a pair of discount rates $(\gamma_2, \gamma_3)$ is selected, 500 
 Fold | Blogs Prediction Trigrams | Blogs Results Files | Best Train Accuracy | $(\gamma_2, \gamma_3)$ count 
 -----|-----------:|--------------------:|--------------:|-------------:
 1    | [fold_1blogs_predict.txt](https://www.dropbox.com/s/ow47mbpakiuhk0l/fold_1blogs_predict.txt?dl=1) | [cv_blogs_fold1_itrs500.csv](https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1) | 0.196 | 24
-2    | [fold_2blogs_predict.txt]() | [cv_blogs_fold2_itrs500.csv]() | 0.184 | 152
-3    | [fold_3blogs_predict.txt]() | [cv_blogs_fold3_itrs500.csv]() | 0.184 | 90
-4    | [fold_4blogs_predict.txt]() | [cv_blogs_fold4_itrs500.csv]() | 0.216 | 19
-5    | [fold_5blogs_predict.txt]() | [cv_blogs_fold5_itrs500.csv]() | 0.212 | 82
+2    | [fold_2blogs_predict.txt](https://www.dropbox.com/s/11lwb0356cyzh72/fold_2blogs_predict.txt?dl=1) | [cv_blogs_fold2_itrs500.csv](https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1) | 0.184 | 152
+3    | [fold_3blogs_predict.txt](https://www.dropbox.com/s/v8wutg9s8n9s43r/fold_3blogs_predict.txt?dl=1) | [cv_blogs_fold3_itrs500.csv](https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1) | 0.184 | 90
+4    | [fold_4blogs_predict.txt](https://www.dropbox.com/s/8c4scmda1z2ny4k/fold_4blogs_predict.txt?dl=1) | [cv_blogs_fold4_itrs500.csv](https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1) | 0.216 | 19
+5    | [fold_5blogs_predict.txt](https://www.dropbox.com/s/2frdvo0d2vupnk3/fold_5blogs_predict.txt?dl=1) | [cv_blogs_fold5_itrs500.csv](https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1) | 0.212 | 82
 
 #### Step 5 - Run the Best $(\gamma_2, \gamma_3)$ Values Against the Validation Set
 
