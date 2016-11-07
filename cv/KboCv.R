@@ -74,12 +74,13 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
 ## g3_end - largest value for trigram discount gamma3 to eval up to
 ## intv - spacing interval between gx_start and gx_end
 makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
-                              g3_end=1.9, intv=0.1) {
+                              g3_end=1.9, intv=0.1, default_fill=-1) {
     # make grid manually
     g3_seq <- seq(g3_start, g3_end, intv)
     g2_seq <- unlist(lapply(g3_seq, rep, length(g3_seq)))
     g3_seq <- rep(g3_seq, length(g3_seq))
-    df_data_grid <- data.frame(gamma2=g2_seq, gamma3=g3_seq, predacc=-1)
+    df_data_grid <- data.frame(gamma2=g2_seq, gamma3=g3_seq,
+                               predacc=default_fill)
     
     return(df_data_grid)
 }
@@ -399,6 +400,25 @@ make3dAccVgammas <- function(df=gamma_df) {
            zlab="prediction accuracy",
            colkey=TRUE, bty="b2",
            main="Bigram & Trigram Discount Rates vs. Prediction Accuracy")
+}
+
+## Aggregates the best results from the training of each fold
+aggregateTrainFolds <- function(fold_results_files=
+    c('https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1',
+      'https://www.dropbox.com/s/gos25qrdjhvqght/fold2_best_train.csv?dl=1',
+      'https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1',
+      'https://www.dropbox.com/s/492kt8jfnf03v85/fold4_best_train.csv?dl=1',
+      'https://www.dropbox.com/s/ul23lcb8ln80gdd/fold5_best_train.csv?dl=1')) {
+    
+    dgrid <- makeEmptyDataGrid(default_fill=0)
+    names(dgrid)[3] <- "weight"
+    for(i in 1:1) {
+        fi_best <- read.csv(fold_results_files[i])
+    }
+}
+
+makeGammaSurface1 <- function() {
+    
 }
 
 
