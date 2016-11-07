@@ -60,9 +60,19 @@ To assess the accuracy of the model, we need to give it a set of bigrams, have t
 
 For each fold, a pair of discount rates $(\gamma_2, \gamma_3)$ is selected, 500 predictions are made, and the number of accurate predictions are tallied.  We then select another pair of the 361 combinations of $(\gamma_2, \gamma_3)$, make another 500 predictions, and assess the accuracy.  The function **trainFold** repeats this process for a single fold until all combinations of $(\gamma_2, \gamma_3)$ pairs have been run.  Running 500 predictions for each of the 361 combinations of $(\gamma_2, \gamma_3)$ in each of the 5 folds was a very time consuming process which is why only the results for the **Blogs** corpus are being reported here.  The results for each fold were written to the files listed in the table below.
 
+```{r echo=FALSE, eval=TRUE}
+library(dplyr)
+f1train <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
+f1train <- arrange(f1train, desc(acc))
+fold_train_best <- c(f1train$acc[1])
+fold_train_best_count <- c(nrow(filter(f1train, acc==fold_train_best[1])))
+
+```
+
+
 Fold | Blogs Prediction Trigrams | Blogs Results Files | Best Train Accuracy | $(\gamma_2, \gamma_3)$ count 
 -----|-----------:|--------------------:|--------------:|-------------:
-1    | [fold_1blogs_predict.txt](https://www.dropbox.com/s/ow47mbpakiuhk0l/fold_1blogs_predict.txt?dl=1) | [cv_blogs_fold1_itrs500.csv](https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1) | 0.196 | 24
+1    | [fold_1blogs_predict.txt](https://www.dropbox.com/s/ow47mbpakiuhk0l/fold_1blogs_predict.txt?dl=1) | [cv_blogs_fold1_itrs500.csv](https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1) | `r fold_train_best[1]` | `r fold_train_best_count[1]`
 2    | [fold_2blogs_predict.txt](https://www.dropbox.com/s/11lwb0356cyzh72/fold_2blogs_predict.txt?dl=1) | [cv_blogs_fold2_itrs500.csv](https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1) | 0.184 | 152
 3    | [fold_3blogs_predict.txt](https://www.dropbox.com/s/v8wutg9s8n9s43r/fold_3blogs_predict.txt?dl=1) | [cv_blogs_fold3_itrs500.csv](https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1) | 0.184 | 90
 4    | [fold_4blogs_predict.txt](https://www.dropbox.com/s/8c4scmda1z2ny4k/fold_4blogs_predict.txt?dl=1) | [cv_blogs_fold4_itrs500.csv](https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1) | 0.216 | 19
