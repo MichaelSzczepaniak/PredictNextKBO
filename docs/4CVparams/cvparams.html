@@ -118,7 +118,7 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">Predicting Next Word Using Katz Back-Off</h1>
 <h3 class="subtitle"><em>Part 4 - Determining Discount Parameters With Cross-Validation</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>November 4, 2016 (draft)</em></h4>
+<h4 class="date"><em>November 8, 2016 (draft)</em></h4>
 
 </div>
 
@@ -247,22 +247,53 @@ $(document).ready(function () {
 <div id="step-4---build-model-inputs-and-run-model-to-make-predictions" class="section level4">
 <h4>Step 4 - Build Model Inputs and Run Model to Make Predictions</h4>
 <p>To assess the accuracy of the model, we need to give it a set of bigrams, have the model predict the words that follow each bigram input, and then deterimine how accurate the predictions were. We do this by selecting 500 random trigrams from the test set (depicted in gold), parsing out the first two words to use as input to the prediction model and then using the last word to determine if the model predicted accurately or not. The random trigrams for each fold were created and written to files using the <strong>makePredictTrigrams</strong> function and these trigrams are in files which are listed in the <strong>Blogs Prediction Trigrams</strong> column in table shown below.</p>
-<p>For each fold, a pair of discount rates <span class="math inline">\((\gamma_2, \gamma_3)\)</span> is selected, 500 predictions are made, and the number of accurate predictions are tallied. We then select another pair of the 361 combinations of <span class="math inline">\((\gamma_2, \gamma_3)\)</span>, make another 500 predictions, and assess the accuracy. The function <strong>trainFold</strong> repeats this process for a single fold until all combinations of <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pairs have been run. Running 500 predictions for each of the 361 combinations of <span class="math inline">\((\gamma_2, \gamma_3)\)</span> in each of the 5 folds was a very time consuming process which is why only the results for the <strong>Blogs</strong> corpus are being reported here. The results for each fold were written to the files listed in the table below.</p>
-<table>
+<p>For each fold, a pair of discount rates <span class="math inline">\((\gamma_2, \gamma_3)\)</span> is selected, 500 predictions are made, and the number of accurate predictions are tallied. We then select another pair of the 361 combinations of <span class="math inline">\((\gamma_2, \gamma_3)\)</span>, make another 500 predictions, and assess the accuracy. The function <strong>trainFold</strong> repeats this process for a single fold until all combinations of <span class="math inline">\((\gamma_2, \gamma_3)\)</span> pairs have been run. Running 500 predictions for each of the 361 combinations of <span class="math inline">\((\gamma_2, \gamma_3)\)</span> in each of the 5 folds was a very time consuming process which is why only the results for the <strong>Blogs</strong> corpus are being reported here. The results for each fold were written to files which are listed below. The code that follows computes the values that populate the last 2 columns of the table that follows.</p>
+<pre class="r"><code>## Returns a list containing 3 vectors.  The 1st vector holds the values for
+## the &quot;Worst X Accuracy&quot; column.  The 2nd vector holds the values for the
+## &quot;Worst X Accuracy&quot; column where X = 'Train' or 'Validation'.  The 3rd
+## vector holds the values for the &quot;Best Count&quot; column in the tables that follow.
+getBestWorstResults &lt;- function(fold_results_files=
+                           c('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1',
+                             'https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1',
+                             'https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1',
+                             'https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1',
+                             'https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')) {
+    library(dplyr)
+    filler &lt;- rep(-1, length(fold_results_files))
+    train_results &lt;- list(worst_acc=filler, best_acc=filler, best_count=filler)
+    for(i in 1:length(fold_results_files)) {
+        fold_results &lt;- read.csv(fold_results_files[i])
+        fold_results &lt;- arrange(fold_results, desc(acc))
+        train_results[['worst_acc']][i] &lt;- c(fold_results$acc[nrow(fold_results)])
+        train_results[['best_acc']][i] &lt;- c(fold_results$acc[1])
+        train_results[['best_count']][i] &lt;-
+            c(nrow(filter(fold_results, acc==train_results[['best_acc']][i])))
+    }
+    
+    return(train_results)
+}
+
+fold_train &lt;- getBestWorstResults()
+fold_train_worst &lt;- fold_train[['worst_acc']]
+fold_train_best &lt;- fold_train[['best_acc']]
+fold_train_best_count &lt;- fold_train[['best_count']]</code></pre>
+<table style="width:92%;">
 <colgroup>
 <col width="8%"></col>
 <col width="18%"></col>
-<col width="30%"></col>
-<col width="22%"></col>
-<col width="20%"></col>
+<col width="23%"></col>
+<col width="13%"></col>
+<col width="13%"></col>
+<col width="13%"></col>
 </colgroup>
 <thead>
 <tr class="header">
 <th align="left">Fold</th>
 <th align="right">Blogs Prediction Trigrams</th>
 <th align="right">Blogs Results Files</th>
+<th align="right">Worst Train Accuracy</th>
 <th align="right">Best Train Accuracy</th>
-<th align="right"><span class="math inline">\((\gamma_2, \gamma_3)\)</span> count</th>
+<th align="right">Best <span class="math inline">\((\gamma_2, \gamma_3)\)</span> count</th>
 </tr>
 </thead>
 <tbody>
@@ -270,6 +301,7 @@ $(document).ready(function () {
 <td align="left">1</td>
 <td align="right"><a href="https://www.dropbox.com/s/ow47mbpakiuhk0l/fold_1blogs_predict.txt?dl=1">fold_1blogs_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1">cv_blogs_fold1_itrs500.csv</a></td>
+<td align="right">0.172</td>
 <td align="right">0.196</td>
 <td align="right">24</td>
 </tr>
@@ -277,6 +309,7 @@ $(document).ready(function () {
 <td align="left">2</td>
 <td align="right"><a href="https://www.dropbox.com/s/11lwb0356cyzh72/fold_2blogs_predict.txt?dl=1">fold_2blogs_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1">cv_blogs_fold2_itrs500.csv</a></td>
+<td align="right">0.17</td>
 <td align="right">0.184</td>
 <td align="right">152</td>
 </tr>
@@ -284,6 +317,7 @@ $(document).ready(function () {
 <td align="left">3</td>
 <td align="right"><a href="https://www.dropbox.com/s/v8wutg9s8n9s43r/fold_3blogs_predict.txt?dl=1">fold_3blogs_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1">cv_blogs_fold3_itrs500.csv</a></td>
+<td align="right">0.168</td>
 <td align="right">0.184</td>
 <td align="right">90</td>
 </tr>
@@ -291,6 +325,7 @@ $(document).ready(function () {
 <td align="left">4</td>
 <td align="right"><a href="https://www.dropbox.com/s/8c4scmda1z2ny4k/fold_4blogs_predict.txt?dl=1">fold_4blogs_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1">cv_blogs_fold4_itrs500.csv</a></td>
+<td align="right">0.2</td>
 <td align="right">0.216</td>
 <td align="right">19</td>
 </tr>
@@ -298,6 +333,7 @@ $(document).ready(function () {
 <td align="left">5</td>
 <td align="right"><a href="https://www.dropbox.com/s/2frdvo0d2vupnk3/fold_5blogs_predict.txt?dl=1">fold_5blogs_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1">cv_blogs_fold5_itrs500.csv</a></td>
+<td align="right">0.206</td>
 <td align="right">0.212</td>
 <td align="right">82</td>
 </tr>
@@ -307,7 +343,17 @@ $(document).ready(function () {
 <div id="step-5---run-the-best-gamma_2-gamma_3-values-against-the-validation-set" class="section level4">
 <h4>Step 5 - Run the Best <span class="math inline">\((\gamma_2, \gamma_3)\)</span> Values Against the Validation Set</h4>
 <p>This step first requires generating the prediction trigrams from the validation partition as described in the previous step except using the *validation set** of each fold instead of the non-validation training set.</p>
-<p>From the table in <strong>Step 4</strong>, we see that a number of <span class="math inline">\((\gamma_2, \gamma_3)\)</span> combinations resulted in the highest accuracy on the non-validation test set. Each of these pairs were obtained by running the <strong>getBestDiscountPairs</strong> function and then written to the files listed in the <strong>Best Blog Training</strong> column of the table below. These best training pairs were then run against the validation set by running the <strong>getValidationResults</strong> function and the highest accuracy was found to be the values reported in the <strong>Best Validation Accuracy</strong> column of the table below.</p>
+<p>From the table in <strong>Step 4</strong>, we see that a number of <span class="math inline">\((\gamma_2, \gamma_3)\)</span> combinations resulted in the highest accuracy on the non-validation test set. Each of these pairs were obtained by running the <strong>getBestDiscountPairs</strong> function and then written to the files listed in the <strong>Best Blog Training</strong> column of the table below. These best training pairs were then run against the validation set by running the <strong>getValidationResults</strong> function and the highest accuracy was found to be the values reported in the <strong>Best Validation Accuracy</strong> column. The values for the last 2 columns of the table below were computed using the same <strong>getBestResults</strong> function used in the previous table.</p>
+<pre class="r"><code>validation_results_files &lt;- 
+    c('https://www.dropbox.com/s/t8kv3eultbrg5b4/cv_blogs_fold1_itrs500.csv?dl=1',
+      'https://www.dropbox.com/s/va3uq4f1h6fb1n8/cv_blogs_fold2_itrs500.csv?dl=1',
+      'https://www.dropbox.com/s/rxuviidj7gb16k1/cv_blogs_fold3_itrs500.csv?dl=1',
+      'https://www.dropbox.com/s/dzser8x5dcgevkn/cv_blogs_fold4_itrs500.csv?dl=1',
+      'https://www.dropbox.com/s/n4d4mj0rcryfvin/cv_blogs_fold5_itrs500.csv?dl=1')
+
+fold_train &lt;- getBestWorstResults(validation_results_files)
+fold_valid_best &lt;- fold_train[['best_acc']]
+fold_valid_best_count &lt;- fold_train[['best_count']]</code></pre>
 <table style="width:81%;">
 <colgroup>
 <col width="8%"></col>
@@ -338,14 +384,14 @@ $(document).ready(function () {
 <td align="right"><a href="https://www.dropbox.com/s/kp0tqlpmphl7ooc/fold_2valid_predict.txt?dl=1">fold_2valid_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/gos25qrdjhvqght/fold2_best_train.csv?dl=1">fold2_best_train.csv</a></td>
 <td align="right">0.178</td>
-<td align="right">TBD</td>
+<td align="right">61</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
 <td align="right"><a href="https://www.dropbox.com/s/ixjh28hfy3yjs53/fold_3valid_predict.txt?dl=1">fold_3valid_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1">fold3_best_train.csv</a></td>
-<td align="right">TBD</td>
-<td align="right">TBD</td>
+<td align="right">0.202</td>
+<td align="right">6</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
