@@ -352,11 +352,13 @@ fold_train_best_count &lt;- fold_train[['best_count']]</code></pre>
       'https://www.dropbox.com/s/n4d4mj0rcryfvin/cv_blogs_fold5_itrs500.csv?dl=1')
 
 fold_train &lt;- getBestWorstResults(validation_results_files)
+fold_valid_worst &lt;- fold_train[['worst_acc']]
 fold_valid_best &lt;- fold_train[['best_acc']]
 fold_valid_best_count &lt;- fold_train[['best_count']]</code></pre>
-<table style="width:81%;">
+<table style="width:99%;">
 <colgroup>
 <col width="8%"></col>
+<col width="18%"></col>
 <col width="18%"></col>
 <col width="18%"></col>
 <col width="18%"></col>
@@ -367,8 +369,9 @@ fold_valid_best_count &lt;- fold_train[['best_count']]</code></pre>
 <th align="left">Fold</th>
 <th align="right">Blogs Validation Prediction Trigrams</th>
 <th align="right">Best Blogs Training</th>
+<th align="right">Worst Validation Accuracy</th>
 <th align="right">Best Validation Accuracy</th>
-<th align="right"><span class="math inline">\((\gamma_2, \gamma_3)\)</span> count</th>
+<th align="right">Best <span class="math inline">\((\gamma_2, \gamma_3)\)</span> count</th>
 </tr>
 </thead>
 <tbody>
@@ -377,12 +380,14 @@ fold_valid_best_count &lt;- fold_train[['best_count']]</code></pre>
 <td align="right"><a href="https://www.dropbox.com/s/9hml06iwp4w9up5/fold_1valid_predict.txt?dl=1">fold_1valid_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1">fold1_best_train.csv</a></td>
 <td align="right">0.164</td>
+<td align="right">0.164</td>
 <td align="right">24</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
 <td align="right"><a href="https://www.dropbox.com/s/kp0tqlpmphl7ooc/fold_2valid_predict.txt?dl=1">fold_2valid_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/gos25qrdjhvqght/fold2_best_train.csv?dl=1">fold2_best_train.csv</a></td>
+<td align="right">0.172</td>
 <td align="right">0.178</td>
 <td align="right">61</td>
 </tr>
@@ -390,6 +395,7 @@ fold_valid_best_count &lt;- fold_train[['best_count']]</code></pre>
 <td align="left">3</td>
 <td align="right"><a href="https://www.dropbox.com/s/ixjh28hfy3yjs53/fold_3valid_predict.txt?dl=1">fold_3valid_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1">fold3_best_train.csv</a></td>
+<td align="right">0.196</td>
 <td align="right">0.202</td>
 <td align="right">6</td>
 </tr>
@@ -397,15 +403,17 @@ fold_valid_best_count &lt;- fold_train[['best_count']]</code></pre>
 <td align="left">4</td>
 <td align="right"><a href="https://www.dropbox.com/s/upjgml1wf3im2x3/fold_4valid_predict.txt?dl=1">fold_4valid_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/492kt8jfnf03v85/fold4_best_train.csv?dl=1">fold4_best_train.csv</a></td>
-<td align="right">TBD</td>
-<td align="right">TBD</td>
+<td align="right">0.188</td>
+<td align="right">0.188</td>
+<td align="right">19</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
 <td align="right"><a href="https://www.dropbox.com/s/ducfh5ju5v80yyd/fold_5valid_predict.txt?dl=1">fold_5valid_predict.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/ul23lcb8ln80gdd/fold5_best_train.csv?dl=1">fold5_best_train.csv</a></td>
-<td align="right">TBD</td>
-<td align="right">TBD</td>
+<td align="right">-1</td>
+<td align="right">0.208</td>
+<td align="right">12</td>
 </tr>
 </tbody>
 </table>

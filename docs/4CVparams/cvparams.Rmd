@@ -116,17 +116,18 @@ validation_results_files <-
       'https://www.dropbox.com/s/n4d4mj0rcryfvin/cv_blogs_fold5_itrs500.csv?dl=1')
 
 fold_train <- getBestWorstResults(validation_results_files)
+fold_valid_worst <- fold_train[['worst_acc']]
 fold_valid_best <- fold_train[['best_acc']]
 fold_valid_best_count <- fold_train[['best_count']]
 ```
 
-Fold | Blogs Validation Prediction Trigrams | Best Blogs Training | Best Validation Accuracy | $(\gamma_2, \gamma_3)$ count
------|-----------:|-----------:|-----------:|-----------:
-1    | [fold_1valid_predict.txt](https://www.dropbox.com/s/9hml06iwp4w9up5/fold_1valid_predict.txt?dl=1) | [fold1_best_train.csv](https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1) | `r fold_valid_best[1]` | `r fold_valid_best_count[1]`
-2    | [fold_2valid_predict.txt](https://www.dropbox.com/s/kp0tqlpmphl7ooc/fold_2valid_predict.txt?dl=1) | [fold2_best_train.csv](https://www.dropbox.com/s/gos25qrdjhvqght/fold2_best_train.csv?dl=1) | `r fold_valid_best[2]` | `r fold_valid_best_count[2]`
-3    | [fold_3valid_predict.txt](https://www.dropbox.com/s/ixjh28hfy3yjs53/fold_3valid_predict.txt?dl=1) | [fold3_best_train.csv](https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1) | `r fold_valid_best[3]` | `r fold_valid_best_count[3]`
-4    | [fold_4valid_predict.txt](https://www.dropbox.com/s/upjgml1wf3im2x3/fold_4valid_predict.txt?dl=1) | [fold4_best_train.csv](https://www.dropbox.com/s/492kt8jfnf03v85/fold4_best_train.csv?dl=1) | TBD | TBD
-5    | [fold_5valid_predict.txt](https://www.dropbox.com/s/ducfh5ju5v80yyd/fold_5valid_predict.txt?dl=1) | [fold5_best_train.csv](https://www.dropbox.com/s/ul23lcb8ln80gdd/fold5_best_train.csv?dl=1) | TBD | TBD
+Fold | Blogs Validation Prediction Trigrams | Best Blogs Training | Worst Validation Accuracy | Best Validation Accuracy | Best $(\gamma_2, \gamma_3)$ count
+-----|-----------:|-----------:|-----------:|-----------:|-----------:
+1    | [fold_1valid_predict.txt](https://www.dropbox.com/s/9hml06iwp4w9up5/fold_1valid_predict.txt?dl=1) | [fold1_best_train.csv](https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1) | `r fold_valid_worst[1]` | `r fold_valid_best[1]` | `r fold_valid_best_count[1]`
+2    | [fold_2valid_predict.txt](https://www.dropbox.com/s/kp0tqlpmphl7ooc/fold_2valid_predict.txt?dl=1) | [fold2_best_train.csv](https://www.dropbox.com/s/gos25qrdjhvqght/fold2_best_train.csv?dl=1) |`r fold_valid_worst[2]` | `r fold_valid_best[2]` | `r fold_valid_best_count[2]`
+3    | [fold_3valid_predict.txt](https://www.dropbox.com/s/ixjh28hfy3yjs53/fold_3valid_predict.txt?dl=1) | [fold3_best_train.csv](https://www.dropbox.com/s/fb7wpjmjnadh2h6/fold3_best_train.csv?dl=1) |`r fold_valid_worst[3]` | `r fold_valid_best[3]` | `r fold_valid_best_count[3]`
+4    | [fold_4valid_predict.txt](https://www.dropbox.com/s/upjgml1wf3im2x3/fold_4valid_predict.txt?dl=1) | [fold4_best_train.csv](https://www.dropbox.com/s/492kt8jfnf03v85/fold4_best_train.csv?dl=1) |`r fold_valid_worst[4]` | `r fold_valid_best[4]` | `r fold_valid_best_count[4]`
+5    | [fold_5valid_predict.txt](https://www.dropbox.com/s/ducfh5ju5v80yyd/fold_5valid_predict.txt?dl=1) | [fold5_best_train.csv](https://www.dropbox.com/s/ul23lcb8ln80gdd/fold5_best_train.csv?dl=1) |`r fold_valid_worst[5]` | `r fold_valid_best[5]` | `r fold_valid_best_count[5]`
 
 ### Selecting the Best Discount Pair
 
