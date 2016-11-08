@@ -402,6 +402,32 @@ make3dAccVgammas <- function(df=gamma_df) {
            main="Bigram & Trigram Discount Rates vs. Prediction Accuracy")
 }
 
+wrapper <- function() {
+    f1 <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
+    f2 <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
+    f3 <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
+    f4 <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
+    f5 <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
+}
+
+
+## Zeroes out the zeroCol in res_df if it's not equal to the highest value in
+## in the zeroCol. Reference: http://stackoverflow.com/questions/26497751/
+getZeroedOutNonBest <- function(res_df, zeroCol='acc') {
+    library(dplyr)
+    sortedCol <- paste0("desc(", zeroCol, ")")
+    best_val <- arrange_(res_df, sortedCol)[1, zeroCol]
+    for(i in 1:nrow(res_df)) {
+        if(res_df[i, zeroCol] != best_val) {
+            res_df[i, zeroCol] = 0
+        }
+    }
+    # remove the unused columns
+    res_df <- res_df[, !(names(res_df) %in% c("predict", "success"))]
+    
+    return(res_df)
+}
+
 ## Aggregates the best results from the training of each fold
 aggregateTrainFolds <- function(fold_results_files=
     c('https://www.dropbox.com/s/u15w787s9v6qcj8/fold1_best_train.csv?dl=1',
@@ -410,22 +436,23 @@ aggregateTrainFolds <- function(fold_results_files=
       'https://www.dropbox.com/s/492kt8jfnf03v85/fold4_best_train.csv?dl=1',
       'https://www.dropbox.com/s/ul23lcb8ln80gdd/fold5_best_train.csv?dl=1')) {
     
-    dgrid <- makeEmptyDataGrid(default_fill=0)
-    names(dgrid)[3] <- "weight"
+    empty_grid <- makeEmptyDataGrid(default_fill=0)
+    names(empty_grid)[3] <- "weight"
+    dgrid <- empty_grid
     for(i in 1:1) {
         fi_best <- read.csv(fold_results_files[i])
+        fi_best <- expandToGrid(fi_best, empty_grid)
+        for(j in nrow(fi_best)) {
+            
+        }
     }
 }
 
+## Use base r graphics function persp are illustrated here:
+## https://www.r-bloggers.com/creating-surface-plots/
 makeGammaSurface1 <- function() {
     
 }
 
-
-f1 <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
-f2 <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
-f3 <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
-f4 <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
-f5 <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
 
 
