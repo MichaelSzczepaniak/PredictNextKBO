@@ -380,12 +380,18 @@ getValidationResults <- function(paths_best_training=NULL) {
     }
 }
 
-# store the paths to fold results files
-f1 <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
-f2 <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
-f3 <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
-f4 <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
-f5 <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
+# training results
+# f1 <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
+# f2 <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
+# f3 <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
+# f4 <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
+# f5 <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
+# validation results
+f1 <- read.csv('https://www.dropbox.com/s/t8kv3eultbrg5b4/cv_blogs_fold1_itrs500.csv?dl=1')
+f2 <- read.csv('https://www.dropbox.com/s/va3uq4f1h6fb1n8/cv_blogs_fold2_itrs500.csv?dl=1')
+f3 <- read.csv('https://www.dropbox.com/s/rxuviidj7gb16k1/cv_blogs_fold3_itrs500.csv?dl=1')
+f4 <- read.csv('https://www.dropbox.com/s/dzser8x5dcgevkn/cv_blogs_fold4_itrs500.csv?dl=1')
+f5 <- read.csv('https://www.dropbox.com/s/n4d4mj0rcryfvin/cv_blogs_fold5_itrs500.csv?dl=1')
 
 ## Converts a dataframe of xyz values to a matrix which can be consumed by
 ## the r base graphic function contour
@@ -423,16 +429,16 @@ convertDfToContourMatrix <- function(df, xname, yname, zname) {
 #     contour(x=xgrid, y=ygrid, cmat, xlab='gamma2', ylab='gamma3')
 # }
 # 
-# cm1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
-# cm2 <- convertDfToContourMatrix(f2, 'gamma2', 'gamma3', 'acc')
-# cm3 <- convertDfToContourMatrix(f3, 'gamma2', 'gamma3', 'acc')
-# cm4 <- convertDfToContourMatrix(f4, 'gamma2', 'gamma3', 'acc')
-# cm5 <- convertDfToContourMatrix(f5, 'gamma2', 'gamma3', 'acc')
+cm1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
+cm2 <- convertDfToContourMatrix(f2, 'gamma2', 'gamma3', 'acc')
+cm3 <- convertDfToContourMatrix(f3, 'gamma2', 'gamma3', 'acc')
+cm4 <- convertDfToContourMatrix(f4, 'gamma2', 'gamma3', 'acc')
+cm5 <- convertDfToContourMatrix(f5, 'gamma2', 'gamma3', 'acc')
 
-# comp_mat <- cm1+cm2+cm3+cm4+cm5
-# xgrid <- sort(unique(f1$gamma2))  # could use any of the 5 fold results
-# ygrid <- sort(unique(f1$gamma3))
-# contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3')
+comp_mat <- cm1+cm2+cm3+cm4+cm5
+xgrid <- sort(unique(f1$gamma2))  # could use any of the 5 fold results
+ygrid <- sort(unique(f1$gamma3))
+contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3')
 
 ## Convince myself that:
 ## fold_1blogs.txt       - validation indices
