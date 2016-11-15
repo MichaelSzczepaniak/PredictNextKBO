@@ -74,13 +74,16 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
 ## g3_end - largest value for trigram discount gamma3 to eval up to
 ## intv - spacing interval between gx_start and gx_end
 makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
-                              g3_end=1.9, intv=0.1, default_fill=-1) {
+                              g3_end=1.9, intv=0.1, default_fill=-1,
+                              col3name='predacc') {
     # make grid manually
     g3_seq <- seq(g3_start, g3_end, intv)
     g2_seq <- unlist(lapply(g3_seq, rep, length(g3_seq)))
     g3_seq <- rep(g3_seq, length(g3_seq))
     df_data_grid <- data.frame(gamma2=g2_seq, gamma3=g3_seq,
-                               predacc=default_fill)
+                               col3=default_fill)
+    # http://stackoverflow.com/questions/30083351
+    names(df_data_grid)[names(df_data_grid) == 'col3'] <- col3name
     
     return(df_data_grid)
 }
@@ -454,5 +457,30 @@ makeGammaSurface1 <- function() {
     
 }
 
-
+## Returns base_df dataframe using sub_df rows where ever the x and y column
+## values are the same.
+## Precondition: 1) base_df and sub_df have the same first 3 columns:
+##                  x, y, and z
+##               2) base_df has all the combinations of x and y column values
+##                  as sub_df
+expandToGrid <- function(base_df, sub_df, x="gamma2", y="gamma3", z="acc",
+                         tol=0.001) {
+    return_df <- base_df
+    for (i in 1:nrow(sub_df)) {
+        x_val <- sub_df[i, x]
+        y_val <- sub_df[i, y]
+        z_val <- sub_df[i, z]
+        # cat("checking: x=", x_val, ", y=", y_val, ", z=", z_val, "\n")
+        for (j in 1:nrow(return_df)) {
+            if((x_val - return_df[j, x]) < tol &&
+               (y_val - return_df[j, y]) < tol) {
+                # cat('    **** found match:', x_val, y_val, z_val, "****\n")
+                return_df[j, z] <- z_val
+                break
+            }
+        }
+    }
+    
+    return(base_df)
+}
 

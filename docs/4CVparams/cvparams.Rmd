@@ -131,7 +131,9 @@ Fold | Blogs Validation Prediction Trigrams | Best Blogs Training | Worst Valida
 
 ### Selecting the Best Discount Pair
 
-As we observed in **Step 4**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set in **Step 5**.
+Three observations jump out from the table in **Step 5**: First, as observed in **Step 4**, a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set in **Step 5**.  Second, the difference between the worst and best accuracy within a valildation fold is either small or non-existant.  Third, the accuracy values are all rather similar.  Taken together, this suggests that a reasonable selection criteria would be to find the region of greatest overlap if one exists, and then take the $(\gamma_2, \gamma_3)$ that gives the highest validation accuracy within this region.
+
+The first step is to find the overlap in the $(\gamma_2, \gamma_3)$ spaces.
 
 ```{r}
 library(ggplot2)
@@ -729,6 +731,16 @@ getBestDiscountPairs <- function(result_file_paths=NULL) {
 
 ```
 ```{r eval=FALSE}
+## Returns base_df dataframe using sub_df rows where ever there is an overlap.
+## Precondition: 1) base_df and sub_df have the same 3 columns: x, y, and z
+##               2) base_df has all the combinations of x and y column values as sub_df
+expandToGrid <- function(base_df, sub_df, x="gamma2", y="gamma3", z="acc") {
+    for (i in 1:nrow(sub_df)) {
+        x_val = sub_df[i, x]
+        y_val = sub_df[i, y]
+    }
+}
+
 
 ```
 

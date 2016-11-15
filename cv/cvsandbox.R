@@ -387,11 +387,11 @@ getValidationResults <- function(paths_best_training=NULL) {
 # f4 <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
 # f5 <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
 # validation results
-f1 <- read.csv('https://www.dropbox.com/s/t8kv3eultbrg5b4/cv_blogs_fold1_itrs500.csv?dl=1')
-f2 <- read.csv('https://www.dropbox.com/s/va3uq4f1h6fb1n8/cv_blogs_fold2_itrs500.csv?dl=1')
-f3 <- read.csv('https://www.dropbox.com/s/rxuviidj7gb16k1/cv_blogs_fold3_itrs500.csv?dl=1')
-f4 <- read.csv('https://www.dropbox.com/s/dzser8x5dcgevkn/cv_blogs_fold4_itrs500.csv?dl=1')
-f5 <- read.csv('https://www.dropbox.com/s/n4d4mj0rcryfvin/cv_blogs_fold5_itrs500.csv?dl=1')
+# f1 <- read.csv('https://www.dropbox.com/s/t8kv3eultbrg5b4/cv_blogs_fold1_itrs500.csv?dl=1')
+# f2 <- read.csv('https://www.dropbox.com/s/va3uq4f1h6fb1n8/cv_blogs_fold2_itrs500.csv?dl=1')
+# f3 <- read.csv('https://www.dropbox.com/s/rxuviidj7gb16k1/cv_blogs_fold3_itrs500.csv?dl=1')
+# f4 <- read.csv('https://www.dropbox.com/s/dzser8x5dcgevkn/cv_blogs_fold4_itrs500.csv?dl=1')
+# f5 <- read.csv('https://www.dropbox.com/s/n4d4mj0rcryfvin/cv_blogs_fold5_itrs500.csv?dl=1')
 
 ## Converts a dataframe of xyz values to a matrix which can be consumed by
 ## the r base graphic function contour
@@ -429,16 +429,16 @@ convertDfToContourMatrix <- function(df, xname, yname, zname) {
 #     contour(x=xgrid, y=ygrid, cmat, xlab='gamma2', ylab='gamma3')
 # }
 # 
-cm1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
-cm2 <- convertDfToContourMatrix(f2, 'gamma2', 'gamma3', 'acc')
-cm3 <- convertDfToContourMatrix(f3, 'gamma2', 'gamma3', 'acc')
-cm4 <- convertDfToContourMatrix(f4, 'gamma2', 'gamma3', 'acc')
-cm5 <- convertDfToContourMatrix(f5, 'gamma2', 'gamma3', 'acc')
+# cm1 <- convertDfToContourMatrix(f1, 'gamma2', 'gamma3', 'acc')
+# cm2 <- convertDfToContourMatrix(f2, 'gamma2', 'gamma3', 'acc')
+# cm3 <- convertDfToContourMatrix(f3, 'gamma2', 'gamma3', 'acc')
+# cm4 <- convertDfToContourMatrix(f4, 'gamma2', 'gamma3', 'acc')
+# cm5 <- convertDfToContourMatrix(f5, 'gamma2', 'gamma3', 'acc')
 
-comp_mat <- cm1+cm2+cm3+cm4+cm5
-xgrid <- sort(unique(f1$gamma2))  # could use any of the 5 fold results
-ygrid <- sort(unique(f1$gamma3))
-contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3')
+# comp_mat <- cm1+cm2+cm3+cm4+cm5
+# xgrid <- sort(unique(f1$gamma2))  # could use any of the 5 fold results
+# ygrid <- sort(unique(f1$gamma3))
+# contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3')
 
 ## Convince myself that:
 ## fold_1blogs.txt       - validation indices
@@ -463,3 +463,48 @@ testConsistency <- function() {
     return(all_indices)  # length(all_indices) >> [1] 1689507 check!
 }
 
+## Returns base_df dataframe using sub_df rows where ever the x and y column
+## values are the same.
+## Precondition: 1) base_df and sub_df have the same first 3 columns:
+##                  x, y, and z
+##               2) base_df has all the combinations of x and y column values
+##                  as sub_df
+expandToGrid <- function(base_df, sub_df, x="gamma2", y="gamma3", z="acc",
+                         tol=0.001) {
+    return_df <- base_df
+    for (i in 1:nrow(sub_df)) {
+        x_val <- sub_df[i, x]
+        y_val <- sub_df[i, y]
+        z_val <- sub_df[i, z]
+        cat("checking: x=", x_val, ", y=", y_val, ", z=", z_val, "\n")
+        for (j in 1:nrow(return_df)) {
+            if((x_val - return_df[j, x]) < tol &&
+               (y_val - return_df[j, y]) < tol) {
+                cat('    **** found match:', x_val, y_val, z_val, "****\n")
+                return_df[j, z] <- z_val
+                break
+            }
+        }
+    }
+    
+    return(return_df)
+}
+
+expandAllValidationResults <- 
+function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
+         validation_results_files=
+         c('https://www.dropbox.com/s/t8kv3eultbrg5b4/cv_blogs_fold1_itrs500.csv?dl=1',
+           'https://www.dropbox.com/s/va3uq4f1h6fb1n8/cv_blogs_fold2_itrs500.csv?dl=1',
+           'https://www.dropbox.com/s/rxuviidj7gb16k1/cv_blogs_fold3_itrs500.csv?dl=1',
+           'https://www.dropbox.com/s/dzser8x5dcgevkn/cv_blogs_fold4_itrs500.csv?dl=1',
+           'https://www.dropbox.com/s/n4d4mj0rcryfvin/cv_blogs_fold5_itrs500.csv?dl=1')) {
+    
+    empty_df <- makeEmptyDataGrid(default_fill = 0, col3name = "acc")
+    for(i in 1:length(validation_results_files)) {
+        vfold_results <- read.csv(validation_results_files[i])
+        exp_results <- expandToGrid(empty_df, vfold_results)
+        opath <- paste0(out_dir, "fold", i, "valid_exp.csv")
+        cat(">>> writing output to:", opath, "<<<\n")
+        write.csv(exp_results, opath, row.names = FALSE)
+    }
+}
