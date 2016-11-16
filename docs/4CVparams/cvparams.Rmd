@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "November 8, 2016 (draft)"
+date: "November 15, 2016 (draft)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
@@ -60,7 +60,7 @@ To assess the accuracy of the model, we need to give it a set of bigrams, have t
 
 For each fold, a pair of discount rates $(\gamma_2, \gamma_3)$ is selected, 500 predictions are made, and the number of accurate predictions are tallied.  We then select another pair of the 361 combinations of $(\gamma_2, \gamma_3)$, make another 500 predictions, and assess the accuracy.  The function **trainFold** repeats this process for a single fold until all combinations of $(\gamma_2, \gamma_3)$ pairs have been run.  Running 500 predictions for each of the 361 combinations of $(\gamma_2, \gamma_3)$ in each of the 5 folds was a very time consuming process which is why only the results for the **Blogs** corpus are being reported here.  The results for each fold were written to files which are listed below.  The code that follows computes the values that populate the last 2 columns of the table that follows.
 
-```{r}
+```{r cache=TRUE}
 ## Returns a list containing 3 vectors.  The 1st vector holds the values for
 ## the "Worst X Accuracy" column.  The 2nd vector holds the values for the
 ## "Worst X Accuracy" column where X = 'Train' or 'Validation'.  The 3rd
@@ -107,7 +107,7 @@ This step first requires generating the prediction trigrams from the validation 
 
 From the table in **Step 4**, we see that a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the non-validation test set.  Each of these pairs were obtained by running the **getBestDiscountPairs** function and then written to the files listed in the **Best Blog Training** column of the table below.  These best training pairs were then run against the validation set by running the **getValidationResults** function and the highest accuracy was found to be the values reported in the **Best Validation Accuracy** column.  The values for the last 2 columns of the table below were computed using the same **getBestResults** function used in the previous table.
 
-```{r}
+```{r cache=TRUE}
 validation_results_files <- 
     c('https://www.dropbox.com/s/t8kv3eultbrg5b4/cv_blogs_fold1_itrs500.csv?dl=1',
       'https://www.dropbox.com/s/va3uq4f1h6fb1n8/cv_blogs_fold2_itrs500.csv?dl=1',
@@ -131,26 +131,23 @@ Fold | Blogs Validation Prediction Trigrams | Best Blogs Training | Worst Valida
 
 ### Selecting the Best Discount Pair
 
-Three observations jump out from the table in **Step 5**: First, as observed in **Step 4**, a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set in **Step 5**.  Second, the difference between the worst and best accuracy within a valildation fold is either small or non-existant.  Third, the accuracy values are all rather similar.  Taken together, this suggests that a reasonable selection criteria would be to find the region of greatest overlap if one exists, and then take the $(\gamma_2, \gamma_3)$ that gives the highest validation accuracy within this region.
+Three observations jump out from the table in **Step 5**: First, a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set in this step as well.  Second, the difference between the worst and best accuracy within a valildation fold is either small or non-existant.  Third, the best training accuracy values are all rather similar.  Taken together, this suggests that a reasonable selection criteria would be to find the region of greatest overlap if one exists, and if it does, then take the $(\gamma_2, \gamma_3)$ that gives the highest validation accuracy within this region to select a single pair.
 
-The first step is to find the overlap in the $(\gamma_2, \gamma_3)$ spaces.
+The first step is to find the overlap in the $(\gamma_2, \gamma_3)$ spaces.  Since each fold tests a different set of $(\gamma_2, \gamma_3)$ pairs against the validation set, we expand each of the validation results into the original 2D grid so that we can aggragate them easily which will make finding the overlap areas easier.  This was done by running the **expandAllValidationResults** function.  We then convert these to matices using the **convertDfToContourMatrix** function, add them up, and then pass the resulting matrix to **contour** to get a quick visual of the results.
 
-```{r}
-library(ggplot2)
-df <- read.csv('https://www.dropbox.com/s/v2c62fxgnxpfde8/partial_data.csv?dl=1')
-ggplot(data = df, aes(x = gamma2, y = gamma3)) + stat_sum()
-
-
-```
-
-
-
-```{r}
-f1 <- read.csv('https://www.dropbox.com/s/524dgfw0ej2d4m3/cv_blogs_fold1_itrs500.csv?dl=1')
-f2 <- read.csv('https://www.dropbox.com/s/2k5ypy3sovn6g9d/cv_blogs_fold2_itrs500.csv?dl=1')
-f3 <- read.csv('https://www.dropbox.com/s/85ex5o9km20014m/cv_blogs_fold3_itrs500.csv?dl=1')
-f4 <- read.csv('https://www.dropbox.com/s/5rf7mbhrpq617e9/cv_blogs_fold4_itrs500.csv?dl=1')
-f5 <- read.csv('https://www.dropbox.com/s/vxq9bl6bmagv1x2/cv_blogs_fold5_itrs500.csv?dl=1')
+```{r cache=TRUE, fig.width=7, fig.height=7}
+## The 5 files in this vector were created by running the expandAllValidationResults
+## function using the files from the table in Step 5 in the "Best Blogs Train" column
+vresults <- c('https://www.dropbox.com/s/9n44g9d36yysn06/fold1valid_exp.csv?dl=1',
+              'https://www.dropbox.com/s/dnw7zzizoc27mfa/fold2valid_exp.csv?dl=1',
+              'https://www.dropbox.com/s/qhfnoygwueodz0u/fold3valid_exp.csv?dl=1',
+              'https://www.dropbox.com/s/deu5zqrra4livt8/fold4valid_exp.csv?dl=1',
+              'https://www.dropbox.com/s/lkgqo1xurtvllp2/fold5valid_exp.csv?dl=1')
+f1 <- read.csv(vresults[1])
+f2 <- read.csv(vresults[2])
+f3 <- read.csv(vresults[3])
+f4 <- read.csv(vresults[4])
+f5 <- read.csv(vresults[5])
 
 ## Converts a dataframe of xyz values to a matrix which can be consumed by
 ## the r base graphic function contour
@@ -184,9 +181,75 @@ cm5 <- convertDfToContourMatrix(f5, 'gamma2', 'gamma3', 'acc')
 comp_mat <- cm1+cm2+cm3+cm4+cm5
 xgrid <- sort(unique(f1$gamma2))  # could use any of the 5 fold results
 ygrid <- sort(unique(f1$gamma3))
-contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3')
+contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3',
+        main="Validation Accuracy vs. Bigram & Trigram Discounts")
 ```
 
+Some (like me) find it easier to view this kind of data as a heatmap.  In the plot below, red is largest and white is zero.  Note also that zero in both the plot above and below are are just regions that were not selected in the final validation runs.
+
+```{r fig.width=7, fig.height=5.5}
+# Shouldn't have to repeat this vector, but knitter was crashing...
+vresults <- c('https://www.dropbox.com/s/9n44g9d36yysn06/fold1valid_exp.csv?dl=1',
+              'https://www.dropbox.com/s/dnw7zzizoc27mfa/fold2valid_exp.csv?dl=1',
+              'https://www.dropbox.com/s/qhfnoygwueodz0u/fold3valid_exp.csv?dl=1',
+              'https://www.dropbox.com/s/deu5zqrra4livt8/fold4valid_exp.csv?dl=1',
+              'https://www.dropbox.com/s/lkgqo1xurtvllp2/fold5valid_exp.csv?dl=1')
+## Returns a dataframe that has summed all the accuracy values (acc column) in
+## each of the files in the results_files vector.
+aggregateFolds <- function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
+                           results_files=vresults) {
+    
+    g2_vector <- read.csv(results_files[1])$gamma2
+    g3_vector <- read.csv(results_files[1])$gamma3
+    acc_totals <- vector(mode = "numeric", length = length(g3_vector))
+    for(file in results_files) {
+        acc_totals <- acc_totals + read.csv(file)$acc  # just add acc vector
+    }
+    
+    return(data.frame(gamma2=g2_vector, gamma3=g3_vector, acc=acc_totals))
+}
+
+agg_folds <- aggregateFolds()
+
+# install.packages('latex2exp')
+library(latex2exp)
+library(ggplot2)
+# Nice nugget to get Latex into the x and y axis labels:
+# http://stackoverflow.com/questions/1395105/getting-latex-into-r-plots#30787000
+g2 <- TeX('Bigram Discount  $\\gamma_2$')
+g3 <- TeX('Trigram Discount  $\\gamma_3$')
+
+p <- ggplot(agg_folds, aes(gamma2, gamma3, fill = acc)) + geom_tile()
+p <- p + xlab(g2) + ylab(g3)
+p <- p + ggtitle("Validation Accuracy vs. Bigram & Trigram Discounts")
+p <- p + scale_fill_gradient(limits = c(0, 0.6), low = "white", high = "red")
+# p <- p + scale_fill_brewer(palette = "PRGn")
+p <- p + scale_x_continuous(expand = c(0,0))
+p <- p + scale_y_continuous(expand = c(0,0))
+p <- p + theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
+p
+```
+
+It appears that the discount "sweet spot" is in the lower right portion of the contour and heat maps.  Accuracy appeared to improve as trigram discount was decreased.  The region of highest overlap was the region where $0 < \gamma_2 = 0.2$ and $1.4 \geq \gamma_3 \leq 1.8$.  Three of the folds needed to overlap in order to form this region.  The center of the sweet spot is approximately $(\gamma_2 = 1.6, \gamma_3 = 0.1)$ and is recommended as the best value based on this analysis.
+
+### Running Best Values Against Test Set
+
+Now that we have selected our best values, it time to run them against the test data which the model has not seen.  As we did during training and validation, we'll select 500 random trigrams from the held out test set and do this x times so that we can get a variance estimate...  *TODO...*
+
+### Confidence Interval
+
+From the table above...  *to be continued...*
+
+```{r}
+
+```
+
+
+### Conclusion
+
+The best this KBO model could do on the blogs corpus was about x% accuracy.  We expect the accuracy to vary $\pm y$ with 90% confidence.  It would be interesting to compare the results of this analysis process with the news and twitter corpora.  Before attempting to analyze the other corpora in this fashion however, some work to speed up the computations would need to be done because it took a couple of weeks for my systems to crunch through all the prediction calculations.
+
+*to be continued...*
 
 ### References
 [1] An Introduction to Statistical Learning -  
@@ -731,13 +794,51 @@ getBestDiscountPairs <- function(result_file_paths=NULL) {
 
 ```
 ```{r eval=FALSE}
-## Returns base_df dataframe using sub_df rows where ever there is an overlap.
-## Precondition: 1) base_df and sub_df have the same 3 columns: x, y, and z
-##               2) base_df has all the combinations of x and y column values as sub_df
-expandToGrid <- function(base_df, sub_df, x="gamma2", y="gamma3", z="acc") {
+## Returns base_df dataframe using sub_df rows where ever the x and y column
+## values are the same.
+## Precondition: 1) base_df and sub_df have the same first 3 columns:
+##                  x, y, and z
+##               2) base_df has all the combinations of x and y column values
+##                  as sub_df
+expandToGrid <- function(base_df, sub_df, x="gamma2", y="gamma3", z="acc",
+                         tol=0.001) {
+    return_df <- base_df
     for (i in 1:nrow(sub_df)) {
-        x_val = sub_df[i, x]
-        y_val = sub_df[i, y]
+        x_val <- sub_df[i, x]
+        y_val <- sub_df[i, y]
+        z_val <- sub_df[i, z]
+        cat("checking: x=", x_val, ", y=", y_val, ", z=", z_val, "\n")
+        for (j in 1:nrow(return_df)) {
+            if((x_val - return_df[j, x]) < tol &&
+               (y_val - return_df[j, y]) < tol) {
+                cat('    **** found match:', x_val, y_val, z_val, "****\n")
+                return_df[j, z] <- z_val
+                break
+            }
+        }
+    }
+    
+    return(return_df)
+}
+
+## Expands the validation results to the original grid size and writes out these
+## expanded results to files.
+expandAllValidationResults <- 
+function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
+         validation_results_files=
+         c('https://www.dropbox.com/s/t8kv3eultbrg5b4/cv_blogs_fold1_itrs500.csv?dl=1',
+           'https://www.dropbox.com/s/va3uq4f1h6fb1n8/cv_blogs_fold2_itrs500.csv?dl=1',
+           'https://www.dropbox.com/s/rxuviidj7gb16k1/cv_blogs_fold3_itrs500.csv?dl=1',
+           'https://www.dropbox.com/s/dzser8x5dcgevkn/cv_blogs_fold4_itrs500.csv?dl=1',
+           'https://www.dropbox.com/s/n4d4mj0rcryfvin/cv_blogs_fold5_itrs500.csv?dl=1')) {
+    
+    empty_df <- makeEmptyDataGrid(default_fill = 0, col3name = "acc")
+    for(i in 1:length(validation_results_files)) {
+        vfold_results <- read.csv(validation_results_files[i])
+        exp_results <- expandToGrid(empty_df, vfold_results)
+        opath <- paste0(out_dir, "fold", i, "valid_exp.csv")
+        cat(">>> writing output to:", opath, "<<<\n")
+        write.csv(exp_results, opath, row.names = FALSE)
     }
 }
 

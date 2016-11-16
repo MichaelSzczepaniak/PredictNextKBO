@@ -490,6 +490,8 @@ expandToGrid <- function(base_df, sub_df, x="gamma2", y="gamma3", z="acc",
     return(return_df)
 }
 
+## Expands the validation results to the original grid size and writes out these
+## expanded results to files.
 expandAllValidationResults <- 
 function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
          validation_results_files=
@@ -507,4 +509,25 @@ function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
         cat(">>> writing output to:", opath, "<<<\n")
         write.csv(exp_results, opath, row.names = FALSE)
     }
+}
+
+## Returns a dataframe that has summed all the accuracy values (acc column) in
+## each of the files in the results_files vector.
+aggregateFolds <-
+function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
+         results_files=
+             c('https://www.dropbox.com/s/9n44g9d36yysn06/fold1valid_exp.csv?dl=1',
+               'https://www.dropbox.com/s/dnw7zzizoc27mfa/fold2valid_exp.csv?dl=1',
+               'https://www.dropbox.com/s/qhfnoygwueodz0u/fold3valid_exp.csv?dl=1',
+               'https://www.dropbox.com/s/deu5zqrra4livt8/fold4valid_exp.csv?dl=1',
+               'https://www.dropbox.com/s/lkgqo1xurtvllp2/fold5valid_exp.csv?dl=1')) {
+    
+    g2_vector <- read.csv(results_files[1])$gamma2
+    g3_vector <- read.csv(results_files[1])$gamma3
+    acc_totals <- vector(mode = "numeric", length = length(g3_vector))
+    for(file in results_files) {
+        acc_totals <- acc_totals + read.csv(file)$acc  # just add acc vector
+    }
+    
+    return(data.frame(gamma2=g2_vector, gamma3=g3_vector, acc=acc_totals))
 }
