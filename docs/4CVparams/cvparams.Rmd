@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "November 15, 2016 (draft)"
+date: "November 16, 2016 (draft)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
@@ -234,7 +234,15 @@ It appears that the discount "sweet spot" is in the lower right portion of the c
 
 ### Running Best Values Against Test Set
 
-Now that we have selected our best values, it time to run them against the test data which the model has not seen.  As we did during training and validation, we'll select 500 random trigrams from the held out test set and do this x times so that we can get a variance estimate...  *TODO...*
+Now that we have selected our best values, it time to run them against the test data which the model has not seen.  As we did during training and validation, we'll select 500 random trigrams from the held out test set and do this 100 times so that we can get estimates for the test set accuracy and the variance of this estimate.
+
+#### How Final Model was Constructed
+
+As a reminder, the model is composed of three parts: an algorithm implementation (Katz Back-Off Trigram), three n-gram frequency tables (unigram, bigram, and trigram), and values for the two discount parameters (bigram and trigram).  We have the first and third parts, but need to construct the final version of the n-gram frequency tables.
+
+This construction was done by combining the n-gram tables from the three folds which overlapped to produce the final estimates of the discount parameters.  Those folds, identified by simple inspection, were 1, 2, and 3,
+
+*TODO...*
 
 ### Confidence Interval
 

@@ -484,3 +484,18 @@ expandToGrid <- function(base_df, sub_df, x="gamma2", y="gamma3", z="acc",
     return(base_df)
 }
 
+## Returns a numeric vector of prediction accuracies where each value is
+## calculated by making nitrs number of predictions.
+## nitrs - number of predictions to make per each prediction accuracy estimate
+##         default is 500
+## unigram_path - path to the unigram frequency table
+## bigram_path - path to the bigram frequency table
+## trigram_path - path to the trigram frequency table
+## 
+getTestEstimates <- function(nitrs=500,
+                             unigram_path='',
+                             bigram_path='',
+                             trigram_path='',
+                             out_dir='D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/test_set/') {
+    
+}
