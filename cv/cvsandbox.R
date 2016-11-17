@@ -534,10 +534,16 @@ function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
 
 ##
 ## 
-mergeBestNgrams <- function(merge_folds=1:3,
-                            unigram_freqs=c(),
-                            bigram_freqs=c(),
-                            trigram_freqs=c()) {
+mergeBestNgrams <- function(merge_folds=c(1,2,3),
+                            unigram_freqs=c('https://www.dropbox.com/s/89xmp86kcq4imbt/fold_1train_blogs_1grams.csv?dl=1',
+                                            'https://www.dropbox.com/s/ulonwdefqlkvadi/fold_2train_blogs_1grams.csv?dl=1',
+                                            'https://www.dropbox.com/s/gylc3tve3xkllse/fold_3train_blogs_1grams.csv?dl=1'),
+                            bigram_freqs=c('https://www.dropbox.com/s/v138wq8qqodytlx/fold_1train_blogs_2grams.csv?dl=1',
+                                           'https://www.dropbox.com/s/8ne5w2pqijxvedu/fold_2train_blogs_2grams.csv?dl=1',
+                                           'https://www.dropbox.com/s/aa5upx8lkhgrr4p/fold_3train_blogs_2grams.csv?dl=1'),
+                            trigram_freqs=c('https://www.dropbox.com/s/s1wy7wpcabwnid6/fold_1train_blogs_3grams.csv?dl=1',
+                                            'https://www.dropbox.com/s/981lj96d9uze1mu/fold_2train_blogs_3grams.csv?dl=1',
+                                            'https://www.dropbox.com/s/2opa05btgdbwny5/fold_3train_blogs_3grams.csv?dl=1')) {
     
 }
 
