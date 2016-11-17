@@ -118,7 +118,7 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">Predicting Next Word Using Katz Back-Off</h1>
 <h3 class="subtitle"><em>Part 4 - Determining Discount Parameters With Cross-Validation</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>November 15, 2016 (draft)</em></h4>
+<h4 class="date"><em>November 17, 2016 (draft)</em></h4>
 
 </div>
 
@@ -517,7 +517,13 @@ p</code></pre>
 </div>
 <div id="running-best-values-against-test-set" class="section level3">
 <h3>Running Best Values Against Test Set</h3>
-<p>Now that we have selected our best values, it time to run them against the test data which the model has not seen. As we did during training and validation, we’ll select 500 random trigrams from the held out test set and do this x times so that we can get a variance estimate… <em>TODO…</em></p>
+<p>Now that we have selected our best values, it time to run them against the test data which the model has not seen. As we did during training and validation, we’ll select 500 random trigrams from the held out test set and do this 100 times so that we can get estimates for the test set accuracy and the variance of this estimate.</p>
+<div id="how-final-model-was-constructed" class="section level4">
+<h4>How Final Model was Constructed</h4>
+<p>As a reminder, the model is composed of three parts: an algorithm implementation (Katz Back-Off Trigram), three n-gram frequency tables (unigram, bigram, and trigram), and values for the two discount parameters (bigram and trigram). We have the first and third parts, but need to construct the final version of the n-gram frequency tables before we can evaluate against the test set.</p>
+<p>This construction was done by combining the n-gram tables from the three folds which overlapped to produce the final estimates of the discount parameters. Those folds, identified by simple inspection, were 1, 2, and 3,</p>
+<p><em>TODO…</em></p>
+</div>
 </div>
 <div id="confidence-interval" class="section level3">
 <h3>Confidence Interval</h3>

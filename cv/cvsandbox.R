@@ -531,3 +531,28 @@ function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
     
     return(data.frame(gamma2=g2_vector, gamma3=g3_vector, acc=acc_totals))
 }
+
+##
+## 
+mergeBestNgrams <- function(merge_folds=1:3,
+                            unigram_freqs=c(),
+                            bigram_freqs=c(),
+                            trigram_freqs=c()) {
+    
+}
+
+## Returns a numeric vector of prediction accuracies where each value is
+## calculated by making nitrs number of predictions.
+## nitrs - number of predictions to make per each prediction accuracy estimate
+##         default is 500
+## unigram_path - path to the unigram frequency table
+## bigram_path - path to the bigram frequency table
+## trigram_path - path to the trigram frequency table
+## 
+getTestEstimates <- function(nitrs=500,
+                             unigram_path='',
+                             bigram_path='',
+                             trigram_path='',
+                             out_dir='D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/test_set/') {
+    
+}

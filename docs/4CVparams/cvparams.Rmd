@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "November 16, 2016 (draft)"
+date: "November 17, 2016 (draft)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
@@ -238,7 +238,7 @@ Now that we have selected our best values, it time to run them against the test 
 
 #### How Final Model was Constructed
 
-As a reminder, the model is composed of three parts: an algorithm implementation (Katz Back-Off Trigram), three n-gram frequency tables (unigram, bigram, and trigram), and values for the two discount parameters (bigram and trigram).  We have the first and third parts, but need to construct the final version of the n-gram frequency tables.
+As a reminder, the model is composed of three parts: an algorithm implementation (Katz Back-Off Trigram), three n-gram frequency tables (unigram, bigram, and trigram), and values for the two discount parameters (bigram and trigram).  We have the first and third parts, but need to construct the final version of the n-gram frequency tables before we can evaluate against the test set.
 
 This construction was done by combining the n-gram tables from the three folds which overlapped to produce the final estimates of the discount parameters.  Those folds, identified by simple inspection, were 1, 2, and 3,
 
