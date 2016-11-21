@@ -21,7 +21,7 @@ fnames.train <- c("en_US.blogs.train.txt", "en_US.news.train.txt",
 getFileLines <- function(fileId, dataDir=ddir, fileNames=fnames) {
     if(grep(fileId, fnames) > 0) index <- grep(fileId, fileNames)
     else {
-        cat('getFileLines could undestand what file to read:', fileId)
+        cat('getFileLines could not understand what file to read:', fileId)
         return(NULL)
     }
     fileLines <- read_lines(sprintf("%s%s", dataDir, fileNames[index]))
