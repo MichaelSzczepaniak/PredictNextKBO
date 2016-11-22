@@ -30,7 +30,7 @@ A Katz Back-Off (KBO) Trigram  Language Model (LM) was selected as the algorithm
 ### Objective #4 - Parameter Optimization
 [As described here](http://rpubs.com/mszczepaniak/predictkbo3model), the KBO Trigram has two parameters: the bigram discount rate ($\gamma_2$) and the trigram discount rate ($\gamma_3$).  The default values for both of these parameters was set to 0.5 in the web app, but values which improved the accuracy were obtained using cross-validation.  Better performing values for these parameters and the process by which they were obtained will be available here when this work has been completed:  
 
-[http://rpubs.com/mszczepaniak/predictkbo4params](http://rpubs.com/mszczepaniak/predictkbo4cv).
+[http://rpubs.com/mszczepaniak/predictkbo4cv](http://rpubs.com/mszczepaniak/predictkbo4cv).
 
 ### Objective #5 - Make the Work Reproducible
 This objective was addressed concurrently while working on each of the prior objectives by making sure that each function was properly documented, that all code was made available, and links to all output files were provided.  All pre-processing code (Objective #1) is provided in the **Appendix** section of this R Markdown document.
