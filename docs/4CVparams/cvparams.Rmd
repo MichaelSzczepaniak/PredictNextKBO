@@ -56,7 +56,7 @@ In addition to the n-gram tables, we also need to specify two parameters: a bigr
 
 #### Step 4 - Build Model Inputs and Run Model to Make Predictions
 
-To assess the accuracy of the model, we need to give it a set of bigrams, have the model predict the words that follow each bigram input, and then deterimine how accurate the predictions were.  We do this by selecting 500 random trigrams from the test set (depicted in gold), parsing out the first two words to use as input to the prediction model and then using the last word to determine if the model predicted accurately or not.  The random trigrams for each fold were created and written to files using the **makePredictTrigrams** function and these trigrams are in files which are listed in the **Blogs Prediction Trigrams** column in table shown below.
+To assess the accuracy of the model, we need to give it a set of bigrams, have the model predict the words that follow each bigram input, and then deterimine how accurate the predictions were.  We do this by selecting 500 random trigrams from the test set (depicted in gold), parsing out the first two words to use as input to the prediction model and then using the last word to determine if the model predicted accurately or not.  The random trigrams for each fold were created and written to files using the **makePredictTrigrams** function and these trigrams are in files which are listed in the **Blogs Prediction Trigrams** column in the table shown below.
 
 For each fold, a pair of discount rates $(\gamma_2, \gamma_3)$ is selected, 500 predictions are made, and the number of accurate predictions are tallied.  We then select another pair of the 361 combinations of $(\gamma_2, \gamma_3)$, make another 500 predictions, and assess the accuracy.  The function **trainFold** repeats this process for a single fold until all combinations of $(\gamma_2, \gamma_3)$ pairs have been run.  Running 500 predictions for each of the 361 combinations of $(\gamma_2, \gamma_3)$ in each of the 5 folds was a very time consuming process which is why only the results for the **Blogs** corpus are being reported here.  The results for each fold were written to files which are listed below.  The code that follows computes the values that populate the last 2 columns of the table that follows.
 
@@ -131,9 +131,11 @@ Fold | Blogs Validation Prediction Trigrams | Best Blogs Training | Worst Valida
 
 ### Selecting the Best Discount Pair
 
-Three observations jump out from the table in **Step 5**: First, a number of $(\gamma_2, \gamma_3)$ combinations resulted in the highest accuracy on the validation set in this step as well.  Second, the difference between the worst and best accuracy within a valildation fold is either small or non-existant.  Third, the best training accuracy values are all rather similar.  Taken together, this suggests that a reasonable selection criteria would be to find the region of greatest overlap if one exists, and if it does, then take the $(\gamma_2, \gamma_3)$ that gives the highest validation accuracy within this region to select a single pair.
+The highest accuracy was found in fold 5, but 28 different $(\gamma_2, \gamma_3)$ pairs all yielded the same best accuracy of `r fold_valid_best[5]`.  The problem now shifts to deciding which of these 28 pairs should be selected.  The table in **Step 5** provides at least three useful clues.
 
-The first step is to find the overlap in the $(\gamma_2, \gamma_3)$ spaces.  Since each fold tests a different set of $(\gamma_2, \gamma_3)$ pairs against the validation set, we expand each of the validation results into the original 2D grid so that we can aggragate them easily which will make finding the overlap areas easier.  This was done by running the **expandAllValidationResults** function.  We then convert these to matices using the **convertDfToContourMatrix** function, add them up, and then pass the resulting matrix to **contour** to get a quick visual of the results.
+The first clue is that within each fold, a number of $(\gamma_2, \gamma_3)$ combinations result in the highest accuracy for that fold.  The second clue is that the difference between the worst and best accuracy within a valildation fold is either small or non-existant.  The third clue is that the best training accuracy values are all rather similar.  Taken together, this suggests that a reasonable way to break the tie between the 28 pairs is to select the pair that has the greatest overlap with the other folds.  For example, if one of the 28 pairs turns out to produce the best accuracy in the other 4 folds as well, that pair would be the winner.
+
+The first step is to find the overlap in the $(\gamma_2, \gamma_3)$ spaces over the folds.  Since each fold tests a different set of $(\gamma_2, \gamma_3)$ pairs against the validation set, we expand each of the validation results into the original 2D grid so that we can aggragate them easily.  This was done by running the **expandAllValidationResults** function.  We then convert these to matices using the **convertDfToContourMatrix** function, add them up, and then pass the resulting matrix to **contour** to get a quick visual of the results.
 
 ```{r cache=TRUE, fig.width=7, fig.height=7}
 ## The 5 files in this vector were created by running the expandAllValidationResults
@@ -185,7 +187,7 @@ contour(x=xgrid, y=ygrid, comp_mat, xlab='gamma2', ylab='gamma3',
         main="Validation Accuracy vs. Bigram & Trigram Discounts")
 ```
 
-Some (like me) find it easier to view this kind of data as a heatmap.  In the plot below, red is largest and white is zero.  Note also that zero in both the plot above and below are are just regions that were not selected in the final validation runs.
+Some (like me) find it easier to view this kind of data as a heatmap.  In the plot below, red is largest and white is zero.  Note also that zero in both the plot above and below are just regions that were not selected in the final validation runs.
 
 ```{r fig.width=7, fig.height=5.5}
 # Shouldn't have to repeat this vector, but knitter was crashing...
@@ -230,7 +232,7 @@ p <- p + theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
 p
 ```
 
-It appears that the discount "sweet spot" is in the lower right portion of the contour and heat maps.  Accuracy appeared to improve as trigram discount was decreased.  The region of highest overlap was the region where $0 < \gamma_2 = 0.2$ and $1.4 \geq \gamma_3 \leq 1.8$.  Three of the folds needed to overlap in order to form this region.  The center of the sweet spot is approximately $(\gamma_2 = 1.6, \gamma_3 = 0.1)$ and is recommended as the best value based on this analysis.
+It appears that the discount "sweet spot" is in the lower right portion of the contour and heat maps.  Accuracy appeared to improve as trigram discount was decreased.  The region of highest overlap was the region where $0 < \gamma_2 = 0.2$ and $1.4 \geq \gamma_3 \leq 1.8$.  Three of the folds needed to overlap in order to form this region.  The center of the sweet spot is approximately $(\gamma_2 = 1.6, \gamma_3 = 0.1)$ and is what we are selecting as our best value based on this analysis.
 
 ### Running Best Values Against Test Set
 
@@ -238,15 +240,15 @@ Now that we have selected our best values, it time to run them against the test 
 
 #### How Final Model was Constructed
 
-As a reminder, the model is composed of three parts: an algorithm implementation (Katz Back-Off Trigram), three n-gram frequency tables (unigram, bigram, and trigram), and values for the two discount parameters (bigram and trigram).  We have the first and third parts, but need to construct the final version of the n-gram frequency tables before we can evaluate against the test set.
+As mentioned earlier, the model is composed of three parts: an algorithm implementation (Katz Back-Off Trigram), three n-gram frequency tables (unigram, bigram, and trigram), and values for the two discount parameters (bigram and trigram).  The algorithm is implemented in the **getTopPrediction ** function.  The n-gram frequency tables for the training set of fold 5 will be used. Finally, we use values of $(\gamma_2 = 1.6, \gamma_3 = 0.1)$ for the bigram and trigram discounts respectively.
 
-This construction was done by combining the n-gram tables from the three folds which overlapped to produce the final estimates of the discount parameters.  Those folds, identified by simple inspection, were 1, 2, and 3,
+#### Results on the Test Set
 
 *TODO...*
 
 ### Confidence Interval
 
-From the table above...  *to be continued...*
+From the table above...  *TODO...*
 
 ```{r}
 
