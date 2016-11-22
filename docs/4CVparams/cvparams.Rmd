@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "November 17, 2016 (draft)"
+date: "November 21, 2016 (draft)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
