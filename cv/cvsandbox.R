@@ -532,51 +532,30 @@ function(out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/validation/",
     return(data.frame(gamma2=g2_vector, gamma3=g3_vector, acc=acc_totals))
 }
 
-## Merges fold ngram tables and writes them to the out_dir directory
-## merge_folds - the folds to merge
-## unigram_freqs - paths the unigram frequency tables to merge together
-## bigram_freqs - paths the bigram frequency tables to merge together
-## trigram_freqs - paths the trigram frequency tables to merge together
-mergeBestNgrams <- function(merge_folds=c(1,2,3),
-                            unigram_freqs=c('https://www.dropbox.com/s/89xmp86kcq4imbt/fold_1train_blogs_1grams.csv?dl=1',
-                                            'https://www.dropbox.com/s/ulonwdefqlkvadi/fold_2train_blogs_1grams.csv?dl=1',
-                                            'https://www.dropbox.com/s/gylc3tve3xkllse/fold_3train_blogs_1grams.csv?dl=1'),
-                            bigram_freqs=c('https://www.dropbox.com/s/v138wq8qqodytlx/fold_1train_blogs_2grams.csv?dl=1',
-                                           'https://www.dropbox.com/s/8ne5w2pqijxvedu/fold_2train_blogs_2grams.csv?dl=1',
-                                           'https://www.dropbox.com/s/aa5upx8lkhgrr4p/fold_3train_blogs_2grams.csv?dl=1'),
-                            trigram_freqs=c('https://www.dropbox.com/s/s1wy7wpcabwnid6/fold_1train_blogs_3grams.csv?dl=1',
-                                            'https://www.dropbox.com/s/981lj96d9uze1mu/fold_2train_blogs_3grams.csv?dl=1',
-                                            'https://www.dropbox.com/s/2opa05btgdbwny5/fold_3train_blogs_3grams.csv?dl=1'),
-                            out_dir='D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/test_set/') {
-    source('../modeldev/Ngrams.R')  # to get mergeFreqTables
-    utab1 <- NULL; utab2 <- NULL; btab1 <- NULL; btab2 <- NULL
-    ttab1 <- NULL; ttab2 <- NULL
-    for(i in 1:length(unigram_freqs)-1) {
-        # merge unigrams
-        unigrams_opath <- paste0(out_dir, 'merged',
-                                 paste(merge_folds, collapse = '_'),
-                                 'unigrams.csv')
-        if(i == 1) { utab1 <- read.csv(unigram_freqs[i], stringsAsFactors=FALSE) }
-        utab2 <- read.csv(unigram_freqs[i+1], stringsAsFactors=FALSE)
-        utab1 <- mergeFreqTables(utab1, utab2, 1000, TRUE)
-        # merge bigrams
-        bigrams_opath <- paste0(out_dir, 'merged',
-                                paste(merge_folds, collapse = '_'),
-                                'bigrams.csv')
-        if(i == 1) { btab1 <- read.csv(bigram_freqs[i], stringsAsFactors=FALSE) }
-        btab2 <- read.csv(bigram_freqs[i+1], stringsAsFactors=FALSE)
-        btab1 <- mergeFreqTables(btab1, btab2, 1000, TRUE)
-        # merge trigrams
-        trigrams_opath <- paste0(out_dir, 'merged',
-                                 paste(merge_folds, collapse = '_'),
-                                 'bigrams.csv')
-        if(i == 1) { ttab1 <- read.csv(trigram_freqs[i], stringsAsFactors=FALSE) }
-        ttab2 <- read.csv(trigram_freqs[i+1], stringsAsFactors=FALSE)
-        ttab1 <- mergeFreqTables(ttab1, ttab2, 1000, TRUE)
-    }
-    write.csv(utab1, unigram_opath, row.names = FALSE)
-    write.csv(btab1, bigram_opath, row.names = FALSE)
-    write.csv(ttab1, trigram_opath, row.names = FALSE)
+## Returns dataframe with 2 columns: trigram and trial
+getTestTrigrams <- function(trigram_path='',
+                            trigram_sample_count=500,
+                            trial_count=100) {
+    
+}
+
+## Cleans a corpus file at corpus_path as described at:
+## http://rpubs.com/mszczepaniak/predictkbo1preproc
+## and writes the results to out_path/out_name 
+cleanTestData <- function(corpus_path='https://www.dropbox.com/s/8hgb7kfl0gnngyh/en_US.blogs.test.txt?dl=1',
+                          out_path='D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/non_train/',
+                          out_name='en_US.blogs.test.8posteos.txt',
+                          preproc_path='C:/data/dev/PredictNextKBO/preprocess/PreEda.R') {
+    source(preproc_path)
+    clines <- read_lines(corpus_path)
+    # parseSentsToFile looks for next line in environment - ugly, but not worth
+    # writing at this stage
+    fnames.train <- c("en_US.blogs.test.txt", "en_US.news.test.txt",
+                      "en_US.twitter.test.txt")
+    # create files described in "Sentence Parsing" section
+    parseSentsToFile('blogs', out_path)
+    
+    return(length(clines))
 }
 
 ## Returns a numeric vector of prediction accuracies where each value is
