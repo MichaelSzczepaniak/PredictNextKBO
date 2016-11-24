@@ -550,7 +550,7 @@ importFoldNgramtables <-
 }
 ```
 ```{r eval=FALSE}
-## Creates and write out n lists of random trigrams which can be used to
+## Creates and write out lists of random trigrams which can be used to
 ## determine prediction accuracy.  PARAMETERS:
 ## corp_type - string, corpus data to process: "blogs", "news", "twitter"
 ## npredict - # of predictions to make per parameter set (gamma2, gamma3)

@@ -541,12 +541,15 @@ getTestTrigrams <- function(trigram_path='',
 
 ## Cleans a corpus file at corpus_path as described at:
 ## http://rpubs.com/mszczepaniak/predictkbo1preproc
-## and writes the results to out_path/out_name 
-cleanTestData <- function(corpus_path='https://www.dropbox.com/s/8hgb7kfl0gnngyh/en_US.blogs.test.txt?dl=1',
+## and writes the results to out_path/out_name. The function then creates the
+## 
+## By default, only blogs test file is cleaned.
+cleanTestData <- function(preManual=TRUE,
+                          out_prefix=c("en_US.blogs.test"),
+                          corpus_path='https://www.dropbox.com/s/8hgb7kfl0gnngyh/en_US.blogs.test.txt?dl=1',
                           out_path='D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/non_train/',
-                          out_name='en_US.blogs.test.8posteos.txt',
                           preproc_path='D:/dev/PredictNextKBO/preprocess/PreEda.R',
-                          preManual=TRUE) {
+                          ngrams_path='D:/dev/PredictNextKBO/modeldev/Ngrams.R') {
     
     source(preproc_path)
     
@@ -561,43 +564,39 @@ cleanTestData <- function(corpus_path='https://www.dropbox.com/s/8hgb7kfl0gnngyh
     } else {
         cat("cleanTestData in post-manual mode START AT:",
             as.character(Sys.time()), "\n")
+        out_prefix <- c("en_US.blogs.test")  # only process blogs
         # after running the 8 steps using Notepad++, create en_US.blogs.train.3ascii.txt
         inpost <- '.2sents.txt'
         outpost <- '.3ascii.txt'
-        runFilterAndWrite(convertToAscii, out_path, inpost, output,
-                          c('en_US.blogs.test'))
+        runFilterAndWrite(convertToAscii, out_path, inpost, outpost, out_prefix)
         
         # create the en_US.blogs.test.4notags.txt file
         inpost <- '.3ascii.txt'
         outpost <- '.4notags.txt'
-        runFilterAndWrite(convertUnicodeTags, out_path, inpost, output,
-                          c('en_US.blogs.test'))
+        runFilterAndWrite(convertUnicodeTags, out_path, inpost, outpost, out_prefix)
         
         # create the en_US.blogs.test.5nourls.txt file
         inpost <- '.4notags.txt'
         outpost <- '.5nourls.txt'
-        runFilterAndWrite(removeUrls, out_path, inpost, output,
-                          c('en_US.blogs.test'))
+        runFilterAndWrite(removeUrls, out_path, inpost, outpost, out_prefix)
         
         # create the en_US.blogs.test.6preeos.txt file
         inpost <- '.5nourls.txt'
         outpost <- '.6preeos.txt'
-        runFilterAndWrite(preEosClean, ddir, inpost, outpost,
-                          c('en_US.blogs.test'))
+        runFilterAndWrite(preEosClean, out_path, inpost, outpost, out_prefix)
         
         # create en_US.blogs.test.7eos.txt file
         inpost <- '.6preeos.txt'
         outpost <- '.7eos.txt'
-        runFilterAndWrite(addEosMarkers, ddir, inpost, outpost,
-                          c('en_US.blogs.test'))
+        runFilterAndWrite(addEosMarkers, out_path, inpost, outpost, out_prefix)
         
         # create en_US.blogs.test.8posteos.txt file
         inpost <- '.7eos.txt'
         outpost <- '.8posteos.txt'
-        runFilterAndWrite(postEosClean, ddir, inpost, outpost,
-                          c('en_US.blogs.test'))
+        runFilterAndWrite(postEosClean, out_path, inpost, outpost, out_prefix)
         cat("cleanTestData in post-manual mode FINISH AT:",
             as.character(Sys.time()), "\n")
+        
     }
     
 }
@@ -611,10 +610,13 @@ cleanTestData <- function(corpus_path='https://www.dropbox.com/s/8hgb7kfl0gnngyh
 ## trigram_path - path to the trigram frequency table
 ## 
 getTestEstimates <- function(nitrs=500,
-                             unigram_path='',
-                             bigram_path='',
-                             trigram_path='',
-                             out_dir='D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/test_set/') {
+                             path_unigrams='https://www.dropbox.com/s/3iv0licjiu1g1t4/fold_5train_blogs_1grams.csv?dl=1',
+                             path_bigrams='https://www.dropbox.com/s/znmtr4qsk49yysb/fold_5train_blogs_2grams.csv?dl=1',
+                             path_trigrams='https://www.dropbox.com/s/euo1dxrn8iu6b68/fold_5train_blogs_3grams.csv?dl=1',
+                             dat_dir='D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/non_train/') {
+    source('KboCv.R')
     
-    
+    corp_lines <- read_lines('')
+    rand_trigs <- getUniqueRandomNgrams(corp_lines, nitrs, 3, '_', 711)
 }
+
