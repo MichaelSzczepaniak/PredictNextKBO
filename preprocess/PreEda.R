@@ -7,9 +7,12 @@ lapply(list.of.packages, require, character.only=TRUE)  # load libs
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 # set parameters
 ddir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/"
+# Define vectors of commonly used filenames
 fnames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
 fnames.train <- c("en_US.blogs.train.txt", "en_US.news.train.txt",
                   "en_US.twitter.train.txt")
+fnames.test <- c("en_US.blogs.test.txt", "en_US.news.test.txt",
+                 "en_US.twitter.test.txt")
 
 ## Reads the text corpus data file and returns a character array where every
 ## element is a line from the file.
@@ -135,13 +138,20 @@ annealSaintErrors <- function(charVect, status.check=10000) {
 ## Returns the file name of the training set data given fileId which can be
 ## one of the 3 values: 'blogs', 'news', or 'twitter'. Returns an empty string
 ## (char vector), if fileId is not one of the 3 expected string values.
-getInputDataFileName <- function(fileId) {
+getInputDataFileName <- function(fileId, isTrain=TRUE) {
+    if(isTrain) {
+        file_names <- fnames.train
+    } else {
+        file_names <- fnames.test
+    }
+    
     isBlogs <- length(grep(fileId, 'blogs')) > 0
     isNews <- length(grep(fileId, 'news')) > 0
     isTwitter <- length(grep(fileId, 'twitter')) > 0
-    if(isBlogs) return(fnames.train[1])
-    if(isNews) return(fnames.train[2])
-    if(isTwitter) return(fnames.train[3])
+    
+    if(isBlogs) return(file_names[1])
+    if(isNews) return(file_names[2])
+    if(isTwitter) return(file_names[3])
     
     return("")
 }
@@ -151,12 +161,11 @@ getInputDataFileName <- function(fileId) {
 ## [original file name].1sents.txt after initial sentence parsing and
 ## [original file name].2sents.txt after fixing improper sentence breaks across
 ## the "St. SomeSaintName" tokens.
-parseSentsToFile <- function(inFileType,
-                             outDataDir=ddir,
+parseSentsToFile <- function(inFileType, outDataDir=ddir, useTrain=TRUE,
                              outFilePostfix1=".1sents.txt",
                              outFilePostfix2=".2sents.txt") {
     
-    inFileName <- getInputDataFileName(inFileType)
+    inFileName <- getInputDataFileName(inFileType, useTrain)
     outFileName1 <- str_replace(inFileName, '.txt', outFilePostfix1)
     outFileName2 <- str_replace(inFileName, '.txt', outFilePostfix2)
     outFilePath1 <- sprintf("%s%s", outDataDir, outFileName1)
