@@ -548,11 +548,50 @@ cleanTestData <- function(corpus_path='https://www.dropbox.com/s/8hgb7kfl0gnngyh
                           preproc_path='D:/dev/PredictNextKBO/preprocess/PreEda.R') {
     source(preproc_path)
     clines <- read_lines(corpus_path)
-    # create files described in "Sentence Parsing" section
+    # create the en_US.blogs.test.1sents.txt file as described in the
+    # "Sentence Parsing" section
     parseSentsToFile('blogs', out_path, FALSE)
-    #
+    # create the en_US.blogs.test.2sents.txt file
+    inpost <- '.1sents.txt'
+    outpost <- '.2sents.txt'
+    runFilterAndWrite(annealSaintErrors, out_path, inpost, output,
+                      c('en_US.blogs.test'))
     
+    # after running the 8 steps using Notepad++, create en_US.blogs.train.3ascii.txt
+    inpost <- '.2sents.txt'
+    outpost <- '.3ascii.txt'
+    runFilterAndWrite(convertToAscii, out_path, inpost, output,
+                      c('en_US.blogs.test'))
     
+    # create the en_US.blogs.test.4notags.txt file
+    inpost <- '.3ascii.txt'
+    outpost <- '.4notags.txt'
+    runFilterAndWrite(convertUnicodeTags, out_path, inpost, output,
+                      c('en_US.blogs.test'))
+    
+    # create the en_US.blogs.test.5nourls.txt file
+    inpost <- '.4notags.txt'
+    outpost <- '.5nourls.txt'
+    runFilterAndWrite(removeUrls, out_path, inpost, output,
+                      c('en_US.blogs.test'))
+    
+    # create the en_US.blogs.test.6preeos.txt file
+    inpost <- '.5nourls.txt'
+    outpost <- '.6preeos.txt'
+    runFilterAndWrite(preEosClean, ddir, inpost, outpost,
+                      c('en_US.blogs.test'))
+    
+    # create en_US.blogs.test.7eos.txt file
+    inpost <- '.6preeos.txt'
+    outpost <- '.7eos.txt'
+    runFilterAndWrite(addEosMarkers, ddir, inpost, outpost,
+                      c('en_US.blogs.test'))
+    
+    # create en_US.blogs.test.8posteos.txt file
+    inpost <- '.7eos.txt'
+    outpost <- '.8posteos.txt'
+    runFilterAndWrite(postEosClean, ddir, inpost, outpost,
+                      c('en_US.blogs.test')))
     
     return(length(clines))
 }
