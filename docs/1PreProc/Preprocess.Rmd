@@ -292,15 +292,22 @@ annealSaintErrors <- function(charVect, status.check=10000) {
 }
 
 ## Returns the file name of the training set data given fileId which can be
-## on of the 3 values: 'blogs', 'news', or 'twitter'. Returns an empty string
+## one of the 3 values: 'blogs', 'news', or 'twitter'. Returns an empty string
 ## (char vector), if fileId is not one of the 3 expected string values.
-getInputDataFileName <- function(fileId) {
+getInputDataFileName <- function(fileId, isTrain=TRUE) {
+    if(isTrain) {
+        file_names <- fnames.train
+    } else {
+        file_names <- fnames.test
+    }
+    
     isBlogs <- length(grep(fileId, 'blogs')) > 0
     isNews <- length(grep(fileId, 'news')) > 0
     isTwitter <- length(grep(fileId, 'twitter')) > 0
-    if(isBlogs) return(fnames.train[1])
-    if(isNews) return(fnames.train[2])
-    if(isTwitter) return(fnames.train[3])
+    
+    if(isBlogs) return(file_names[1])
+    if(isNews) return(file_names[2])
+    if(isTwitter) return(file_names[3])
     
     return("")
 }
