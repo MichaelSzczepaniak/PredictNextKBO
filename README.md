@@ -45,5 +45,5 @@ The main goal of this part was to develop the conceptual framework and the code 
   </li>
   <li>Walk-through of the KBO Trigram Algorithm Calculations</li>
   </ul>
-<li>Part 4 - Parameter Selection and Optimization</li>
+<li><a href=http://rpubs.com/mszczepaniak/predictkbo4cv>Part 4 - Parameter Selection and Optimization</a></li>
 At the end of Part 3, we had developed the ideas and the algorithm needed to make predictions, but generic values were used for the two parameters of the model: the bigram discount rate and trigram discount rate.  In this last part of this series, we'll use cross-validation to determine values for these discount rates to improve the accuracy of the model.
