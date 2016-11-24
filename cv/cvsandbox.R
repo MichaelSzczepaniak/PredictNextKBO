@@ -212,8 +212,8 @@ makePredictTrigrams <- function(corp_type="blogs", npredict=500,
     }
 }
 
-corpus_lines <- read_lines(corpus_urls[1])  # blogs default
-if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
+#corpus_lines <- read_lines(corpus_urls[1])  # blogs default
+#if(!exists('gamma_grid')) gamma_grid <- makeEmptyDataGrid()
 # if(!exists('default_folds')) {
 #     cat("reading fold data...\n")
 #     default_folds <- readFolds(fold_paths)
@@ -545,15 +545,14 @@ getTestTrigrams <- function(trigram_path='',
 cleanTestData <- function(corpus_path='https://www.dropbox.com/s/8hgb7kfl0gnngyh/en_US.blogs.test.txt?dl=1',
                           out_path='D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/non_train/',
                           out_name='en_US.blogs.test.8posteos.txt',
-                          preproc_path='C:/data/dev/PredictNextKBO/preprocess/PreEda.R') {
+                          preproc_path='D:/dev/PredictNextKBO/preprocess/PreEda.R') {
     source(preproc_path)
     clines <- read_lines(corpus_path)
-    # parseSentsToFile looks for next line in environment - ugly, but not worth
-    # writing at this stage
-    fnames.train <- c("en_US.blogs.test.txt", "en_US.news.test.txt",
-                      "en_US.twitter.test.txt")
     # create files described in "Sentence Parsing" section
-    parseSentsToFile('blogs', out_path)
+    parseSentsToFile('blogs', out_path, FALSE)
+    #
+    
+    
     
     return(length(clines))
 }
