@@ -558,7 +558,7 @@ cleanTestData <- function(preManual=TRUE,
             as.character(Sys.time()), "\n")
         # create the en_US.blogs.test.1sents.txt and en_US.blogs.test.2sents.txt
         # files as described in the "Sentence Parsing" section
-        parseSentsToFile('blogs', out_path, FALSE)
+        parseSentsToFile('blogs', out_path, out_path, FALSE)
         cat("cleanTestData in pre-manual mode FINISH AT:",
             as.character(Sys.time()), "\n")
     } else {
@@ -601,22 +601,60 @@ cleanTestData <- function(preManual=TRUE,
     
 }
 
-## Returns a numeric vector of prediction accuracies where each value is
-## calculated by making nitrs number of predictions.
-## nitrs - number of predictions to make per each prediction accuracy estimate
-##         default is 500
+## Returns a numeric vector of nitrs prediction accuracies where each value is
+## calculated by making samples_per_iter number of predictions.  PARAMETERS:
+## gamma2 - Absolute bigram discount rate. Default = 1.6
+## gamma3 - Absolute trigram discount rate. Default = 0.1
+## samples_per_iter - Number of samples taken per perdiction accuracy
+##                    calculation iteration. Default is 500.
+## nitrs - Number of prediction accuracy estimates or iterations to make. For
+##         each iteration, samples_per_iter samples are taken to make each 
+##         prediction accuracy estimate. Default is 100.
 ## unigram_path - path to the unigram frequency table
 ## bigram_path - path to the bigram frequency table
 ## trigram_path - path to the trigram frequency table
 ## 
-getTestEstimates <- function(nitrs=500,
+getTestEstimates <- function(gamma2=1.6, gamma3=0.1,
+                             samples_per_iter=500, nitrs=100, seed_val=711,
+                             path_corpus='',
                              path_unigrams='https://www.dropbox.com/s/3iv0licjiu1g1t4/fold_5train_blogs_1grams.csv?dl=1',
                              path_bigrams='https://www.dropbox.com/s/znmtr4qsk49yysb/fold_5train_blogs_2grams.csv?dl=1',
                              path_trigrams='https://www.dropbox.com/s/euo1dxrn8iu6b68/fold_5train_blogs_3grams.csv?dl=1',
                              dat_dir='D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/non_train/') {
     source('KboCv.R')
+    seedv <- seed_val
+    acc_ests <- vector(mode='numeric', length=niters)
+    corp_lines <- read_lines(path_corpus)
+    unigs <- read.csv(path_unigrams)
+    bigrs <- read.csv(path_bigrams)
+    trigs <- read.csv(path_trigrams)
+    for(i in 1:niters) {
+        seedv = seedv + (3 * i)
+        predict_trigs <- getUniqueRandomNgrams(corp_lines, samples_per_iter,
+                                               3, '_', seedv)
+        for(j in 1:samples_per_iter) {
+            ttp <- predict_trigs[j]  # target to predict
+            target_word <- str_split_fixed(ttp, "_", 3)[1,3]
+            bigPre <- paste(str_split_fixed(ttp, "_", 3)[1,1:2],
+                            collapse = "_")
+            top_pred <- getTopPrediction(bigPre, gamma2, gamma3,
+                                         unigs, bigrs, trigs)
+            good_predictions <- good_predictions + (target_word == top_pred)
+            accuracy <- good_predictions / j
+            if(j %% write_freq == 0) {
+                exp_results$gamma2[i] <- g2
+                exp_results$gamma3[i] <- g3
+                exp_results$acc[i] <- accuracy
+                exp_results$predict[i] <- j
+                exp_results$success[i] <- good_predictions
+                write.csv(exp_results, out_file, row.names = FALSE)
+                console_msg <- paste0("iteration ", j, ",", g2, ",", g3, ",",
+                                      accuracy, ",", as.character(Sys.time()),
+                                      "\n")
+                cat(console_msg)
+            }
+        }
+    }
     
-    corp_lines <- read_lines('')
-    rand_trigs <- getUniqueRandomNgrams(corp_lines, nitrs, 3, '_', 711)
 }
 
