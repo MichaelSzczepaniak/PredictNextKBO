@@ -232,7 +232,7 @@ p <- p + theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
 p
 ```
 
-It appears that the discount "sweet spot" is in the lower right portion of the contour and heat maps.  Accuracy appeared to improve as trigram discount was decreased.  The region of highest overlap was the region where $0 < \gamma_2 = 0.2$ and $1.4 \geq \gamma_3 \leq 1.8$.  Three of the folds needed to overlap in order to form this region.  The center of the sweet spot is approximately $(\gamma_2 = 1.6, \gamma_3 = 0.1)$ and is what we are selecting as our best value based on this analysis.
+It appears that the discount "sweet spot" is in the lower right portion of the contour and heat maps.  Accuracy appeared to improve as trigram discount was decreased.  The region of highest overlap was the region where $0 < \gamma_2 = 0.2$ and $1.4 \geq \gamma_3 \leq 1.8$.  Three of the folds needed to overlap in order to form this region.  The center of the sweet spot is approximately $(\gamma_2 = 1.6, \gamma_3 = 0.1)$ and is what we are selecting as our best values based on this analysis.
 
 ### Running Best Values Against Test Set
 
