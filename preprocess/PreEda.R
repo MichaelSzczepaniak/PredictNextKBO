@@ -7,6 +7,7 @@ lapply(list.of.packages, require, character.only=TRUE)  # load libs
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 # set parameters
 ddir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/"
+tdir <- "D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/non_train/"
 # Define vectors of commonly used filenames
 fnames <- c("en_US.blogs.txt", "en_US.news.txt", "en_US.twitter.txt")
 fnames.train <- c("en_US.blogs.train.txt", "en_US.news.train.txt",
@@ -161,7 +162,8 @@ getInputDataFileName <- function(fileId, isTrain=TRUE) {
 ## [original file name].1sents.txt after initial sentence parsing and
 ## [original file name].2sents.txt after fixing improper sentence breaks across
 ## the "St. SomeSaintName" tokens.
-parseSentsToFile <- function(inFileType, outDataDir=ddir, useTrain=TRUE,
+parseSentsToFile <- function(inFileType, outDataDir=ddir, inDataDir=ddir,
+                             useTrain=TRUE,
                              outFilePostfix1=".1sents.txt",
                              outFilePostfix2=".2sents.txt") {
     
@@ -173,9 +175,10 @@ parseSentsToFile <- function(inFileType, outDataDir=ddir, useTrain=TRUE,
     cat("start parseSentsToFile:", as.character(Sys.time()), "\n")
     cat("processing file:", inFileName, "\n")
     cat("output will be written to:", outFilePath1, "\n")
-    
-    flines <- getFileLines(fileId=inFileType, dataDir=ddir,
-                           fileNames=fnames.train)
+    fnamez <- fnames.train
+    if(!useTrain) fnamez <- fnames.test
+    flines <- getFileLines(fileId=inFileType, dataDir=inDataDir,
+                           fileNames=fnamez)
     
     flines <- breakOutSentences(flines)
     cat("parseSentsToFile breakOutSentences completed.", "\n")
