@@ -614,46 +614,77 @@ cleanTestData <- function(preManual=TRUE,
 ## bigram_path - path to the bigram frequency table
 ## trigram_path - path to the trigram frequency table
 ## 
-getTestEstimates <- function(gamma2=1.6, gamma3=0.1,
+getTestEstimates <- function(gamma2=1.6, gamma3=0.1, write_freq=100,
+                             res_file_name='en_US.blogs.test.acc_estimate.csv',
+                             pred_file_name='predictions.csv',
                              samples_per_iter=500, nitrs=100, seed_val=711,
-                             path_corpus='',
+                             path_corpus='https://www.dropbox.com/s/h49r5hlexhb375n/en_US.blogs.test.8posteos.txt?dl=1',
                              path_unigrams='https://www.dropbox.com/s/3iv0licjiu1g1t4/fold_5train_blogs_1grams.csv?dl=1',
                              path_bigrams='https://www.dropbox.com/s/znmtr4qsk49yysb/fold_5train_blogs_2grams.csv?dl=1',
                              path_trigrams='https://www.dropbox.com/s/euo1dxrn8iu6b68/fold_5train_blogs_3grams.csv?dl=1',
-                             dat_dir='D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/non_train/') {
+                             dat_dir='D:/Dropbox/sw_dev/projects/PredictNextKBO/data/en_US/non_train/',
+                             pred_trigs_path='https://www.dropbox.com/s/yt369pf6p4oagni/en_US.blogs.test.50000_predict_trigrams_seed711.txt?dl=1') {
     source('KboCv.R')
     seedv <- seed_val
-    acc_ests <- vector(mode='numeric', length=niters)
+    acc_ests <- vector(mode='numeric', length=nitrs)
+    cat('Reading test corpus at       ', as.character(Sys.time()), "\n")
     corp_lines <- read_lines(path_corpus)
+    cat('Reading of unigram tables at ', as.character(Sys.time()), "\n")
     unigs <- read.csv(path_unigrams)
+    cat('Reading of bigram tables at  ', as.character(Sys.time()), "\n")
     bigrs <- read.csv(path_bigrams)
+    cat('Reading of trigram tables at ', as.character(Sys.time()), "\n")
     trigs <- read.csv(path_trigrams)
-    for(i in 1:niters) {
-        seedv = seedv + (3 * i)
-        predict_trigs <- getUniqueRandomNgrams(corp_lines, samples_per_iter,
+    out_results_path <- paste0(dat_dir, res_file_name)
+    out_pred_path <- paste0(dat_dir, pred_file_name)
+    predict_trigs <- NULL
+    if(is.null(pred_trigs_path)) {
+        cat('BUILDING prediction trigrams at  ', as.character(Sys.time()), "\n")
+        predict_trigs <- getUniqueRandomNgrams(corp_lines, samples_per_iter * nitrs,
                                                3, '_', seedv)
+        cat(length(predict_trigs), ' prediction trigrams BUILT... ', as.character(Sys.time()), "\n")
+    } else {
+        cat('READING prediction trigrams at   ', as.character(Sys.time()), "\n")
+        predict_trigs <- read_lines(pred_trigs_path)  # must faster than regenerating...
+        cat(length(predict_trigs), 'prediction trigrams READ   ', as.character(Sys.time()), "\n")
+    }
+    
+    pred_index <- 0
+    predictions <- data.frame(trigram=predict_trigs, predict="", correct=-1,
+                              itr=-1, samp=-1)
+    for(i in 1:nitrs) {
+        good_predictions <- 0
+        accuracy <- -1
         for(j in 1:samples_per_iter) {
-            ttp <- predict_trigs[j]  # target to predict
+            pred_index <- pred_index + 1
+            ttp <- predict_trigs[pred_index]  # target to predict
             target_word <- str_split_fixed(ttp, "_", 3)[1,3]
             bigPre <- paste(str_split_fixed(ttp, "_", 3)[1,1:2],
                             collapse = "_")
             top_pred <- getTopPrediction(bigPre, gamma2, gamma3,
                                          unigs, bigrs, trigs)
-            good_predictions <- good_predictions + (target_word == top_pred)
+            predictions$predict[pred_index] <- top_pred
+            predictions$itr[pred_index] <- i
+            predictions$samp[pred_index] <- j
+            pred <- (target_word == top_pred) + 0
+            predictions$correct[pred_index] <- pred
+            good_predictions <- good_predictions + pred
+            # if(target_word == top_pred) {
+            #     cat(good_predictions, ttp, 'matched', top_pred, "\n")
+            # }
             accuracy <- good_predictions / j
             if(j %% write_freq == 0) {
-                exp_results$gamma2[i] <- g2
-                exp_results$gamma3[i] <- g3
-                exp_results$acc[i] <- accuracy
-                exp_results$predict[i] <- j
-                exp_results$success[i] <- good_predictions
-                write.csv(exp_results, out_file, row.names = FALSE)
-                console_msg <- paste0("iteration ", j, ",", g2, ",", g3, ",",
-                                      accuracy, ",", as.character(Sys.time()),
-                                      "\n")
+                console_msg <- paste0("iteration ", j, ", ",
+                                      "good_predictions", "=", good_predictions, ", ",
+                                      "out of ", j, ", accuracy=", accuracy, " at ",
+                                      as.character(Sys.time()), "\n")
                 cat(console_msg)
+                write.csv(predictions, out_pred_path, row.names = FALSE)
             }
         }
+        cat("-----------------------------------------------------\n")
+        acc_ests[i] <- accuracy
+        write.table(acc_ests, out_results_path, row.names=FALSE, col.names=FALSE)
     }
     
 }
