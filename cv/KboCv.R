@@ -34,8 +34,11 @@ init <- function() {
 ##                                freq - count of this bigram in the corpus
 ## trigrams - 2 column data.frame: ngram - a trigram in the corpus of interest
 ##                                 freq - count of this trigram in the corpus
+## ngram_path - path the Ngrams.R file
 getTopPrediction <- function(bigPre, gamma2, gamma3,
-                             unigrams, bigrams, trigrams) {
+                             unigrams, bigrams, trigrams,
+                             katz_path='../predictnextkbo/Katz.R') {
+    source(katz_path)
     obs_trigs <- getObsTrigs(bigPre, trigrams)
     unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
     bo_bigrams <- getBoBigrams(bigPre, unobs_trig_tails)
@@ -99,7 +102,7 @@ makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
 ## delim - delimiter used in the returned ngram e.g. if delim and ng are
 ##         their default values, then returned value will be of the form:
 ##         w1_w2_w3
-## seed_val - 
+## seed_val - seed value used to select random samples
 getUniqueRandomNgrams <- function(corpus_lines, ngram_count,
                                   ng=3, delim="_", seed_val=719) {
     set.seed(seed_val)
@@ -228,6 +231,7 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
     bigrs <- fold_ngrams[[fold]][[2]]
     trigs <- fold_ngrams[[fold]][[3]]
     for(i in ggrid_start:nrow(gamma_grid)) {
+        accuracy <- -1
         good_predictions <- 0
         g2 <- gamma_grid$gamma2[i]
         g3 <- gamma_grid$gamma3[i]
