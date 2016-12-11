@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "November 21, 2016 (draft)"
+date: "December 12, 2016 (initial release)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4params
 ---
@@ -244,7 +244,25 @@ As mentioned earlier, the model is composed of three parts: an algorithm impleme
 
 #### Results on the Test Set
 
-*TODO...*
+The results can be found in the file:  [en_US.blogs.test.acc_estimate.csv](https://www.dropbox.com/s/rtig68inboe5qyr/en_US.blogs.test.acc_estimate.csv?dl=1)  
+A histogram of these results is shown below:
+
+```{r}
+library(ggplot2)
+dat <- read.csv('https://www.dropbox.com/s/rtig68inboe5qyr/en_US.blogs.test.acc_estimate.csv?dl=1', FALSE)
+p <- ggplot(data=dat, aes(dat$V1))
+p <- p + geom_histogram(breaks=seq(0.134, 0.234, length.out = 9),
+                        col="red", 
+                        fill="green", 
+                        alpha = .2) +
+                        labs(title="Precition Accuracy on Test Set") +
+                        labs(x="Prediction Accuracy", y="Count") + 
+                        xlim(c(0.134, 0.234)) + 
+                        ylim(c(0,25))
+p
+
+```
+
 
 ### Confidence Interval
 
