@@ -6,7 +6,7 @@ The goal of this project was to build a data product which uses a Katz Backoff T
 Pre-process input filtering is not in place yet, but the model appears to be functioning as expected.
 
 ### Project Breakdown
-The project is broken down in to four parts described below.  Each part contains a link to a page on rpubs which describes that part in further detail.  If there is no link at the top of a section, it has not been completed yet:
+The project is broken down in to four parts described below.  Each part contains a link to a page on rpubs which describes that part in further detail.
 <ol style="list-style-type: decimal">
 <li><a href=http://rpubs.com/mszczepaniak/predictkbo1preproc>Part 1 - Overview and Pre-Processing</a></li>
 This main goal of this part was to convert the raw corpus data into a form which could be easily utilized by the next step in building n-gram tables and perform exploratory data analysis (EDA).
