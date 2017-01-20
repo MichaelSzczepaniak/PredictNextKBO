@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "December 13, 2016 (initial release)"
+date: "January 20, 2017 (last update)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4cv
 ---
@@ -300,11 +300,11 @@ c(pi_low, pi_high)
 
 ### Conclusion
 
-Discuss using cross entropy...
+The best this version of the KBO model could do on the blogs corpus was about 18% accuracy.  We expect the accuracy to vary between `r format(round(pi_low, 4), nsmall=4)` and `r format(round(pi_high, 4), nsmall=4)` with 95% confidence.  It would be interesting to compare the results of this analysis process with the news and twitter corpora.  Before attempting to analyze the other corpora in this fashion however, some work to speed up the computations would need to be done because it took a couple of weeks for my systems to crunch through all the prediction calculations.
 
-The best this KBO model could do on the blogs corpus was about 18% accuracy.  We expect the accuracy to vary between `r pi_low` and `r pi_high` with 95% confidence.  It would be interesting to compare the results of this analysis process with the news and twitter corpora.  Before attempting to analyze the other corpora in this fashion however, some work to speed up the computations would need to be done because it took a couple of weeks for my systems to crunch through all the prediction calculations.
+In [**Part 2**](http://rpubs.com/mszczepaniak/predictkbo2ngeda) of this series, the case was made for removing unigram singletons in order to improve accuracy and performance.  The same line of reasoning would suggest that removing items with counts of less than 2, 3, 4, or 5 from the n-gram tables should be investigated as well.
 
-While writing up this project, learned that accuracy is not the standard way to access the performance of a language model like this.  A better measure to use for optimizing the discount rates would be something like the [cross entropy](https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_error_function_and_logistic_regression).
+After doing the initial work on this project, I learned [**here**[6]](https://www.coursera.org/learn/neural-networks/lecture/68Koq/another-diversion-the-softmax-output-function-7-min) that accuracy is not the best way to access the performance of a language model like this.  A better measure to use for optimizing the discount rates would be something like the [cross entropy](https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_error_function_and_logistic_regression).
 
 I'm kicking around doing a concurrent neural net model to achieve the same task.  The cross entropy will be the right method to optimize the weight matrices in this context.
 
@@ -317,7 +317,8 @@ I'm kicking around doing a concurrent neural net model to achieve the same task.
 [https://www.youtube.com/watch?v=nZAM5OXrktY](https://www.youtube.com/watch?v=nZAM5OXrktY)  
 [4] Trevor Hastie & Rob Tibshirani on Right & Wrong Ways to do CV (part 3) -  
 [https://www.youtube.com/watch?v=S06JpVoNaA0](https://www.youtube.com/watch?v=S06JpVoNaA0)  
-[5] Rule of Sample Proportions (Normal Approximation Method) - [https://onlinecourses.science.psu.edu/stat200/node/43](https://onlinecourses.science.psu.edu/stat200/node/43)
+[5] Rule of Sample Proportions (Normal Approximation Method) - [https://onlinecourses.science.psu.edu/stat200/node/43](https://onlinecourses.science.psu.edu/stat200/node/43)  
+[6] Neural Networks for Machine Learning - Week 4 *(starting around 4:14)* - [https://www.coursera.org/learn/neural-networks/lecture/68Koq/another-diversion-the-softmax-output-function-7-min](https://www.coursera.org/learn/neural-networks/lecture/68Koq/another-diversion-the-softmax-output-function-7-min)
 
 ### Appendix
 
