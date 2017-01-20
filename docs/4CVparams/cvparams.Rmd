@@ -2,9 +2,9 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "December 12, 2016 (initial release)"
+date: "December 13, 2016 (initial release)"
 output: html_document
-url: http://rpubs.com/mszczepaniak/predictkbo4params
+url: http://rpubs.com/mszczepaniak/predictkbo4cv
 ---
 
 ```{r setup, include=FALSE}
@@ -236,7 +236,7 @@ It appears that the discount "sweet spot" is in the lower right portion of the c
 
 ### Running Best Values Against Test Set
 
-Now that we have selected our best values, it time to run them against the test data which the model has not seen.  As we did during training and validation, we'll select 500 random trigrams from the held out test set and do this 100 times so that we can get estimates for the test set accuracy and the variance of this estimate.
+Now that we have selected our best values, it time to run them against the test data which the model has not seen.  As we did during training and validation, we'll select 500 random trigrams from the held out test set, make predictions on each of these trigram and do this 100 times so that we can get estimates for the test set accuracy and the confidence interval of this estimate.
 
 #### How Final Model was Constructed
 
@@ -266,18 +266,47 @@ p
 
 ### Confidence Interval
 
-From the table above...  *TODO...*
+The standard error of our accuracy estimates are proportions, so we use the following equation for this calculation [[5]](http://stattrek.com/estimation/confidence-interval-proportion.aspx):
+
+$$SE_p = \sqrt{\frac{\pi(1-\pi)}{n}}$$
+
+if $n\pi \geq 10$ and $n(1 - \pi) \geq 10$
+
+Since taking 500 samples, making predictions and doing this 100 times is the same as taking n = 5000 samples and making predictions, we can compute $\pi$ by averaging our 100 values for accuracy resulting in 
 
 ```{r}
+total_sample_count = 500 * 100
+pi_val = mean(dat$V1)
+n_pi = total_sample_count * pi_val
+n_one_minus_pi = total_sample_count * (1 - pi_val)
+c(pi_val, n_pi, n_one_minus_pi)
+```
+which indicates we are fine using the normal approximation for the standard error stated above.
+
+```{r}
+std_err_p = sqrt(pi_val * (1 - pi_val) / total_sample_count)
+std_err_p
+
+```
+If we assume a 95% confidence interval, we get the following lower and upper bound on our accuracy:
+
+```{r}
+pi_low = pi_val - (1.96 * std_err_p)
+pi_high = pi_val + (1.96 * std_err_p)
+c(pi_low, pi_high)
 
 ```
 
 
 ### Conclusion
 
-The best this KBO model could do on the blogs corpus was about x% accuracy.  We expect the accuracy to vary $\pm y$ with 90% confidence.  It would be interesting to compare the results of this analysis process with the news and twitter corpora.  Before attempting to analyze the other corpora in this fashion however, some work to speed up the computations would need to be done because it took a couple of weeks for my systems to crunch through all the prediction calculations.
+Discuss using cross entropy...
 
-*to be continued...*
+The best this KBO model could do on the blogs corpus was about 18% accuracy.  We expect the accuracy to vary between `r pi_low` and `r pi_high` with 95% confidence.  It would be interesting to compare the results of this analysis process with the news and twitter corpora.  Before attempting to analyze the other corpora in this fashion however, some work to speed up the computations would need to be done because it took a couple of weeks for my systems to crunch through all the prediction calculations.
+
+While writing up this project, learned that accuracy is not the standard way to access the performance of a language model like this.  A better measure to use for optimizing the discount rates would be something like the [cross entropy](https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_error_function_and_logistic_regression).
+
+I'm kicking around doing a concurrent neural net model to achieve the same task.  The cross entropy will be the right method to optimize the weight matrices in this context.
 
 ### References
 [1] An Introduction to Statistical Learning -  
@@ -287,7 +316,8 @@ The best this KBO model could do on the blogs corpus was about x% accuracy.  We 
 [3] Trevor Hastie & Rob Tibshirani on K-Fold Cross-Validation (part 2) -  
 [https://www.youtube.com/watch?v=nZAM5OXrktY](https://www.youtube.com/watch?v=nZAM5OXrktY)  
 [4] Trevor Hastie & Rob Tibshirani on Right & Wrong Ways to do CV (part 3) -  
-[https://www.youtube.com/watch?v=S06JpVoNaA0](https://www.youtube.com/watch?v=S06JpVoNaA0)
+[https://www.youtube.com/watch?v=S06JpVoNaA0](https://www.youtube.com/watch?v=S06JpVoNaA0)  
+[5] Rule of Sample Proportions (Normal Approximation Method) - [https://onlinecourses.science.psu.edu/stat200/node/43](https://onlinecourses.science.psu.edu/stat200/node/43)
 
 ### Appendix
 
