@@ -2,7 +2,7 @@
 <p>This application predicts the most likely word to follow the phrase entered in the <b>Enter Phrase</b> field.  It displays its prediction and a bar chart of the words with the highest probabilities computed from the model used by the predictor.</p>
 
 <h3>How are the predictions generated?</h3>
-<p>The predictor is an implementation of the <b>Katz BackOff Trigram</b> (KBOT) language model.  Details of how this model works can be found here:</p>
+<p>The predictor is an implementation of the <b>Katz BackOff Trigram</b> (KBOT) language model.  Details of how this model was constructed can be found here:</p>
 
 <p><a href=http://rpubs.com/mszczepaniak/predictkbo3model>http://rpubs.com/mszczepaniak/predictkbo3model</a></p>
 
@@ -16,18 +16,15 @@
 <h4>Corpus</h4>
 <p>The predictor utilizes one of three corpora from which it makes a prediction.  This a collection of text from which the model was trained.  The more representative the phrase is relative to a particular corpora, the higher the probability that the model will make an accurate prediction.  For example, if "he has stolen" were the phrase and the selected corpus was something like "Baseball commentary", the word "second" would have a higher probability than "cars", but this might reverse if the corpus was something related to say "News reports".</p>
 
-<h4>Options</h4>
-<p>describe field</p>
-
 <h4>Bigram Discount</h4>
-<p>describe field</p>
+<p>This is the amount of absolute discount removed from observed bigrams which is redistributed to the unobserved bigrams.  For more details regarding this parameter, see the <b>Accounting for Probability Mass of Unseen N-grams: Discounting</b> section on <a href=http://rpubs.com/mszczepaniak/predictkbo3model>this page.</a></p>
 
 <h4>Trigram Discount</h4>
-<p>describe field</p>
+<p>This is the amount of absolute discount removed from observed trigrams which is redistributed to the unobserved trigrams.  For more details regarding this parameter, see the <b>Accounting for Probability Mass of Unseen N-grams: Discounting</b> section on <a href=http://rpubs.com/mszczepaniak/predictkbo3model>this page.</a></p>
 
 <h4>Probability Bars</h4>
-<p>describe field</p>
+<p>This control tells the application how many bars to display in the probability bar chart.</p>
 
 <h4>Predict next word of phrase</h4>
-<p>describe button</p>
+<p>Clicking this button tells the application to make a prediction of the next word based on the selected settings.</p>
 
