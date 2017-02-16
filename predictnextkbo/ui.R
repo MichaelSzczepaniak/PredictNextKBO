@@ -39,10 +39,6 @@ fluidPage(
         radioButtons('corpusToUse', h4("Corpus"), modelChoices,
                      selected=3, inline=TRUE),
         
-        checkboxGroupInput("checkGroup", label = h4("Options (not functional yet)"), 
-                           choices=list("Include EOS"=1, "Filter Input"=2),
-                           selected=1, inline=TRUE),
-        
         sliderInput("bigDiscount",
                     label = h4("Bigram Discount"),
                     min = 0.1, max = 1.9, value = 0.5, step = 0.1),
