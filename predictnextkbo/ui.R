@@ -1,3 +1,14 @@
+configUrl <- './data/non_ngram/config.csv'
+config <- read.csv(configUrl)
+ug_tab_content_file <- config[config$param == 'ug_tab_content',]$value
+
+config_dir <- config[config$param == 'config_dir',]$value
+# prepend dir of user guide content
+ug_tab_content_file <- paste0(config_dir, ug_tab_content_file)
+# read in the user guide content
+ug_tab_content <- readChar(ug_tab_content_file,
+                           file.info(ug_tab_content_file)$size)
+
 
 modelChoices <- list("Blogs"=1, "News"=2, "Twitter"=3)
 
@@ -62,8 +73,7 @@ fluidPage(
                      verbatimTextOutput("sPredictedWord"),
                      plotOutput("pTop3Probs", width = 450, height = 300)
             ),
-            tabPanel("User Guide",
-                h4("Coming Soon!")
+            tabPanel('User Guide', HTML(ug_tab_content)
             )
         )
         
