@@ -1,5 +1,20 @@
 source('PreEda.R')
 
+# Purpose of this module is to explore performace improvements (both speed and
+# accuracy).  This exploration follows 3 overarching paths:
+# 1) "Hashify" the n-gram lookups: Original app does string lookups in the 
+#     n-gram tables as part of computing next word probabilities. Converting
+#     the n-grams to a hash key which can quickly retrieve counts should
+#     noticeably improve performance.
+# 2) Remove lower count n-grams: Original app removed singletons, but further
+#    performance improvements can be achieved by removing n-grams with counts
+#    from 2 to 5.  This will result in add'l probability mass which can be
+#    ditributed to unobserved n-grams which should improve accuracy as well as
+#    performance.
+# 3) Add 4-grams: Original app built prediction model on n-grams from n=1 to 3.
+#    If enough spaced has been freed up as a result of 2), expanding the model
+#    to include using 4-grams should improve prediction accuracy.
+
 # Setup paths to the ngram frequency tables which exclude singletons
 uniPaths <- c("https://www.dropbox.com/s/033qzeiggmcauo9/en_US.blogs.train.12unigrams.nosins.csv?dl=1",
               "https://www.dropbox.com/s/uo971onngv468t1/en_US.news.train.12unigrams.nosins.csv?dl=1",
