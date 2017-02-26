@@ -2,7 +2,8 @@
 *.RData
 *.RHistory
 sandbox.R
-# directories
-data/
 *_cache
 .Rproj.user
+# directories
+data/
+raw_data/
