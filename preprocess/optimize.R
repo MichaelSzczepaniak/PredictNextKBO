@@ -57,3 +57,4 @@ removeLowerCounts <- function(ngram_table, thresh_count=1,
     
     return(arrange(new_df, ngram))
 }
+
