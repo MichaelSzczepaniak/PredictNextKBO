@@ -37,3 +37,23 @@ bigrams_twitter_inc2 <- read.csv(bigPaths[3])
 trigrams_blogs_inc2 <- read.csv(triPaths[1])
 trigrams_news_inc2 <- read.csv(triPaths[2])
 trigrams_twitter_inc2 <- read.csv(triPaths[3])
+
+# Removes entries from an n-gram frequency/count table (ngram_table) that are
+# at or below a theshold (thresh_count), writes the revised table to a file
+# (outfile) and returns the dataframe which was written out.
+# ngram_table - dataframe with 2 columns: ngram and freq. The former is a col
+#               of strings while the later is an integer that's the count of
+#               the ngram value in the corpus of interest.
+# thresh_count - integer that is the count of the n-grams to be removed from
+#                ngram_table
+# outfile - full path to the updated n-gram frequency/count table to be written
+#           as output 
+removeLowerCounts <- function(ngram_table, thresh_count=1,
+                              outfile='../data/out.csv') {
+    # ngram_tables are sorted by ngram
+    # new_df <- arrange(ngram_table, freq, ngram)
+    new_df <- filter(new_df, freq > thresh_count)
+    write.csv(new_df, outfile, row.names = FALSE)
+    
+    return(arrange(new_df, ngram))
+}
