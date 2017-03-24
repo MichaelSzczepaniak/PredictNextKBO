@@ -39,11 +39,14 @@ getInputBigram <- function(inputPhrase) {
     return(bigram_tail)
 }
 
-## Returns a data.frame of 2 columns: ngram and prob with n rows. Value in the 
-## ngram column are words that complete the highest probability trigrams using
-## the KBO Trigram alogrithm.  The values in the prob column are
+## Returns a data.frame with n rows and 3 columns: ngram, prob, path.  Values
+## in the ngram column are words that complete the highest probability trigrams
+## using the KBO Trigram alogrithm.  The values in the prob column are
 ## q_bo(w1 | w3, w2) calculated from either eqn 12 if w3_w2_w1 is observed
-## or eqn 17 if w3_w2_w1 is not observed.
+## or eqn 17 if w3_w2_w1 is not observed.  Values in the path column describe
+## the path through the KBO Trigram algorithm used to compute the probability
+## of the predicted word.  These values will only be one of three possible
+## strings: "observed trigram", "observed bigram", or "unobserved bigram".
 ##
 ## bigPre - last 2 words of user input separated by an _ e.g. sell_the
 ##          This is also referred to as the bigram prefix in code futher
@@ -53,7 +56,7 @@ getInputBigram <- function(inputPhrase) {
 ##              1 for blogs, 2 for news, 3 for twitter
 ## gamma2 - bigram discount rate
 ## gamma3 - trigram discount rate
-getTopNPredictions <- function(bigPre, n, corp_index, gamma2, gamma3) {
+getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3) {
     # load unigram, bigram, and trigram tables corresponding to the corpus
     # selected by the user
     unigrams <- read.csv(uniPaths[corp_index])
@@ -77,11 +80,15 @@ getTopNPredictions <- function(bigPre, n, corp_index, gamma2, gamma3) {
     qbo_unobs_bigrams <- getQboUnobsBigrams(unobs_bo_bigrams, unigrams, alpha_big)
     # calc trigram probabilities - start with observed trigrams: eqn 12
     qbo_obs_trigrams <- getObsTriProbs(obs_trigs, bigrams, bigPre, gamma3)
+    # add column path column for observed trigrams
+    qbo_obs_trigrams$path <- rep("observed trigram", nrow(qbo_obs_trigrams))
     # finally, calc trigram unobserved probabilities: eqn 17
     bigram <- bigrams[bigrams$ngram %in% bigPre, ]
     alpha_trig <- getAlphaTrigram(obs_trigs, bigram, gamma3)
     qbo_unobs_trigrams <- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
                                            qbo_unobs_bigrams, alpha_trig)
+    # add column path column for unobserved trigrams
+    qbo_unobs_trigrams$path <- rep("unobserved trigram", nrow(qbo_unobs_trigrams))
     qbo_trigrams <- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
     qbo_trigrams <- qbo_trigrams[order(-qbo_trigrams$prob), ]
     
@@ -99,10 +106,8 @@ getPrediction <- function(topPreds) {
     return(prediction)
 }
 
-getPredictFrom <- function() {
-    mgs <- c("observed trigram", "observed bigram", "unigram")
-    
-    return(mgs[1])
+getPredictFrom <- function(top_preds) {
+    return(top_preds$path[1])
 }
 
 ## Creates a horizontal bar plot of the words with the three highest

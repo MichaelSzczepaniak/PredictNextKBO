@@ -63,7 +63,7 @@ fluidPage(
                      verbatimTextOutput("sPredictionSettings"),
                      h4('Last two words of input phrase:'),
                      verbatimTextOutput("sInputBigram"),
-                     h4('Predicted From: (not functional yet)'),
+                     h4('Predicted From:'),
                      verbatimTextOutput("sPredictedFrom"),
                      h4('Predicted Word:'),
                      verbatimTextOutput("sPredictedWord"),
