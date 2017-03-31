@@ -119,7 +119,7 @@ More formally, if the estimate for this backed-off unigram probability is $q_{ML
 
 17. $q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1}) = \alpha(w_{i-2},\:w_{i-1})\frac{q_{BO}(w_i\:|\:w_{i-1})}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})}q_{BO}(w\:|\:w_{i-1})}$
 
-respectively, where the terms $w\:\in\:\mathcal{B}(w_{i-1})$ and $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{B}$ which are all words that terminate an **unobserved** bigram starting with $(w_{i-1})$ or **unobserved** trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  Notice that the subscripts in the $q$ terms on the middle terms of equation 16. are **ML**.  This is because at this point, we are using the Maximum Likelihood estimate for the unigrams which allows for the simplification to the counts shown in the rightmost term.
+respectively, where the terms $w\:\in\:\mathcal{B}(w_{i-1})$ and $w\:\in\:\mathcal{B}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{B}$ which are all words that terminate an **unobserved** bigram starting with $(w_{i-1})$ or **unobserved** trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  Notice that the subscripts in the middle $q$ terms of equations 16. and 17. are **ML**.  This is because at this point, we are using the Maximum Likelihood estimate for the unigrams which allows for the simplification to the counts shown in the rightmost term.
 
 ### Steps in Applying the KBO Trigram Alogrithm
 
