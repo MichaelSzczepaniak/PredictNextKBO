@@ -94,6 +94,7 @@ button.code-folding-btn:focus {
 </style>
 
 
+
 <div class="container-fluid main-container">
 
 <!-- tabsets -->
@@ -201,10 +202,10 @@ $(document).ready(function () {
 <p>As mentioned earlier, the KBO algorithm estimates probabilities of unseen n-grams by redistributing some of the probability mass from observed trigrams to those that are unobserved through discounting. So the natural first step in this process is to determine the amount of probability mass that gets taken from the observed n-grams. The second step will be to determine how that taken probability mass is redistributed.</p>
 <p>The total probability mass of the observer bigrams and trigrams can be written as:</p>
 <ol start="8" style="list-style-type: decimal">
-<li><p><em>bigram probability mass</em> = <span class="math inline">\(\sum\limits_{w\:\in\:\mathcal{A}(w_{i-1})} \frac{c(w_{i-1},\:w)}{c(w_{i-1})}\)</span></p></li>
-<li><p><em>trigram probability mass</em> = <span class="math inline">\(\sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\)</span></p></li>
+<li><p><em>bigram probability mass</em> = <span class="math inline">\(\sum\limits_{w\:\in\:\mathcal{A}(w_{i-1})} \frac{c(w_{i-1},\:w)}{c(w_{i-1})} = 1\)</span></p></li>
+<li><p><em>trigram probability mass</em> = <span class="math inline">\(\sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})} = 1\)</span></p></li>
 </ol>
-<p>where the terms <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{A}\)</span> which are all words that terminate an observed bigram starting with <span class="math inline">\((w_{i-1})\)</span> or trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively. If we define <span class="math inline">\(\gamma_2\)</span> to be the amount of discount taken from observed bigram counts, <span class="math inline">\(\gamma_3\)</span> the amount of discount taken from observed trigram counts, and <span class="math inline">\(c^*\)</span> to be the new discounted counts for observed bigrams and trigrams, then the backed off probability estimates would be written as:</p>
+<p>where the terms <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-1})\)</span> and <span class="math inline">\(w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})\)</span> refer to all the words <em>w</em> in the set <span class="math inline">\(\mathcal{A}\)</span> which are all words that terminate an observed bigram starting with <span class="math inline">\((w_{i-1})\)</span> or trigram starting with <span class="math inline">\((w_{i-2},\:w_{i-1})\)</span> respectively. If we define <span class="math inline">\(\gamma_2\)</span> to be the amount of discount taken from observed bigram counts, <span class="math inline">\(\gamma_3\)</span> the amount of discount taken from observed trigram counts, and <span class="math inline">\(c^*\)</span> to be the new discounted counts for observed bigrams and trigrams after applying the discount, then the backed off probability estimates would be written as:</p>
 <ol start="10" style="list-style-type: decimal">
 <li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:\)</span> for observed bigrams, where</p></li>
 <li><p><span class="math inline">\(c^*(w_{i-1},\:w) = c(w_{i-1},\:w) - \gamma_2\:\:\:\:\)</span> and</p></li>
@@ -216,7 +217,7 @@ $(document).ready(function () {
 <li><p><span class="math inline">\(\alpha(w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-1})} \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:\)</span> from observed bigrams, and</p></li>
 <li><p><span class="math inline">\(\alpha(w_{i-2},\:w_{i-1}) = 1 - \sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c^*(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}\:\:\:\:\)</span> from observed trigrams.</p></li>
 </ol>
-<p>At this point, we’ve finished the first step by defining the amount of probability mass taken from the observed bigrams and trigrams as a function of some discounted amount <span class="math inline">\(\gamma_n\)</span>. Now we need to know how to assign this discounted probability mass to unseen bigrams and trigrams. Katz proposed that this be done proportionally to the backed-off (n-1)-gram probability parameters. In other words, an unobserved trigram probability would be estimated in proportion to all the possible bigram tails and unobserved bigram probabilities would be estimated in proportion to all the possible unigram tails.</p>
+<p>At this point, we’ve finished the first step by defining the amount of probability mass taken from the observed bigrams and trigrams as a function of some discounted amount <span class="math inline">\(\gamma_{2 \, or \, 3}\)</span>. Now we need to know how to assign this discounted probability mass to unseen bigrams and trigrams. Katz proposed that this be done proportionally to the backed-off (n-1)-gram probability parameters. In other words, an unobserved trigram probability would be estimated in proportion to all the possible bigram tails and unobserved bigram probabilities would be estimated in proportion to all the possible unigram tails.</p>
 <p>More formally, if the estimate for this backed-off unigram probability is <span class="math inline">\(q_{ML}(w_i)\)</span> and the backed off bigram probability is <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span>, then the amount of discounted probability mass <span class="math inline">\(\alpha(w_{i-1})\)</span> assigned to unknown bigrams <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1})\)</span> and <span class="math inline">\(\alpha(w_{i-2},\:w_{i-1})\)</span> assigned to unknown trigrams <span class="math inline">\(q_{BO}(w_i\:|\:w_{i-2},\:w_{i-1})\)</span> would be:</p>
 <ol start="16" style="list-style-type: decimal">
 <li><p><span class="math inline">\(q_{BO}(w_i\:|\:w_{i-1}) = \alpha(w_{i-1})\frac{q_{ML}(w_i)}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-1})}q_{ML}(w)} = \alpha(w_{i-1})\frac{c(w_i)}{\sum\limits_{w\:\in\:\mathcal{B}(w_{i-1})}c(w)}\)</span></p></li>
@@ -778,6 +779,7 @@ getPredictionMsg(qbo_trigrams)</code></pre>
 $(document).ready(function () {
   $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
 });
+
 
 </script>
 
