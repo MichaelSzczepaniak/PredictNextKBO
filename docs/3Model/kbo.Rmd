@@ -95,7 +95,7 @@ The total probability mass of the observer bigrams and trigrams can be written a
 
 9. *trigram probability mass* = $\sum\limits_{w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})} \frac{c(w_{i-2},\:w_{i-1},\:w)}{c(w_{i-2},\:w_{i-1})}$
 
-where the terms $w\:\in\:\mathcal{A}(w_{i-1})$ and $w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{A}$ which are all words that terminate an observed bigram starting with $(w_{i-1})$ or trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  If we define $\gamma_2$ to be the amount of discount taken from observed bigram counts, $\gamma_3$ the amount of discount taken from observed trigram counts, and $c^*$ to be the new discounted counts for observed bigrams and trigrams, then the backed off probability estimates would be written as:
+where the terms $w\:\in\:\mathcal{A}(w_{i-1})$ and $w\:\in\:\mathcal{A}(w_{i-2},\:w_{i-1})$ refer to all the words *w* in the set $\mathcal{A}$ which are all words that terminate an observed bigram starting with $(w_{i-1})$ or trigram starting with $(w_{i-2},\:w_{i-1})$ respectively.  If we define $\gamma_2$ to be the amount of discount taken from observed bigram counts, $\gamma_3$ the amount of discount taken from observed trigram counts, and $c^*$ to be the new discounted counts for observed bigrams and trigrams after applying the discount, then the backed off probability estimates would be written as:
 
 10. $q_{BO}(w_i\:|\:w_{i-1}) = \frac{c^*(w_{i-1},\:w)}{c(w_{i-1})}\:\:\:\:$ for observed bigrams, where
 
