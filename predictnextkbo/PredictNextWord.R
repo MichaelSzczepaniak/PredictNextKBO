@@ -63,10 +63,10 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3) {
     bigrams <- read.csv(bigPaths[corp_index])
     trigrams <- read.csv(triPaths[corp_index])
     
-    
+    # extracted observed trigrams from trigram table
     obs_trigs <- getObsTrigs(bigPre, trigrams)
+    # get character vector of unobserved trigram tail words
     unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
-    bo_bigrams <- getBoBigrams(bigPre, unobs_trig_tails)
     # separate bigrams which use eqn 10 and those that use 16
     obs_bo_bigrams <- getObsBoBigrams(bigPre, unobs_trig_tails, bigrams)
     unobs_bo_bigrams <- getUnobsBoBigrams(bigPre, unobs_trig_tails,
@@ -90,6 +90,7 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3) {
     # add column path column for unobserved trigrams
     qbo_unobs_trigrams$path <- rep("unobserved trigram", nrow(qbo_unobs_trigrams))
     qbo_trigrams <- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
+    # sort predictions in descending order
     qbo_trigrams <- qbo_trigrams[order(-qbo_trigrams$prob), ]
     
     return(qbo_trigrams[1:n,])
