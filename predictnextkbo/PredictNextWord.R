@@ -77,7 +77,7 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3) {
     unig <- str_split(bigPre, "_")[[1]][2]
     unig <- unigrams[unigrams$ngram == unig,]
     alpha_big <- getAlphaBigram(unig, bigrams, gamma2)
-    qbo_unobs_bigrams <- getQboUnobsBigrams(unobs_bo_bigrams, unigrams, alpha_big)
+    qbo_unobs_bigrams <- getUnobsBigProbs(unobs_bo_bigrams, unigrams, alpha_big)
     # calc trigram probabilities - start with observed trigrams: eqn 12
     qbo_obs_trigrams <- getObsTriProbs(obs_trigs, bigrams, bigPre, gamma3)
     # add column path column for observed trigrams
