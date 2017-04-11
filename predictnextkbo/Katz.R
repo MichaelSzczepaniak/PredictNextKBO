@@ -235,7 +235,7 @@ getAlphaBigram <- function(unigram, bigrams, bigDisc=0.5) {
 ##         ngram = unigram
 ##         freq = frequency/count of each unigram
 ## alphaBig - total discounted probability mass at the bigram level
-getQboUnobsBigrams <- function(unobsBoBigrams, unigs, alphaBig) {
+getUnobsBigProbs <- function(unobsBoBigrams, unigs, alphaBig) {
     # get the unobserved bigram tails
     qboUnobsBigs <- str_split_fixed(unobsBoBigrams, "_", 2)[, 2]
     w_in_Aw_iminus1 <- unigs[!(unigs$ngram %in% qboUnobsBigs), ]
