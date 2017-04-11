@@ -14,7 +14,7 @@ shinyServer(
                                   {as.numeric(input$trigDiscount)})
         probBars <- eventReactive(input$predictButton,
                                   {as.integer(input$histBars)})
-        
+        # fire prediction algorithm when "Predict..." button clicked
         topPreds <- eventReactive(input$predictButton,
                                   {getTopNPredictions(inBigram(), probBars(), 
                                                       useCorpus(),
