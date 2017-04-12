@@ -67,7 +67,7 @@ fluidPage(
                      verbatimTextOutput("sPredictedFrom"),
                      h4('Predicted Word:'),
                      verbatimTextOutput("sPredictedWord"),
-                     plotOutput("pTop3Probs", width = 450, height = 300)
+                     plotOutput("pTopNProbs", width = 450, height = 300)
             ),
             tabPanel('User Guide', HTML(ug_tab_content)
             )

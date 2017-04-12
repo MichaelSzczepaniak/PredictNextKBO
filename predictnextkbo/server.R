@@ -29,7 +29,7 @@ shinyServer(
         
         output$sPredictedFrom <- renderPrint({getPredictFrom(topPreds())})
         
-        output$pTop3Probs <- renderPlot({
+        output$pTopNProbs <- renderPlot({
             getPlot(topPreds()$ngram, topPreds()$prob)
         })
         
