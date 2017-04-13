@@ -112,10 +112,13 @@ getUnobsTrigTails <- function(obsTrigs, unigs) {
     return(unobs_trig_tails)
 }
 
-## Returns a two column data.frame of observed trigrams that start with bigram
-## prefix bigPre in the first column named ngram and the probabilities
-## q_bo(w_i | w_i-2, w_i-1) in the second column named prob calculated from
-## eqn 12. If no observed trigrams starting with bigPre exist, NULL is returned.
+## Returns a 3 column data.frame of observed trigrams that start with bigram
+## prefix bigPre. First column named ngram is the trigram which probabilities
+## are being computed on. Second column named prob is the computed value for
+## the conditional probability q_bo(w_i | w_i-2, w_i-1) which is computed from
+## eqn 12. Third column named path is a string describing the path taken thru
+## the KBO trigram algorith to compute conditional probability in the second
+## column. If no observed trigrams starting with bigPre exist, NULL is returned.
 ##
 ## obsTrigs - 2 column data.frame or data.table. The first column: ngram,
 ##            contains all the observed trigrams that start with the bigram
@@ -131,8 +134,9 @@ getUnobsTrigTails <- function(obsTrigs, unigs) {
 getObsTriProbs <- function(obsTrigs, bigrs, bigPre, triDisc=0.5) {
     if(nrow(obsTrigs) < 1) return(NULL)
     obsCount <- filter(bigrs, ngram==bigPre)$freq[1]
-    obsTrigProbs <- mutate(obsTrigs, freq=((freq - triDisc) / obsCount))
-    colnames(obsTrigProbs) <- c("ngram", "prob")
+    obsTrigProbs <- mutate(obsTrigs, freq=((freq - triDisc) / obsCount),
+                           path='observed trigram')
+    colnames(obsTrigProbs) <- c("ngram", "prob", "path")
     
     return(obsTrigProbs)
 }
@@ -197,7 +201,8 @@ getObsBigProbs <- function(obsBoBigrams, unigs, bigDisc=0.5) {
     first_words <- str_split_fixed(obsBoBigrams$ngram, "_", 2)[, 1]
     first_word_freqs <- unigs[unigs$ngram %in% first_words, ]
     obsBigProbs <- (obsBoBigrams$freq - bigDisc) / first_word_freqs$freq
-    obsBigProbs <- data.frame(ngram=obsBoBigrams$ngram, prob=obsBigProbs)
+    obsBigProbs <- data.frame(ngram=obsBoBigrams$ngram, prob=obsBigProbs,
+                              path='observed bigram')
     
     return(obsBigProbs)
 }
@@ -225,10 +230,12 @@ getAlphaBigram <- function(unigram, bigrams, bigDisc=0.5) {
     return(alphaBi)
 }
 
-## Returns a dataframe of 2 columns: ngram and prob.  Values in the ngram
+## Returns a dataframe of 3 columns: ngram, prob, path.  Values in the ngram
 ## column are unobserved bigrams of the form: w2_w1.  The values in the prob
 ## column are the backed off probability estimates q_bo(w1 | w2) calculated
-## from from equation 16.
+## from from equation 16. The path column is filled with the string
+## 'unobserved bigram' to denote the computation path through the KBO trigram
+## algorithm for the probability computation
 ##
 ## unobsBoBigrams - character vector of unobserved backed off bigrams
 ## unigs - 2 column data.frame of all the unigrams in the corpus:
@@ -244,7 +251,8 @@ getUnobsBigProbs <- function(unobsBoBigrams, unigs, alphaBig) {
     denom <- sum(qboUnobsBigs$freq)
     # converts counts to probabilities
     qboUnobsBigs <- data.frame(ngram=unobsBoBigrams,
-                               prob=(alphaBig * qboUnobsBigs$freq / denom))
+                               prob=(alphaBig * qboUnobsBigs$freq / denom),
+                               path='unobserved bigram')
     
     return(qboUnobsBigs)
 }
@@ -265,7 +273,7 @@ getUnobsBigProbs <- function(unobsBoBigrams, unigs, alphaBig) {
 ##          frequency/count of the bigram listed in the ngram column.
 ## triDisc - amount to discount observed trigrams
 getAlphaTrigram <- function(obsTrigs, bigram, triDisc=0.5) {
-    if(nrow(obsTrigs) < 1) return(0)
+    if(nrow(obsTrigs) < 1) return(1)
     alphaTri <- 1 - sum((obsTrigs$freq - triDisc) / bigram$freq[1])
     
     return(alphaTri)
@@ -295,7 +303,9 @@ getUnobsTriProbs <- function(bigPre, qboObsBigrams,
     first_bigPre_word <- str_split(bigPre, "_")[[1]][1]
     unobsTrigNgrams <- paste(first_bigPre_word, qboBigrams$ngram, sep="_")
     unobsTrigProbs <- alphaTrig * qboBigrams$prob / sumQboBigs
-    unobsTrigDf <- data.frame(ngram=unobsTrigNgrams, prob=unobsTrigProbs)
+    unobsTrigPath <- qboBigrams$path
+    unobsTrigDf <- data.frame(ngram=unobsTrigNgrams, prob=unobsTrigProbs,
+                              path=unobsTrigPath)
     
     return(unobsTrigDf)
 }
