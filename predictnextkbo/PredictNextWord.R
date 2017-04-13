@@ -81,14 +81,12 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3) {
     # calc trigram probabilities - start with observed trigrams: eqn 12
     qbo_obs_trigrams <- getObsTriProbs(obs_trigs, bigrams, bigPre, gamma3)
     # add column path column for observed trigrams
-    qbo_obs_trigrams$path <- rep("observed trigram", nrow(qbo_obs_trigrams))
     # finally, calc trigram unobserved probabilities: eqn 17
     bigram <- bigrams[bigrams$ngram %in% bigPre, ]
     alpha_trig <- getAlphaTrigram(obs_trigs, bigram, gamma3)
     qbo_unobs_trigrams <- getUnobsTriProbs(bigPre, qbo_obs_bigrams,
                                            qbo_unobs_bigrams, alpha_trig)
     # add column path column for unobserved trigrams
-    qbo_unobs_trigrams$path <- rep("unobserved trigram", nrow(qbo_unobs_trigrams))
     qbo_trigrams <- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
     # sort predictions in descending order
     qbo_trigrams <- qbo_trigrams[order(-qbo_trigrams$prob), ]
