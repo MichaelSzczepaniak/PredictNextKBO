@@ -56,7 +56,8 @@ getInputBigram <- function(inputPhrase) {
 ##              1 for blogs, 2 for news, 3 for twitter
 ## gamma2 - bigram discount rate
 ## gamma3 - trigram discount rate
-getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3) {
+getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3,
+                               allowEOS) {
     # load unigram, bigram, and trigram tables corresponding to the corpus
     # selected by the user
     unigrams <- read.csv(uniPaths[corp_index])
@@ -90,6 +91,16 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3) {
     qbo_trigrams <- rbind(qbo_obs_trigrams, qbo_unobs_trigrams)
     # sort predictions in descending order
     qbo_trigrams <- qbo_trigrams[order(-qbo_trigrams$prob), ]
+    # remove EOS predictions if user wants them removed
+    if(!allowEOS) {
+        n <- n + 1
+        tmp <- str_split_fixed(qbo_trigrams[1:n,]$ngram, '_', 3)
+        eos_index <- grep('EOS', tmp[,3])
+        if(length(eos_index) > 0) {
+            qbo_trigrams <- qbo_trigrams[-eos_index,]
+            n <- n - 1
+        }
+    }
     
     return(qbo_trigrams[1:n,])
 }
