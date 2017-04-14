@@ -279,9 +279,11 @@ getAlphaTrigram <- function(obsTrigs, bigram, triDisc=0.5) {
     return(alphaTri)
 }
 
-## Returns a dataframe of 2 columns: ngram and prob.  Values in the ngram
-## column are unobserved trigrams of the form: w3_w2_w1.  The values in the prob
-## column are q_bo(w1 | w3, w2) calculated from equation 17.
+## Returns a dataframe of 3 columns: ngram, prob, path.  Values in the ngram
+## column are unobserved trigrams of the form: w3_w2_w1.  Values in the prob
+## column are q_bo(w1 | w3, w2) calculated from equation 17.  Value in the
+## path column are one of 2 string values: "observed bigram" or
+## "unobserved bigram" describing the path thru the algorithm.
 ##
 ## bigPre -  single-element char array of the form w2_w1 which are first two
 ##           words of the trigram we are predicting the tail word of
@@ -303,9 +305,8 @@ getUnobsTriProbs <- function(bigPre, qboObsBigrams,
     first_bigPre_word <- str_split(bigPre, "_")[[1]][1]
     unobsTrigNgrams <- paste(first_bigPre_word, qboBigrams$ngram, sep="_")
     unobsTrigProbs <- alphaTrig * qboBigrams$prob / sumQboBigs
-    unobsTrigPath <- qboBigrams$path
     unobsTrigDf <- data.frame(ngram=unobsTrigNgrams, prob=unobsTrigProbs,
-                              path=unobsTrigPath)
+                              path=qboBigrams$path)
     
     return(unobsTrigDf)
 }
