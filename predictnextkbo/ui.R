@@ -50,6 +50,8 @@ fluidPage(
         numericInput("histBars", label=h4("Probability Bars"), value=3,
                     width="150px"),
         
+        checkboxInput("eosCheckbox", label = "Include EOS as prediction", value = TRUE),
+        
         actionButton("predictButton", "Predict next word of phrase"),
         
         conditionalPanel(condition="$('html').hasClass('shiny-busy')",
