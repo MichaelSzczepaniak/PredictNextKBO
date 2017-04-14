@@ -14,11 +14,15 @@ shinyServer(
                                   {as.numeric(input$trigDiscount)})
         probBars <- eventReactive(input$predictButton,
                                   {as.integer(input$histBars)})
+        allowEOSPredictions <- eventReactive(input$predictButton,
+                                             {as.logical(input$eosCheckbox)})
+        
         # fire prediction algorithm when "Predict..." button clicked
         topPreds <- eventReactive(input$predictButton,
                                   {getTopNPredictions(inBigram(), probBars(), 
                                                       useCorpus(),
-                                                      bigDisc(), trigDisc())})
+                                                      bigDisc(), trigDisc(),
+                                                      allowEOSPredictions())})
         
         output$sPredictionSettings <-
             renderPrint({getSettings(useCorpus(), bigDisc(), trigDisc())})
