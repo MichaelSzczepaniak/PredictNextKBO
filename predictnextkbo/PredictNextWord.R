@@ -98,8 +98,8 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3,
         eos_index <- grep('EOS', tmp[,3])
         if(length(eos_index) > 0) {
             qbo_trigrams <- qbo_trigrams[-eos_index,]
-            n <- n - 1
         }
+        n <- n - 1
     }
     
     return(qbo_trigrams[1:n,])
