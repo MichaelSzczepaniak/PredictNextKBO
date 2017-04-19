@@ -25,6 +25,8 @@ getSettings <- function(corpus, bigDisc=0.1, trigDisc=0.2) {
     return(result)
 }
 
+## Parses inputPhrase and returns the bigram tail delimited by
+## an underscore (_).
 getInputBigram <- function(inputPhrase) {
     bigram_tail = ""
     inPh <- inputPhrase #filterInput(inputPhrase)
@@ -60,18 +62,32 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3,
                                allowEOS) {
     # load unigram, bigram, and trigram tables corresponding to the corpus
     # selected by the user
-    unigrams <- read.csv(uniPaths[corp_index])
-    bigrams <- read.csv(bigPaths[corp_index])
-    trigrams <- read.csv(triPaths[corp_index])
+    cat(sprintf("%s%s%s", "Reading corpus ", corp_index, "\n"))
+    cat(sprintf("%s", "timing unigrams read \n"))
+    cat(system.time(unigrams <- read.csv(uniPaths[corp_index])))
+    cat(sprintf("%s", "\ntiming bigrams read \n"))
+    cat(system.time(bigrams <- read.csv(bigPaths[corp_index])))
+    cat(sprintf("%s", "\ntiming trigrams read \n"))
+    cat(system.time(trigrams <- read.csv(triPaths[corp_index])),'\n')
     
+    time_int1 <- proc.time()
     # extracted observed trigrams from trigram table
     obs_trigs <- getObsTrigs(bigPre, trigrams)
+    time_int2 <- proc.time()
+    cat('time to run getObsTrigs:\n', time_int2 - time_int1, '\n')
     # get character vector of unobserved trigram tail words
     unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
+    time_int1 <- proc.time()
+    cat('time to run getUnobsTrigTails:\n', time_int1 - time_int2, '\n')
     # separate bigrams which use eqn 10 and those that use 16
     obs_bo_bigrams <- getObsBoBigrams(bigPre, unobs_trig_tails, bigrams)
+    time_int2 <- proc.time()
+    cat('time to run getObsBoBigrams:\n', time_int2 - time_int1, '\n')
     unobs_bo_bigrams <- getUnobsBoBigrams(bigPre, unobs_trig_tails,
                                           obs_bo_bigrams)
+    time_int1 <- proc.time()
+    cat('time to run getUnobsBoBigrams:\n', time_int1 - time_int2, '\n')
+    
     # calc obs'd bigram prob's from eqn 10
     qbo_obs_bigrams <- getObsBigProbs(obs_bo_bigrams, unigrams, gamma2)
     # calc alpha_big & unobs'd bigram prob's from eqn 16
