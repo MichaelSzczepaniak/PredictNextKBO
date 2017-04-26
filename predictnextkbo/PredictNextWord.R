@@ -3,15 +3,15 @@ source('Katz.R')
 options(stringsAsFactors = FALSE)  # strings are what we are operating on...
 
 # Setup paths to the ngram frequency data used by the model
-uniPaths <- c("./data/en_US.blogs.train.12unigrams.nosins.csv",
-              "./data/en_US.news.train.12unigrams.nosins.csv",
-              "./data/en_US.twitter.train.12unigrams.nosins.csv")
-bigPaths <- c("./data/en_US.blogs.train.13bigrams.nosins.csv",
-             "./data/en_US.news.train.13bigrams.nosins.csv",
-             "./data/en_US.twitter.train.13bigrams.nosins.csv")
-triPaths <- c("./data/en_US.blogs.train.14trigrams.nosins.csv",
-             "./data/en_US.news.train.14trigrams.nosins.csv",
-             "./data/en_US.twitter.train.14trigrams.nosins.csv")
+# uniPaths <- c("./data/en_US.blogs.train.12unigrams.nosins.csv",
+#               "./data/en_US.news.train.12unigrams.nosins.csv",
+#               "./data/en_US.twitter.train.12unigrams.nosins.csv")
+# bigPaths <- c("./data/en_US.blogs.train.13bigrams.nosins.csv",
+#              "./data/en_US.news.train.13bigrams.nosins.csv",
+#              "./data/en_US.twitter.train.13bigrams.nosins.csv")
+# triPaths <- c("./data/en_US.blogs.train.14trigrams.nosins.csv",
+#              "./data/en_US.news.train.14trigrams.nosins.csv",
+#              "./data/en_US.twitter.train.14trigrams.nosins.csv")
 
 ## Gets the user settings to use for the model prediction, sets model parameters
 ## and loads the ngram frequency tables corresponding to the corpus to use
@@ -59,16 +59,16 @@ getInputBigram <- function(inputPhrase) {
 ## gamma2 - bigram discount rate
 ## gamma3 - trigram discount rate
 getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3,
-                               allowEOS) {
+                               allowEOS, unigrams, bigrams, trigrams) {
     # load unigram, bigram, and trigram tables corresponding to the corpus
     # selected by the user
-    cat(sprintf("%s%s%s", "Reading corpus ", corp_index, "\n"))
-    cat(sprintf("%s", "timing unigrams read \n"))
-    cat(system.time(unigrams <- read.csv(uniPaths[corp_index])))
-    cat(sprintf("%s", "\ntiming bigrams read \n"))
-    cat(system.time(bigrams <- read.csv(bigPaths[corp_index])))
-    cat(sprintf("%s", "\ntiming trigrams read \n"))
-    cat(system.time(trigrams <- read.csv(triPaths[corp_index])),'\n')
+    # cat(sprintf("%s%s%s", "Reading corpus ", corp_index, "\n"))
+    # cat(sprintf("%s", "timing unigrams read \n"))
+    # cat(system.time(unigrams <- read.csv(uniPaths[corp_index])))
+    # cat(sprintf("%s", "\ntiming bigrams read \n"))
+    # cat(system.time(bigrams <- read.csv(bigPaths[corp_index])))
+    # cat(sprintf("%s", "\ntiming trigrams read \n"))
+    # cat(system.time(trigrams <- read.csv(triPaths[corp_index])),'\n')
     
     time_int1 <- proc.time()
     # extracted observed trigrams from trigram table
