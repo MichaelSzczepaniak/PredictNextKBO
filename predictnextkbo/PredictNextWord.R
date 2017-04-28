@@ -70,23 +70,23 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3,
     # cat(sprintf("%s", "\ntiming trigrams read \n"))
     # cat(system.time(trigrams <- read.csv(triPaths[corp_index])),'\n')
     
-    time_int1 <- proc.time()
+    # time_int1 <- proc.time()
     # extracted observed trigrams from trigram table
     obs_trigs <- getObsTrigs(bigPre, trigrams)
-    time_int2 <- proc.time()
-    cat('time to run getObsTrigs:\n', time_int2 - time_int1, '\n')
+    # time_int2 <- proc.time()
+    # cat('time to run getObsTrigs:\n', time_int2 - time_int1, '\n')
     # get character vector of unobserved trigram tail words
     unobs_trig_tails <- getUnobsTrigTails(obs_trigs$ngram, unigrams)
-    time_int1 <- proc.time()
-    cat('time to run getUnobsTrigTails:\n', time_int1 - time_int2, '\n')
+    # time_int1 <- proc.time()
+    # cat('time to run getUnobsTrigTails:\n', time_int1 - time_int2, '\n')
     # separate bigrams which use eqn 10 and those that use 16
     obs_bo_bigrams <- getObsBoBigrams(bigPre, unobs_trig_tails, bigrams)
-    time_int2 <- proc.time()
-    cat('time to run getObsBoBigrams:\n', time_int2 - time_int1, '\n')
+    # time_int2 <- proc.time()
+    # cat('time to run getObsBoBigrams:\n', time_int2 - time_int1, '\n')
     unobs_bo_bigrams <- getUnobsBoBigrams(bigPre, unobs_trig_tails,
                                           obs_bo_bigrams)
     time_int1 <- proc.time()
-    cat('time to run getUnobsBoBigrams:\n', time_int1 - time_int2, '\n')
+    # cat('time to run getUnobsBoBigrams:\n', time_int1 - time_int2, '\n')
     
     # calc obs'd bigram prob's from eqn 10
     qbo_obs_bigrams <- getObsBigProbs(obs_bo_bigrams, unigrams, gamma2)
@@ -114,8 +114,8 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3,
         eos_index <- grep('EOS', tmp[,3])
         if(length(eos_index) > 0) {
             qbo_trigrams <- qbo_trigrams[-eos_index,]
-            n <- n - 1
         }
+        n <- n - 1
     }
     
     return(qbo_trigrams[1:n,])
