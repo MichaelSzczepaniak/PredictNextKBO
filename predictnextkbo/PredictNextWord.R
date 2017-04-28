@@ -60,8 +60,7 @@ getInputBigram <- function(inputPhrase) {
 ## gamma3 - trigram discount rate
 getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3,
                                allowEOS, unigrams, bigrams, trigrams) {
-    # load unigram, bigram, and trigram tables corresponding to the corpus
-    # selected by the user
+    # See how long loading op's are taking:
     # cat(sprintf("%s%s%s", "Reading corpus ", corp_index, "\n"))
     # cat(sprintf("%s", "timing unigrams read \n"))
     # cat(system.time(unigrams <- read.csv(uniPaths[corp_index])))
@@ -71,7 +70,7 @@ getTopNPredictions <- function(bigPre, n=3, corp_index, gamma2, gamma3,
     # cat(system.time(trigrams <- read.csv(triPaths[corp_index])),'\n')
     
     # time_int1 <- proc.time()
-    # extracted observed trigrams from trigram table
+    # extract observed trigrams
     obs_trigs <- getObsTrigs(bigPre, trigrams)
     # time_int2 <- proc.time()
     # cat('time to run getObsTrigs:\n', time_int2 - time_int1, '\n')
