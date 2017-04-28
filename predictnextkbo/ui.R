@@ -16,10 +16,11 @@ fluidPage(
     titlePanel(title="Predict Next Word"),
     
     sidebarPanel(
+        
         # Let user know app is computing:
         # stackoverflow.com/questions/17325521#22475216
         tags$head(tags$style(type="text/css", "
-             #loadmessage {
+             #load_compute_message {
                position: fixed;
                top: 0px;
                left: 0px;
@@ -56,7 +57,8 @@ fluidPage(
         actionButton("predictButton", "Predict next word of phrase"),
         
         conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                         tags$div("Computing prediction...",id="loadmessage"))
+                         tags$div("Computing prediction...",
+                                  id="load_compute_message"))
         
     ),
     mainPanel(
