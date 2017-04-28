@@ -37,7 +37,7 @@ fluidPage(
         textInput('phrase', h4("Enter phrase:"), value="i love"),
         
         radioButtons('corpusToUse', h4("Corpus"), modelChoices,
-                     selected=3, inline=TRUE),
+                     selected=1, inline=TRUE),
         
         sliderInput("bigDiscount",
                     label = h4("Bigram Discount"),
