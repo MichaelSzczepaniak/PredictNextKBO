@@ -10,12 +10,13 @@ bigPaths <- c("./data/en_US.blogs.train.13bigrams.nosins.csv",
 triPaths <- c("./data/en_US.blogs.train.14trigrams.nosins.csv",
               "./data/en_US.news.train.14trigrams.nosins.csv",
               "./data/en_US.twitter.train.14trigrams.nosins.csv")
+corpra_count <- length(uniPaths)
 
-# Why getting: Error: invalid subscript type 'closure'  ???
-unigs <- list()
-bigrs <- list()
-trigs <- list()
-for(i in 1:length(uniPaths)) {
+unigs <- vector("list", corpra_count)
+bigrs <- vector("list", corpra_count)
+trigs <- vector("list", corpra_count)
+
+for(i in 1:corpra_count) {
     unigs[[i]] <- read.csv(uniPaths[i])
     bigrs[[i]] <- read.csv(bigPaths[i])
     trigs[[i]] <- read.csv(triPaths[i])
@@ -45,9 +46,9 @@ shinyServer(
                                                       useCorpus(),
                                                       bigDisc(), trigDisc(),
                                                       allowEOSPredictions(),
-                                                      unigs[[useCorpus]],
-                                                      bigrs[[useCorpus]],
-                                                      trigs[[useCorpus]])})
+                                                      unigs[[useCorpus()]],
+                                                      bigrs[[useCorpus()]],
+                                                      trigs[[useCorpus()]])})
         
         output$sPredictionSettings <-
             renderPrint({getSettings(useCorpus(), bigDisc(), trigDisc())})
