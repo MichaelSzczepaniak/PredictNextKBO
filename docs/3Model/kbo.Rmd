@@ -477,7 +477,7 @@ The **getAlphaTrigram** function shown below implements equation 15. to compute 
 ## Returns the total probability mass discounted from all observed trigrams.
 ## calculated from equation 14. This is the amount of probability mass which is
 ## redistributed to UNOBSERVED trigrams. If no trigrams starting with
-## bigram$ngram[1] exist, 0 is returned.
+## bigram$ngram[1] exist, 1 is returned.
 ##
 ## obsTrigs - 2 column data.frame or data.table. The first column: ngram,
 ##            contains all the observed trigrams that start with the bigram
