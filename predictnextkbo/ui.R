@@ -1,3 +1,4 @@
+#library(shinyjs)
 configUrl <- './data/non_ngram/config.csv'
 config <- read.csv(configUrl)
 ug_tab_content_file <- config[config$param == 'ug_tab_content',]$value
@@ -12,14 +13,14 @@ ug_tab_content <- readChar(ug_tab_content_file,
 modelChoices <- list("Blogs"=1, "News"=2, "Twitter"=3)
 
 fluidPage(
-    useShinyjs(),
+    shinyjs::useShinyjs(),
     div(
         id = "loading_page",
         h1("Loading application data.  Be with you shortly...")
     ),
     
     # http://stackoverflow.com/questions/35599470#35665217
-    hidden(
+    shinyjs::hidden(
         div(
             id = "main_content",
             

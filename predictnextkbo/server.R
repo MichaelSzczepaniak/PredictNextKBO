@@ -3,8 +3,8 @@ source("PredictNextWord.R")
 # http://stackoverflow.com/questions/35599470#35665217
 load_data <- function() {
     Sys.sleep(2)
-    hide("loading_page")
-    show("main_content")
+    shinyjs::hide("loading_page")
+    shinyjs::show("main_content")
 }
 
 # load the n-gram tables once because this is expensive
