@@ -1,7 +1,7 @@
 ---
 title: "Predicting Next Word Using Katz Back-Off"
 author: "Michael Szczepaniak"
-date: "September 3, 2016 (last updated)"
+date: "April 28, 2016 (last updated)"
 output: html_document
 subtitle: Part 3 - Understanding the Katz Back-Off Model
 url: http://rpubs.com/mszczepaniak/predictkbo3model
@@ -490,7 +490,7 @@ The **getAlphaTrigram** function shown below implements equation 15. to compute 
 ##          frequency/count of the bigram listed in the ngram column.
 ## triDisc - amount to discount observed trigrams
 getAlphaTrigram <- function(obsTrigs, bigram, triDisc=0.5) {
-    if(nrow(obsTrigs) < 1) return(0)
+    if(nrow(obsTrigs) < 1) return(1)
     alphaTri <- 1 - sum((obsTrigs$freq - triDisc) / bigram$freq[1])
     
     return(alphaTri)
