@@ -14,9 +14,10 @@ uniPaths <- c("./data/en_US.blogs.train.12unigrams.nosins.csv",
 bigPaths <- c("./data/en_US.blogs.train.13bigrams.nosins.csv",
               "./data/en_US.news.train.13bigrams.nosins.csv",
               "./data/en_US.twitter.train.13bigrams.nosins.csv")
-triPaths <- c("./data/en_US.blogs.train.14trigrams.nosins.csv",
-              "./data/en_US.news.train.14trigrams.nosins.csv",
-              "./data/en_US.twitter.train.14trigrams.nosins.csv")
+triPaths <- c("./data/en_US.blogs.train.14trigrams.no3.csv",
+              "./data/en_US.news.train.14trigrams.no3.csv",
+              "./data/en_US.twitter.train.14trigrams.no3.csv")
+
 corpra_count <- length(uniPaths)
 
 unigs <- vector("list", corpra_count)
