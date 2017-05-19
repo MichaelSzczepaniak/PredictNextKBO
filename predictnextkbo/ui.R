@@ -17,6 +17,7 @@ fluidPage(
     shinyjs::useShinyjs(),
     div(
         id = "loading_page",
+        # http://stackoverflow.com/questions/21996887/embedding-image-in-shiny-app
         img(src = "loading_orange_squares.gif", width = "350px", height = "150px")
     ),
     
