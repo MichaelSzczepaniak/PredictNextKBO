@@ -1,5 +1,6 @@
 #library(shinyjs)
 configUrl <- './data/non_ngram/config.csv'
+loadUrl <- './data/non_ngram/loading_orange_squares.gif'
 config <- read.csv(configUrl)
 ug_tab_content_file <- config[config$param == 'ug_tab_content',]$value
 
@@ -16,7 +17,7 @@ fluidPage(
     shinyjs::useShinyjs(),
     div(
         id = "loading_page",
-        h1("Loading application data.  Be with you shortly...")
+        img(src = "loading_orange_squares.gif", width = "350px", height = "150px")
     ),
     
     # http://stackoverflow.com/questions/35599470#35665217
