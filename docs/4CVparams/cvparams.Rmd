@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "January 20, 2017 (last update)"
+date: "May 20, 2017 (last update)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4cv
 ---
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Introduction
-In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values for the two parameters in the model which were the discount rates at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.  In the final installment of this 4-part series, we'll determine good values for these discount rates using 5-fold cross-validation on the training partitions of the Blogs corpus.  After selecting the best looking values, we'll conclude the analysis with an accuracy estimate using the held out test set.
+In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values for the two parameters in the model which were the discount rates at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.  In this installment, we'll determine good values for these discount rates using 5-fold cross-validation on the training partitions of the Blogs corpus.  After selecting the best looking values, we'll conclude the analysis with an accuracy estimate using the held out test set.
 
 ## K-Fold Cross-Validation
 In their book [*An Introduction to Statistical Learning* [1]](http://www-bcf.usc.edu/~gareth/ISL/) James, Witten, Hastie, and Tibshirani describe K-Fold Cross-Validation as follows:
