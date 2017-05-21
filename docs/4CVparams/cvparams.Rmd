@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "May 20, 2017 (last update)"
+date: "May dd, 2017 (last update)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4cv
 ---
@@ -21,7 +21,7 @@ In their book [*An Introduction to Statistical Learning* [1]](http://www-bcf.usc
 
 A good way to start understanding this approach is to first visualize breaking the data into k roughly equal partitions.  In our case k=5, so we can use the picture below to illustrate the process.  
 
-<img src="5fold_cv2.png" alt="K-Fold Cross Validation" height=242 width=242/>
+<img src="5fold_cv3.png" alt="K-Fold Cross Validation" height=242 width=242/>
 
 ### Training The Model
 Note: Unless mentioned otherwise, all code referred to in this document is listed in the **Appendix**.
