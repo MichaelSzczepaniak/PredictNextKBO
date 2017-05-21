@@ -76,8 +76,10 @@ getTopPrediction <- function(bigPre, gamma2, gamma3,
 ## g3_start - smallest value for trigram discount gamma3 to eval from
 ## g3_end - largest value for trigram discount gamma3 to eval up to
 ## intv - spacing interval between gx_start and gx_end
+## default_fill - 
+## col3name - 
 makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
-                              g3_end=1.9, intv=0.1, default_fill=-1,
+                              g3_end=2.9, intv=0.2, default_fill=-1,
                               col3name='predacc') {
     # make grid manually
     g3_seq <- seq(g3_start, g3_end, intv)
@@ -91,14 +93,14 @@ makeEmptyDataGrid <- function(g2_start=0.1, g2_end=1.9, g3_start=0.1,
     return(df_data_grid)
 }
 
-## Returns a character array of trigram_count elements. Each element is an
-## _ delimited trigram of the form w1_w2_w3 randomly extracted from
-## corpus_lines.  EACH TRIGRAM IS UNIQUE.
+## Returns a character array of ngram_count elements. Each element is an
+## _ delimited ngram of the form w1, w1_w2, or w1_w2_w3 randomly extracted 
+## from corpus_lines.  EACH NGRAM IS UNIQUE.
 ## corpus_lines - character array where each element is a line of text from
 ##                a corpus file such as blogs, news, or twitter
 ## ngram_count - the number of randomly selected ngrams to return from
 ##               corpus_lines
-## ng - number of words in the returned n-gram, default = 3
+## ng - number of words in the returned n-gram, default = 3 (trigrams)
 ## delim - delimiter used in the returned ngram e.g. if delim and ng are
 ##         their default values, then returned value will be of the form:
 ##         w1_w2_w3
