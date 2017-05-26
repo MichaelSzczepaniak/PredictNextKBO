@@ -28,15 +28,15 @@ Note: Unless mentioned otherwise, all code referred to in this document is liste
 
 #### Step 1 - Make and Partition the Folds
 
-Each fold is represented as one of the five rows shown in the picture above.  Random indices for lines in the **blogs** corpus were selected using the **makeFolds** function to create each of the folds in the data.  Within each fold there are 3 partitions.  The **validation partition** was created using the **readFolds** function and is depicted by the white box in each fold (20% of the data in a fold).  The remaining non-validation data is subdivided into two groups: 1) the **training set** (80% of the non-validation data) depicted as the blue boxes and 2) the **test set** (20% of the non-validation data) depicted as the gold boxes.  These non-validation partitions were created from the indices generated using the **makeTrainTestNV** function.  The resulting data files for each of the fold partitions are listed in the table below.
+Each fold is represented as one of the five rows shown in the picture above.  Random indices for lines in the **blogs** corpus were selected using the **makeFolds** function to create each of the folds in the data.  Within each fold there are 2 partitions.  The **validation partition** was created using the **readFolds** function and is depicted by the white box in each fold (20% of the data in a fold).  The remaining non-validation data is considered the **training set** of each fold.  
 
-Fold | Blogs Validation Set | Blogs Training Set | Blogs Test Set
+Fold | Blogs Validation Set | Blogs Training Set
 -----|---------------:|--------------:|--------------:
-1    | [fold_1blogs.txt](https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1) | [fold_1train_blogs.txt](https://www.dropbox.com/s/n4cne11vjodd6lg/fold_1train_blogs.txt?dl=1) | [fold_1test_blogs.txt](https://www.dropbox.com/s/ezlxnaxwfb7df4x/fold_1test_blogs.txt?dl=1) 
-2    | [fold_2blogs.txt](https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1)   | [fold_2train_blogs.txt](https://www.dropbox.com/s/0dmqnxdk6liwne4/fold_2train_blogs.txt?dl=1) | [fold_2test_blogs.txt](https://www.dropbox.com/s/y6ixs9rqyc2ovpl/fold_2test_blogs.txt?dl=1) 
-3    | [fold_3blogs.txt](https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1) | [fold_3train_blogs.txt](https://www.dropbox.com/s/0aqfxf6al4wvgjm/fold_3train_blogs.txt?dl=1) | [fold_3test_blogs.txt](https://www.dropbox.com/s/u1x7vlv4n2xh147/fold_3test_blogs.txt?dl=1) 
-4    | [fold_4blogs.txt](https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1) | [fold_4train_blogs.txt](https://www.dropbox.com/s/yszu99pc80xcmg8/fold_4train_blogs.txt?dl=1) | [fold_4test_blogs.txt](https://www.dropbox.com/s/8zndrfw113ork6a/fold_4test_blogs.txt?dl=1) 
-5    | [fold_5blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) | [fold_5train_blogs.txt](https://www.dropbox.com/s/g9sji96yg5j9n8d/fold_5train_blogs.txt?dl=1) | [fold_5test_blogs.txt](https://www.dropbox.com/s/b55ckj6n5engwcy/fold_5test_blogs.txt?dl=1) 
+1    | [fold_1blogs.txt](https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1) | [fold_1train_blogs.txt](https://www.dropbox.com/s/n4cne11vjodd6lg/fold_1train_blogs.txt?dl=1) 
+2    | [fold_2blogs.txt](https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1)   | [fold_2train_blogs.txt](https://www.dropbox.com/s/0dmqnxdk6liwne4/fold_2train_blogs.txt?dl=1) 
+3    | [fold_3blogs.txt](https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1) | [fold_3train_blogs.txt](https://www.dropbox.com/s/0aqfxf6al4wvgjm/fold_3train_blogs.txt?dl=1) 
+4    | [fold_4blogs.txt](https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1) | [fold_4train_blogs.txt](https://www.dropbox.com/s/yszu99pc80xcmg8/fold_4train_blogs.txt?dl=1) 
+5    | [fold_5blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) | [fold_5train_blogs.txt](https://www.dropbox.com/s/g9sji96yg5j9n8d/fold_5train_blogs.txt?dl=1) | 
 
 #### Step 2 - Create the N-Gram Frequency Tables for Each Folds Training Set
 
@@ -430,71 +430,6 @@ if(!exists('corpus_urls')) {
                      "https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1",
                      "https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1")
     names(corpus_urls) <- c("blogs", "news", "twitter")
-}
-
-## Returns a named list of int vectors which are indices of training and  
-## testing sets in the Non-Validation partition.  The odd numbered lists 
-## contain the indices of the lines used for the training set.  Each set of 
-## training fold indices are named in the following manner:
-## fold_xtrain_y where x is an integer 1 to number of folds and
-##                     y is one of the corpus types: blogs, news, twitter
-## The even numbered lists contain the indices of the lines used for testing
-## set.  Each set of testing fold indices are named in the following manner:
-## fold_xtest_y where x is an integer 1 to number of folds and
-##                    y is one of the corpus types: blogs, news, twitter
-## The function writes out both training and test set indices to text files
-## using the naming convention described above with a .txt extension.
-## 
-## PARAMETERS:
-## folds - list of int vectors of size length(folds) which are indices of the
-##         lines for each validation partition. Indices not in this set are 
-##         further segmented into training and testing sets
-## corp_type - character string, type of corpus: "blogs", "news", "twitter"
-## train_fraction - float betwee 0 and 1 (non-inclusive), fraction of samples
-##                  used for the test set, 
-## seed_vals - seed values to use for train/test set selections
-## ofile_prefix - string, output file name prefix
-## ofile_postfix - string, output file name postfix
-## out_dir - string, directory to write output files
-makeTrainTestNV <- function(folds=default_folds, corp_type="blogs",
-                            train_fraction=0.8,
-                            seed_vals=c(7,11,13,17,19),
-                            ofile_prefix="fold_",
-                            ofile_postfix=c("train.txt", "test.txt"),
-                     out_dir="D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/") {
-    corpus_lines <- read_lines(corpus_urls[corp_type])
-    fold_count <- length(folds) - 1  # because last count is total line count
-    results <- list() #vector("list", 2*fold_count)
-    ofile_paths <- vector(mode = "character")
-    for(i in 1:fold_count) {
-        seed_val <- seed_vals[i]
-        set.seed(seed_val)  # set for reproducibility
-        validn_fold_indices <- folds[[i]]
-        non_validn_fold_indices <- setdiff(1:folds[[fold_count+1]],
-                                           validn_fold_indices)
-        validn_data <- corpus_lines[validn_fold_indices]
-        # Take 80% (train set) of non-validation data to build n-gram tables 
-        # and use the other 20% (test set) to make predicitions on.
-        train_ngrams_indices <-
-            sample(non_validn_fold_indices,
-                   train_fraction * length(non_validn_fold_indices))
-        test_gammas_indices <- setdiff(non_validn_fold_indices,
-                                       train_ngrams_indices)
-        
-        name_prefix <- sprintf("%s%s%s%s","fold_", i, "train_", corp_type)
-        fname <- sprintf("%s%s%s", out_dir, name_prefix, ".txt")
-        results[[name_prefix]] <- train_ngrams_indices
-        write.table(train_ngrams_indices, fname, row.names=FALSE, col.names=FALSE)
-        ofile_paths <- append(ofile_paths, fname)
-        
-        name_prefix <- sprintf("%s%s%s%s","fold_", i, "test_", corp_type)
-        fname <- sprintf("%s%s%s", out_dir, name_prefix, ".txt")
-        results[[name_prefix]] <- test_gammas_indices
-        write.table(test_gammas_indices, fname, row.names=FALSE, col.names=FALSE)
-        ofile_paths <- append(ofile_paths, fname)
-    }
-    
-    return(results)
 }
 
 ## Creates the 1 thru ng (n-gram) frequency tables for the training portion of each non-validation

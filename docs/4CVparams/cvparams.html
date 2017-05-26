@@ -119,7 +119,7 @@ $(document).ready(function () {
 <h1 class="title toc-ignore">Predicting Next Word Using Katz Back-Off</h1>
 <h3 class="subtitle"><em>Part 4 - Determining Discount Parameters With Cross-Validation</em></h3>
 <h4 class="author"><em>Michael Szczepaniak</em></h4>
-<h4 class="date"><em>May 20, 2017 (last update)</em></h4>
+<h4 class="date"><em>May dd, 2017 (last update)</em></h4>
 
 </div>
 
@@ -139,14 +139,13 @@ $(document).ready(function () {
 <p>Note: Unless mentioned otherwise, all code referred to in this document is listed in the <strong>Appendix</strong>.</p>
 <div id="step-1---make-and-partition-the-folds" class="section level4">
 <h4>Step 1 - Make and Partition the Folds</h4>
-<p>Each fold is represented as one of the five rows shown in the picture above. Random indices for lines in the <strong>blogs</strong> corpus were selected using the <strong>makeFolds</strong> function to create each of the folds in the data. Within each fold there are 3 partitions. The <strong>validation partition</strong> was created using the <strong>readFolds</strong> function and is depicted by the white box in each fold (20% of the data in a fold). The remaining non-validation data is subdivided into two groups: 1) the <strong>training set</strong> (80% of the non-validation data) depicted as the blue boxes and 2) the <strong>test set</strong> (20% of the non-validation data) depicted as the gold boxes. These non-validation partitions were created from the indices generated using the <strong>makeTrainTestNV</strong> function. The resulting data files for each of the fold partitions are listed in the table below.</p>
+<p>Each fold is represented as one of the five rows shown in the picture above. Random indices for lines in the <strong>blogs</strong> corpus were selected using the <strong>makeFolds</strong> function to create each of the folds in the data. Within each fold there are 2 partitions. The <strong>validation partition</strong> was created using the <strong>readFolds</strong> function and is depicted by the white box in each fold (20% of the data in a fold). The remaining non-validation data is considered the <strong>training set</strong> of each fold. These non-validation partitions were created from the indices generated using the <strong>makeTrainTestNV</strong> function. The resulting data files for each of the fold partitions are listed in the table below.</p>
 <table>
 <thead>
 <tr class="header">
 <th>Fold</th>
 <th align="right">Blogs Validation Set</th>
 <th align="right">Blogs Training Set</th>
-<th align="right">Blogs Test Set</th>
 </tr>
 </thead>
 <tbody>
@@ -154,31 +153,27 @@ $(document).ready(function () {
 <td>1</td>
 <td align="right"><a href="https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1">fold_1blogs.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/n4cne11vjodd6lg/fold_1train_blogs.txt?dl=1">fold_1train_blogs.txt</a></td>
-<td align="right"><a href="https://www.dropbox.com/s/ezlxnaxwfb7df4x/fold_1test_blogs.txt?dl=1">fold_1test_blogs.txt</a></td>
 </tr>
 <tr class="even">
 <td>2</td>
 <td align="right"><a href="https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1">fold_2blogs.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/0dmqnxdk6liwne4/fold_2train_blogs.txt?dl=1">fold_2train_blogs.txt</a></td>
-<td align="right"><a href="https://www.dropbox.com/s/y6ixs9rqyc2ovpl/fold_2test_blogs.txt?dl=1">fold_2test_blogs.txt</a></td>
 </tr>
 <tr class="odd">
 <td>3</td>
 <td align="right"><a href="https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1">fold_3blogs.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/0aqfxf6al4wvgjm/fold_3train_blogs.txt?dl=1">fold_3train_blogs.txt</a></td>
-<td align="right"><a href="https://www.dropbox.com/s/u1x7vlv4n2xh147/fold_3test_blogs.txt?dl=1">fold_3test_blogs.txt</a></td>
 </tr>
 <tr class="even">
 <td>4</td>
 <td align="right"><a href="https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1">fold_4blogs.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/yszu99pc80xcmg8/fold_4train_blogs.txt?dl=1">fold_4train_blogs.txt</a></td>
-<td align="right"><a href="https://www.dropbox.com/s/8zndrfw113ork6a/fold_4test_blogs.txt?dl=1">fold_4test_blogs.txt</a></td>
 </tr>
 <tr class="odd">
 <td>5</td>
 <td align="right"><a href="https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1">fold_5blogs.txt</a></td>
 <td align="right"><a href="https://www.dropbox.com/s/g9sji96yg5j9n8d/fold_5train_blogs.txt?dl=1">fold_5train_blogs.txt</a></td>
-<td align="right"><a href="https://www.dropbox.com/s/b55ckj6n5engwcy/fold_5test_blogs.txt?dl=1">fold_5test_blogs.txt</a></td>
+<td align="right"></td>
 </tr>
 </tbody>
 </table>
@@ -686,71 +681,6 @@ if(!exists('corpus_urls')) {
                      &quot;https://www.dropbox.com/s/54cvi36161y6pvk/en_US.news.train.8posteos.txt?dl=1&quot;,
                      &quot;https://www.dropbox.com/s/6ayhavfnzs5lmqa/en_US.twitter.train.8posteos.txt?dl=1&quot;)
     names(corpus_urls) &lt;- c(&quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;)
-}
-
-## Returns a named list of int vectors which are indices of training and  
-## testing sets in the Non-Validation partition.  The odd numbered lists 
-## contain the indices of the lines used for the training set.  Each set of 
-## training fold indices are named in the following manner:
-## fold_xtrain_y where x is an integer 1 to number of folds and
-##                     y is one of the corpus types: blogs, news, twitter
-## The even numbered lists contain the indices of the lines used for testing
-## set.  Each set of testing fold indices are named in the following manner:
-## fold_xtest_y where x is an integer 1 to number of folds and
-##                    y is one of the corpus types: blogs, news, twitter
-## The function writes out both training and test set indices to text files
-## using the naming convention described above with a .txt extension.
-## 
-## PARAMETERS:
-## folds - list of int vectors of size length(folds) which are indices of the
-##         lines for each validation partition. Indices not in this set are 
-##         further segmented into training and testing sets
-## corp_type - character string, type of corpus: &quot;blogs&quot;, &quot;news&quot;, &quot;twitter&quot;
-## train_fraction - float betwee 0 and 1 (non-inclusive), fraction of samples
-##                  used for the test set, 
-## seed_vals - seed values to use for train/test set selections
-## ofile_prefix - string, output file name prefix
-## ofile_postfix - string, output file name postfix
-## out_dir - string, directory to write output files
-makeTrainTestNV &lt;- function(folds=default_folds, corp_type=&quot;blogs&quot;,
-                            train_fraction=0.8,
-                            seed_vals=c(7,11,13,17,19),
-                            ofile_prefix=&quot;fold_&quot;,
-                            ofile_postfix=c(&quot;train.txt&quot;, &quot;test.txt&quot;),
-                     out_dir=&quot;D:/Dropbox/sw_dev/projects/PredictNextKBO/cv/&quot;) {
-    corpus_lines &lt;- read_lines(corpus_urls[corp_type])
-    fold_count &lt;- length(folds) - 1  # because last count is total line count
-    results &lt;- list() #vector(&quot;list&quot;, 2*fold_count)
-    ofile_paths &lt;- vector(mode = &quot;character&quot;)
-    for(i in 1:fold_count) {
-        seed_val &lt;- seed_vals[i]
-        set.seed(seed_val)  # set for reproducibility
-        validn_fold_indices &lt;- folds[[i]]
-        non_validn_fold_indices &lt;- setdiff(1:folds[[fold_count+1]],
-                                           validn_fold_indices)
-        validn_data &lt;- corpus_lines[validn_fold_indices]
-        # Take 80% (train set) of non-validation data to build n-gram tables 
-        # and use the other 20% (test set) to make predicitions on.
-        train_ngrams_indices &lt;-
-            sample(non_validn_fold_indices,
-                   train_fraction * length(non_validn_fold_indices))
-        test_gammas_indices &lt;- setdiff(non_validn_fold_indices,
-                                       train_ngrams_indices)
-        
-        name_prefix &lt;- sprintf(&quot;%s%s%s%s&quot;,&quot;fold_&quot;, i, &quot;train_&quot;, corp_type)
-        fname &lt;- sprintf(&quot;%s%s%s&quot;, out_dir, name_prefix, &quot;.txt&quot;)
-        results[[name_prefix]] &lt;- train_ngrams_indices
-        write.table(train_ngrams_indices, fname, row.names=FALSE, col.names=FALSE)
-        ofile_paths &lt;- append(ofile_paths, fname)
-        
-        name_prefix &lt;- sprintf(&quot;%s%s%s%s&quot;,&quot;fold_&quot;, i, &quot;test_&quot;, corp_type)
-        fname &lt;- sprintf(&quot;%s%s%s&quot;, out_dir, name_prefix, &quot;.txt&quot;)
-        results[[name_prefix]] &lt;- test_gammas_indices
-        write.table(test_gammas_indices, fname, row.names=FALSE, col.names=FALSE)
-        ofile_paths &lt;- append(ofile_paths, fname)
-    }
-    
-    return(results)
 }
 
 ## Creates the 1 thru ng (n-gram) frequency tables for the training portion of each non-validation

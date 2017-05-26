@@ -281,6 +281,7 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
 ## Returns a list with nfolds items. Each list contains the indices for the 
 ## data in each fold. Indices are then written to files: one set of indices
 ## per fold.
+##
 ## indices_count - int that are the number of items to take a sample from. If
 ##                 sample data is a data frame, this is typically nrows(data).
 ## nfolds - number of folds in the data to make
