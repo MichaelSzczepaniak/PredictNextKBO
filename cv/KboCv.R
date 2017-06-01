@@ -299,17 +299,25 @@ makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
     set.seed(seed_value)
     folds <- vector("list", nfolds)
     inds <- 1:indices_count
-    min_per_fold <- length(inds) / nfolds # min # of samples in each fold
+    min_per_fold <- floor(length(inds) / nfolds) # min # of samples in each fold
     for(i in 1:nfolds) {
         samp_inds = sample(inds, min_per_fold) # get indices for fold
         folds[[i]] <- samp_inds
         inds <- setdiff(inds, samp_inds) # remaining after taking for fold
         if(i == nfolds) {
             cat("there are ", length(inds), "remaining samples to distribute.\n")
-            for(j in 1:length(inds)) {
-                samp <- sample(inds, 1)
-                folds[[j]] <- c(folds[[j]], samp)
-                inds <- setdiff(inds, samp)
+            remaining_count <- length(inds)
+            for(j in 1:remaining_count) {
+                # next if-block is necessary because of the "convenience
+                # feature" when length of vector being sampled is = 1
+                if(length(inds) > 1) {
+                    samp_inds <- sample(inds, 1)
+                } else {
+                    samp_inds <- inds[1]
+                }
+                
+                folds[[j]] <- c(folds[[j]], samp_inds)
+                inds <- setdiff(inds, samp_inds)
             }
         }
     }
