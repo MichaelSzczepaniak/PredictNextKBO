@@ -224,7 +224,7 @@ getAlphaBigram <- function(unigram, bigrams, bigDisc=0.5) {
     # get all bigrams that start with unigram
     regex <- sprintf("%s%s%s", "^", unigram$ngram[1], "_")
     bigsThatStartWithUnig <- bigrams[grep(regex, bigrams$ngram),]
-    if(nrow(bigsThatStartWithUnig) < 1) return(0)
+    if(nrow(bigsThatStartWithUnig) < 1) return(1)
     alphaBi <- 1 - (sum(bigsThatStartWithUnig$freq - bigDisc) / unigram$freq)
     
     return(alphaBi)
