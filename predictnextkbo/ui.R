@@ -11,7 +11,7 @@ ug_tab_content_file <- paste0(config_dir, ug_tab_content_file)
 ug_tab_content <- readChar(ug_tab_content_file,
                            file.info(ug_tab_content_file)$size)
 
-modelChoices <- list("Blogs"=1, "News"=2, "Twitter"=3)
+modelChoices <- list("blogs"=1, "news"=2, "twitter"=3, "ltc"=3)
 
 fluidPage(
     shinyjs::useShinyjs(),
