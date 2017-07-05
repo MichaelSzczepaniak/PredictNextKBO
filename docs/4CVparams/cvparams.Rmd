@@ -2,7 +2,7 @@
 title: "Predicting Next Word Using Katz Back-Off"
 subtitle: "Part 4 - Determining Discount Parameters With Cross-Validation"
 author: "Michael Szczepaniak"
-date: "June dd, 2017 (last update)"
+date: "July 4, 2017 (last update)"
 output: html_document
 url: http://rpubs.com/mszczepaniak/predictkbo4cv
 ---
@@ -12,16 +12,16 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
 ## Introduction
-In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values for the two parameters in the model which were the discount rates at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.  In this installment, we'll determine good values for these discount rates using 5-fold cross-validation on the training partitions of the Blogs corpus.  After selecting the best looking values, we'll conclude the analysis with an accuracy estimate using the held out test set.
+In [Part 3](http://rpubs.com/mszczepaniak/predictkbo3model), we built the model used to make predictions, but we had arbitrarily chosen values for the two parameters in the model which were the discount rates at the bigram and trigram levels: $\gamma_2$ and $\gamma_3$.  In this installment, we'll determine good values for these discount rates using 10-fold cross-validation on the training partitions of the Blogs corpus.  After selecting the best looking values, we'll conclude the analysis with an accuracy estimate using the held out test set.
 
 ## K-Fold Cross-Validation
 In their book [*An Introduction to Statistical Learning* [1]](http://www-bcf.usc.edu/~gareth/ISL/) James, Witten, Hastie, and Tibshirani describe K-Fold Cross-Validation as follows:
 
 *This approach involves randomly dividing the set of observations into k groups, or **folds** of approximately equal size.  The first fold is treated as a validation set, and the method is fit on the remaining k - 1 folds.*  
 
-A good way to start understanding this approach is to first visualize breaking the data into k roughly equal partitions.  In our case k=5, so we can use the picture below to illustrate the process.  
+A good way to start understanding this approach is to first visualize breaking the data into k roughly equal partitions.  For this analysis, k=10 was selected because we have quite a bit of data and our accuracy rate is the neighborhood of 20% which implies quite a bit of variability in our predictions.  The picture below illustrates the process.  
 
-<img src="5fold_cv3.png" alt="K-Fold Cross Validation" height=242 width=242/>
+<img src="k=10fold_cv.png" alt="K-Fold Cross Validation" height=242 width=242/>
 
 We train on the parts of the data represented by the blue boxes and validate on the parts of the data represented by the white boxes.  Details are described in the next section.
 
@@ -30,7 +30,7 @@ Note: Unless mentioned otherwise, all code referred to in this document is liste
 
 #### Step 1 - Make and Partition the Folds
 
-Each fold is represented as one of the five rows shown in the picture above.  Random indices for lines in the **blogs** corpus were selected using the **makeFolds** function to create each of the folds in the data.  Within each fold there are 2 partitions.  The **validation partition** was created using the **readFolds** function and is depicted by the white box in each fold (20% of the data in a fold).  The remaining non-validation data is considered the **training set** of each fold.  
+Each fold is represented as one of the 10 rows shown in the picture above.  Random indices for lines in the **blogs** corpus were selected using the **makeFolds** function to create each of the folds in the data.  Within each fold there are 2 partitions.  The **validation partition** was created using the **makeValidation** function and is depicted by the white box in each fold (10% of the data in a fold).  The remaining non-validation data is considered the **training set** of each fold.  
 
 Fold | Blogs Fold Partition | Blogs Training Set | Blogs Validation Set
 -----|---------------:|--------------:|--------------:
@@ -39,6 +39,11 @@ Fold | Blogs Fold Partition | Blogs Training Set | Blogs Validation Set
 3    | [fold_3blogs.txt](https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1) |  |  |  
 4    | [fold_4blogs.txt](https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1) |  |  |  
 5    | [fold_5blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) |  |  |  
+5    | [fold_6blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) |  |  |  
+5    | [fold_7blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) |  |  |  
+5    | [fold_8blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) |  |  |  
+5    | [fold_9blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) |  |  |  
+5    | [fold_10blogs.txt](https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1) |  |  |  
 
 #### Step 2 - Create the N-Gram Frequency Tables for Each Folds Training Set
 

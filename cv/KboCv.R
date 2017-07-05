@@ -290,7 +290,7 @@ trainFold <- function(gamma_grid, write_freq=100, fold=1,
 ## fold_indices_file_postfix - end of the output file name
 ## out_dir - directory to write the output files if write_folds == TRUE
 ## seed_value - seed value for random selects, set for reproducibility
-makeFolds <- function(indices_count, nfolds=5, write_folds=TRUE,
+makeFolds <- function(indices_count, nfolds=10, write_folds=TRUE,
                       fold_indices_file_prefix="fold_",
                       fold_indices_file_postfix="blogs",
                       fold_indices_file_ext=".txt",
