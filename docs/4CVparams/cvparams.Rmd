@@ -30,7 +30,7 @@ Note: Unless mentioned otherwise, all code referred to in this document is liste
 
 #### Step 1 - Make and Partition the Folds
 
-Each fold is represented as one of the 10 rows shown in the picture above.  Random indices for lines in the **blogs** corpus were selected using the **makeFolds** function to create each of the folds in the data.  Within each fold there are 2 partitions.  The **validation partition** was created using the **makeValidation** function and is depicted by the white box in each fold (10% of the data in a fold).  The remaining non-validation data is considered the **training set** of each fold.  
+Each fold is represented as one of the ten rows shown in the picture above.  Random indices for lines in the **blogs** corpus were selected using the **makeFolds** function to create each of the folds in the data.  Within each fold there are 2 partitions.  The **validation partition** was created using the **makeValidation** function and is depicted by the white box in each fold (10% of the data in a fold).  The remaining non-validation data is considered the **training set** of each fold.  
 
 Fold | Blogs Fold Partition | Blogs Training Set | Blogs Validation Set
 -----|---------------:|--------------:|--------------:
@@ -371,6 +371,18 @@ I'm kicking around doing a concurrent neural net model to achieve the same task.
 ### Appendix
 
 ```{r eval=FALSE}
+##
+makeValidFolds <- function(
+        fold_paths=c("https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1",
+                     "https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1",
+                     "https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1",
+                     "https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1",
+                     "https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1"),
+        corp_type='blogs', validFrac=0.2, seed_value=719) {
+    fold <- readFolds(fold_paths, corp_type)
+}
+
+
 ## Returns a list with nfolds items. Each list contains the indices for the 
 ## data in each fold. Indices are then written to files: one set of indices
 ## per fold.
@@ -444,8 +456,9 @@ if(!exists('fold_paths')) {
 }
 
 ## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
-## vector of ints that are indices assigned to a validation fold except for
-## the last item which is the total line count of all the folds
+## vector of ints that are the indices read from the files located at each location
+## specified in fold_paths, except for the last item which is the total line count
+## of all the folds
 ## fold_paths - a 5 x 3 data frame where each column is a corpus type:
 ##              "blogs", "news", or "twitter" and each row is a fold.
 ##              Each element is a url to a file which defines the indices

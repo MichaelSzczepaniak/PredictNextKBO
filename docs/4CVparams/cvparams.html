@@ -140,7 +140,7 @@ $(document).ready(function () {
 <p>Note: Unless mentioned otherwise, all code referred to in this document is listed in the <strong>Appendix</strong>.</p>
 <div id="step-1---make-and-partition-the-folds" class="section level4">
 <h4>Step 1 - Make and Partition the Folds</h4>
-<p>Each fold is represented as one of the 10 rows shown in the picture above. Random indices for lines in the <strong>blogs</strong> corpus were selected using the <strong>makeFolds</strong> function to create each of the folds in the data. Within each fold there are 2 partitions. The <strong>validation partition</strong> was created using the <strong>makeValidation</strong> function and is depicted by the white box in each fold (10% of the data in a fold). The remaining non-validation data is considered the <strong>training set</strong> of each fold.</p>
+<p>Each fold is represented as one of the ten rows shown in the picture above. Random indices for lines in the <strong>blogs</strong> corpus were selected using the <strong>makeFolds</strong> function to create each of the folds in the data. Within each fold there are 2 partitions. The <strong>validation partition</strong> was created using the <strong>makeValidation</strong> function and is depicted by the white box in each fold (10% of the data in a fold). The remaining non-validation data is considered the <strong>training set</strong> of each fold.</p>
 <table>
 <thead>
 <tr class="header">
@@ -748,7 +748,19 @@ c(pi_low, pi_high)</code></pre>
 </div>
 <div id="appendix" class="section level3">
 <h3>Appendix</h3>
-<pre class="r"><code>## Returns a list with nfolds items. Each list contains the indices for the 
+<pre class="r"><code>##
+makeValidFolds &lt;- function(
+        fold_paths=c(&quot;https://www.dropbox.com/s/fo7ybvw4h7de2e8/fold_1blogs.txt?dl=1&quot;,
+                     &quot;https://www.dropbox.com/s/ufnm970okjwqi7j/fold_2blogs.txt?dl=1&quot;,
+                     &quot;https://www.dropbox.com/s/lzbg2zuixhcwzev/fold_3blogs.txt?dl=1&quot;,
+                     &quot;https://www.dropbox.com/s/cxt7bmjd5qebhkr/fold_4blogs.txt?dl=1&quot;,
+                     &quot;https://www.dropbox.com/s/cl3ifhr5hjercuy/fold_5blogs.txt?dl=1&quot;),
+        corp_type='blogs', validFrac=0.2, seed_value=719) {
+    fold &lt;- readFolds(fold_paths, corp_type)
+}
+
+
+## Returns a list with nfolds items. Each list contains the indices for the 
 ## data in each fold. Indices are then written to files: one set of indices
 ## per fold.
 ## 
@@ -819,8 +831,9 @@ makeFolds &lt;- function(indices_count, nfolds=5, write_folds=TRUE,
 }
 
 ## Returns a list of length(fold_paths) + 1 items.  Each item in the list is a
-## vector of ints that are indices assigned to a validation fold except for
-## the last item which is the total line count of all the folds
+## vector of ints that are the indices read from the files located at each location
+## specified in fold_paths, except for the last item which is the total line count
+## of all the folds
 ## fold_paths - a 5 x 3 data frame where each column is a corpus type:
 ##              &quot;blogs&quot;, &quot;news&quot;, or &quot;twitter&quot; and each row is a fold.
 ##              Each element is a url to a file which defines the indices
