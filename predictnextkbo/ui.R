@@ -59,7 +59,7 @@ fluidPage(
                 
                 sliderInput("trigDiscount",
                             label = h4("Trigram Discount"),
-                            min = 0.1, max = 2.9, value = 1.5, step = 0.1),
+                            min = 0.1, max = 1.9, value = 1.5, step = 0.1),
                 
                 numericInput("histBars", label=h4("Probability Bars"), value=3,
                              width="150px"),
